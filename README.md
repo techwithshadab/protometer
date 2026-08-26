@@ -44,6 +44,16 @@ which model is active. Selection is env-driven (`AMLGUARD_UI_MODEL` forces a mod
 `AMLGUARD_LOCAL_MODEL` picks the fallback; hosted wins automatically when credentials exist) — see
 [ui/README.md](ui/README.md#running-live-chat-without-cloud-credentials).
 
+## Contents
+
+| | |
+|---|---|
+| **Results** | [The headline result](#the-headline-result) · [Capabilities across domains](#capabilities-measured-across-domains) |
+| **The system** | [Seven protected stages](#protection-across-seven-pipeline-stages) · [Domains & live serving](#beyond-aml-domains-and-live-serving) · [Demo UI](#demo-ui) |
+| **Measurements** | [The retrieval asymmetry](#the-retrieval-asymmetry) · [Hybrid triage](#hybrid-triage-the-classifier-ranks-the-model-reasons) · [The LLM utility curve](#on-the-llm-utility-curve) · [What it protects, and what it does not](#what-this-protects-and-what-it-does-not) · [The technique frontier](#the-protection-technique-frontier) |
+| **Engineering** | [Platform findings beyond the docs](#findings-not-documented-anywhere-in-the-protegrity-ecosystem) · [Design decisions](#design-decisions-and-why-this-shape) · [Verification culture](#verification-culture) · [Guardrails on ourselves](#guardrails-on-ourselves) · [Honest limitations](#honest-limitations) |
+| **Use it** | [Running it](#running-it) · [How this maps to the challenge](#how-this-maps-to-the-challenge) · [Repository layout](#repository-layout) |
+
 ## The headline result
 
 **You can run a real AML investigation copilot entirely on protected data, and we give you
@@ -127,6 +137,101 @@ The protection boundary is one thing; what it *buys the business* differs by dom
 - **One corpus, four techniques, measured.** Tokenization (marketer risk 0.0067 on left-clear metadata), k-anonymity (AP 0.4855), synthetic data (TSTR 0.799 — but the reference task is near chance (TRTR 0.1055 vs chance 0.0909), so read this as directional, not a precise utility figure), and differential privacy (measured). The choice is a number, backed by its own uncertainty, not a vibe.
 
 <!-- SUMMARY:END -->
+
+## Protection across seven pipeline stages
+
+![System architecture: plaintext sources flow through ingest-time protection across a trust boundary into the protected zone (ledger, training, vector index, retrieval, inference), then through the egress guard chain and the role gate to per-role presentation, over an assurance plane](docs/diagrams/architecture-overview.png)
+
+| Stage | What is protected | How Protegrity protects it |
+|---|---|---|
+| Ingestion | Entities discovered and tokenized; leak-verified | Data Discovery + Data Protection (protect) |
+| Training | Classifier fitted per scope on the *protected* ledger | Inherits tokenization: every feature reads Protegrity tokens |
+| Embedding | Vector index built over tokenized text; local | Inherits tokenization: the store never sees plaintext |
+| Retrieval | Returns token-bearing chunks only | Inherits tokenization: chunks carry tokens, not values |
+| Inference | Model reasons over tokens; prompt retained verbatim | Inherits tokenization: the prompt contains no real identifier |
+| **Egress** | **Every response scanned before a human sees it** | **Semantic Guardrail** |
+| Presentation | Role-gated re-identification, plaintext returns here only | Data Protection (unprotect) |
+
+The middle four stages make no Protegrity call, and that is the design, not a gap: data is
+tokenized once at the boundary, so everything downstream is protected by construction.
+Re-protecting inside training or embedding would be redundant work on already-tokenized
+data. Where Developer Edition has a per-stage capability, we use it (discovery and protect
+at ingestion, the guardrail at egress, unprotect at presentation, reprotect for key
+rotation); where it does not, protection is carried by the tokens themselves, which is
+exactly what "protected throughout" means.
+
+Using the guardrail well meant measuring where it fails and complementing it, not just
+mounting it: it rejects *correct* rationales for citing surrogate keys (we discount those by
+analysing the flagged spans themselves, failing closed on unparseable spans), and it
+approved, at score 0.0, a response naming a real corpus organization (caught by our
+forbidden-value check, which is what makes the guard load-bearing). Prompt-injection
+scanning is deliberately off: measured over five benign analyst queries and five injection
+attempts, the available processor scores them overlappingly and rejects all ten. We report the
+measurement rather than dressing it up as a control.
+
+## Beyond AML: domains and live serving
+
+The measurement is AML-specific; the protection boundary is not. Two seams make the same
+pipeline reusable:
+
+- **Domain config** ([`amlguard.domains`](src/amlguard/domains.py)). The domain-coupling
+  surface, schema field→entity map, Semantic-Guardrail prompt model, prompt set, and
+  high-sensitivity fields, is one `Domain` object selected by name. AML is the default and
+  reproduces the shipped behaviour exactly; `healthcare` and `customer-support` ship as
+  first-class alternatives. Adding a domain is data (a registry entry + three prompt files),
+  not a fork.
+- **Turn-based serving** ([`amlguard.serving`](src/amlguard/serving.py)). `ConversationSession`
+  composes the tested primitives, discover+tokenize inbound, reason over tokens, egress-scan,
+  role-gated re-identify, into one protected turn, so a **chatbot** reuses the measured
+  guarantees instead of reimplementing them. Because tokens are stable, a value tokenized by
+  one **agent** survives verbatim to the next and only the final role-gated presentation
+  re-identifies it, no middle agent holds plaintext. Each conversation is its own Langfuse
+  session. `python scripts/demo_serving.py --domain healthcare` runs it on fakes (no live
+  services); `--live` uses the real stack.
+
+Each domain has a demo that uses the Protegrity capability best suited to it:
+
+- **Healthcare, HIPAA de-identification** ([`scripts/healthcare_deidentify.py`](scripts/healthcare_deidentify.py)).
+  The Anonymization risk engine on a patient dataset, framed as the Privacy Rule's two
+  standards: Safe Harbor (remove/tokenize direct identifiers) and Expert Determination
+  (re-identification risk before vs after k-anonymization). Measured: marketer risk 0.96→0.47,
+  reported honestly including where k-anonymity stays 1 and more generalization would be needed.
+- **Customer-support, role-differentiated detokenization** ([`scripts/demo_support_gates.py`](scripts/demo_support_gates.py)).
+  The dual-gate pattern: the *same* protected reply detokenizes to a masked view for a support
+  agent and a full view for a supervisor (application-enforced, not Protegrity policy).
+- **Year-in-clear dates** (`quasi-yearclear` scope). A partial-protection variant that protects
+  dates with `datetime_yc` (year kept, month/day tokenized); measured to recover the small
+  date-tokenization utility cost while still hiding the exact date.
+
+The **protection-technique frontier** ([`scripts/compare_protection_methods.py`](scripts/compare_protection_methods.py))
+measures four Protegrity capabilities on one corpus: tokenization (all three re-identification
+risk models), k-anonymity generalization, synthetic data scored by **TSTR** (train-on-synthetic,
+test-on-real — reported as directional, since on this corpus the reference task sits near the
+chance floor, so the retention ratio is read as a direction, not a precise utility figure), and a
+differential-privacy point that is honestly reported as tier-gated in Developer Edition (the
+shareable-aggregate stage where DP belongs).
+
+## Demo UI
+
+A judge-facing web demo replays the verified batch run and runs the chatbot live, over the
+**same** protection primitives the pipeline uses, so a serving surface can never drift from the
+measured guarantees. One command, no `npm` build:
+
+    uvicorn ui.api.app:app --port 8600   # then open http://localhost:8600
+
+- **Global header:** Use case (Batch | Chatbot) · Domain (AML / healthcare / customer-support)
+  · Replay/Live toggle.
+- **Batch:** the architecture flow (`INGEST → TRAIN → EMBED → RETRIEVE → INFER → EGRESS →
+  PRESENT`) as a clickable stepper; each stage reveals the **real committed-artifact metrics**
+  (AP-vs-scope + SHAP/PR plots from MLflow, semantic-erasure recall, the LLM curve, hybrid
+  precision, ingest counts). A provenance header names the domain, corpus fingerprint, and model.
+- **Chatbot:** two tabs — *Conversation* (a live protected turn) and *Pipeline internals* (that
+  turn's boundary: inbound tokenised → what the model saw → egress scan → role-gated
+  re-identification), for any domain.
+
+The FastAPI seam (`ui/api/`) wraps existing library functions; Replay reads the committed
+artifacts and never mutates them. See [`ui/README.md`](ui/README.md) for the slice status
+(replay batch and live chatbot built; live-batch cost rails and polish are the remaining slices).
 
 ## The retrieval asymmetry
 
@@ -426,55 +531,6 @@ versioned in the UI, resolved by `managed_prompt` with a code-constant fallback)
 **governed by alias** — `models:/amlguard-<scope>@champion`, superseded versions archived, each
 tagged with its provenance — reconciled idempotently by `scripts/govern_models.py`.
 
-## How this maps to the challenge
-
-Judging criteria: *"technical clarity, AI pipeline realism, quality of data protection
-design, and effective use of Protegrity Developer Edition"*, with protection across **at
-least two** stages. One system addresses all three published tracks:
-
-| Track | Requirement (quoted) | Where this system answers it |
-|---|---|---|
-| **Primary: Secure AI Pipelines** | "protects it throughout ingestion, training, embedding, and inference" | All four named stages, measured; plus retrieval, egress, and presentation: seven total |
-| **Alt 1: Architect AI Without Exposure** | "sensitive data is never exposed in raw form, even during embedding, training, or inference" | The vector store never holds a plaintext identifier; the classifier trains on the protected ledger; the model reasons over tokens. The one deliberate exception (scope `none`, the measurement baseline) is documented as such |
-| **Alt 2: Protect Data in Use** | "protected during real-time processing, model interaction, and **user response generation**" | Response generation is guarded explicitly: every rationale passes the Semantic Guardrail scan plus a forbidden-value check before an analyst sees it |
-
-**Effective use of Developer Edition**: all five capabilities. Data Discovery, Data
-Protection (all four operations: protect, unprotect, reprotect, discovery), and Semantic
-Guardrail run the pipeline; Anonymization and Synthetic Data power the measured
-protection-technique frontier below, including the undocumented behaviours catalogued
-above.
-
-## Protection across seven pipeline stages
-
-![System architecture: plaintext sources flow through ingest-time protection across a trust boundary into the protected zone (ledger, training, vector index, retrieval, inference), then through the egress guard chain and the role gate to per-role presentation, over an assurance plane](docs/diagrams/architecture-overview.png)
-
-| Stage | What is protected | How Protegrity protects it |
-|---|---|---|
-| Ingestion | Entities discovered and tokenized; leak-verified | Data Discovery + Data Protection (protect) |
-| Training | Classifier fitted per scope on the *protected* ledger | Inherits tokenization: every feature reads Protegrity tokens |
-| Embedding | Vector index built over tokenized text; local | Inherits tokenization: the store never sees plaintext |
-| Retrieval | Returns token-bearing chunks only | Inherits tokenization: chunks carry tokens, not values |
-| Inference | Model reasons over tokens; prompt retained verbatim | Inherits tokenization: the prompt contains no real identifier |
-| **Egress** | **Every response scanned before a human sees it** | **Semantic Guardrail** |
-| Presentation | Role-gated re-identification, plaintext returns here only | Data Protection (unprotect) |
-
-The middle four stages make no Protegrity call, and that is the design, not a gap: data is
-tokenized once at the boundary, so everything downstream is protected by construction.
-Re-protecting inside training or embedding would be redundant work on already-tokenized
-data. Where Developer Edition has a per-stage capability, we use it (discovery and protect
-at ingestion, the guardrail at egress, unprotect at presentation, reprotect for key
-rotation); where it does not, protection is carried by the tokens themselves, which is
-exactly what "protected throughout" means.
-
-Using the guardrail well meant measuring where it fails and complementing it, not just
-mounting it: it rejects *correct* rationales for citing surrogate keys (we discount those by
-analysing the flagged spans themselves, failing closed on unparseable spans), and it
-approved, at score 0.0, a response naming a real corpus organization (caught by our
-forbidden-value check, which is what makes the guard load-bearing). Prompt-injection
-scanning is deliberately off: measured over five benign analyst queries and five injection
-attempts, the available processor scores them overlappingly and rejects all ten. We report the
-measurement rather than dressing it up as a control.
-
 ## Verification culture
 
 The recurring failure mode in measurement systems is that a broken harness produces a
@@ -490,6 +546,50 @@ into structural fixes and regression tests:
 - **Every decision and course-correction recorded** with its evidence, summarized throughout these docs.
   We would rather show a judge a corrected number with its correction than a flattering one
   without provenance.
+
+## Guardrails on ourselves
+
+Spend is capped hard (`AMLGUARD_MAX_SPEND_USD`, default $5), checked **before** each call
+using the request's actual prompt length, reserved under a process-wide ledger lock, and
+raises a distinct `SpendCapExceeded` that can never enter a fallback path. Responses are
+cached to disk, so re-running an unchanged evaluation costs nothing. The full eight-scope
+clean curve on Sonnet 5 cost **$2.71**, every call billed once and single-model verified.
+
+Runs where the model never answered are **excluded and reported** rather than plotted: a
+scope whose calls all failed still writes a result file full of zeros, which reads as a
+dramatic finding rather than an infrastructure failure.
+
+## Honest limitations
+
+- **The LLM utility curve is underpowered for small effects.** 57 checkpoints per scope
+  detect only a difference on the order of the observed discordance at 80% power (the MDE is
+  feasibility-capped); after Holm-Bonferroni correction across the six-comparison family,
+  every scope-to-scope comparison is inconclusive (the widest, `none` vs `all`, is raw
+  p=0.023 but corrected p*=0.158). The attributable effect lives in the trained-model curve.
+- **This controls identifier exposure, not inferential privacy.** Neighbourhood linkage
+  recovers 52.0% of parties from topology alone, and no protection scope changes that.
+  Published work finds commercial PII scrubbing still permits ~66% attribute inference
+  (Staab et al., ICLR 2025), consistent with what we measure.
+- **Every result is one corpus seed** (`seed=20260811`); there is no seed loop, so AP
+  differences between adjacent scopes carry no sampling distribution. The AMOUNT effect is
+  large enough to report; a 1-point gap between identity scopes is not.
+- **The illicit population is 10.2% of parties**, against well under 1% in real
+  institutional data. A deliberate trade so 122 typology instances are independently
+  scorable; it makes guilty-walk features more informative here than in production.
+- **Scope `none` deliberately sends clear (synthetic) identifiers to the hosted model.** It
+  is the baseline every curve point is measured against; a protection claim should name its
+  own exceptions. All PII in this corpus is generated (555-prefix phones, 9xx SSNs).
+- **Trade-based laundering is nearly invisible to the classifier: 25% recall at
+  threshold**, against funnel 68%, round-tripping 53%, layering 44%. TBML's defining
+  indicator (invoice value mismatch) cannot exist in a ledger-only corpus, so the
+  aggregate AP conceals the typology the model sees worst, and the per-typology
+  denominators are small enough that 25% is a handful of instances. Stated rather than
+  averaged away.
+- **The groundedness gate covers figures and party ids only.** A reversed payment direction
+  or a qualitative fabrication passes it; those classes are unguarded and named as such.
+- **The filing-clock urgency term saturates on this corpus** (all queue-head alerts are past
+  the 30-day mark by construction of the date range), so the shipped ordering is
+  evidence-driven; the clock becomes discriminative on a live feed.
 
 ## Running it
 
@@ -544,113 +644,23 @@ cd vendor/langfuse && docker compose up -d && cd ../..
 Models are declared in [`config/models.yaml`](config/models.yaml), twelve across Ollama,
 AWS Bedrock, Anthropic and OpenAI. Swapping is a `--model` flag; no code changes.
 
-## Beyond AML: domains and live serving
+## How this maps to the challenge
 
-The measurement is AML-specific; the protection boundary is not. Two seams make the same
-pipeline reusable:
+Judging criteria: *"technical clarity, AI pipeline realism, quality of data protection
+design, and effective use of Protegrity Developer Edition"*, with protection across **at
+least two** stages. One system addresses all three published tracks:
 
-- **Domain config** ([`amlguard.domains`](src/amlguard/domains.py)). The domain-coupling
-  surface, schema field→entity map, Semantic-Guardrail prompt model, prompt set, and
-  high-sensitivity fields, is one `Domain` object selected by name. AML is the default and
-  reproduces the shipped behaviour exactly; `healthcare` and `customer-support` ship as
-  first-class alternatives. Adding a domain is data (a registry entry + three prompt files),
-  not a fork.
-- **Turn-based serving** ([`amlguard.serving`](src/amlguard/serving.py)). `ConversationSession`
-  composes the tested primitives, discover+tokenize inbound, reason over tokens, egress-scan,
-  role-gated re-identify, into one protected turn, so a **chatbot** reuses the measured
-  guarantees instead of reimplementing them. Because tokens are stable, a value tokenized by
-  one **agent** survives verbatim to the next and only the final role-gated presentation
-  re-identifies it, no middle agent holds plaintext. Each conversation is its own Langfuse
-  session. `python scripts/demo_serving.py --domain healthcare` runs it on fakes (no live
-  services); `--live` uses the real stack.
+| Track | Requirement (quoted) | Where this system answers it |
+|---|---|---|
+| **Primary: Secure AI Pipelines** | "protects it throughout ingestion, training, embedding, and inference" | All four named stages, measured; plus retrieval, egress, and presentation: seven total |
+| **Alt 1: Architect AI Without Exposure** | "sensitive data is never exposed in raw form, even during embedding, training, or inference" | The vector store never holds a plaintext identifier; the classifier trains on the protected ledger; the model reasons over tokens. The one deliberate exception (scope `none`, the measurement baseline) is documented as such |
+| **Alt 2: Protect Data in Use** | "protected during real-time processing, model interaction, and **user response generation**" | Response generation is guarded explicitly: every rationale passes the Semantic Guardrail scan plus a forbidden-value check before an analyst sees it |
 
-Each domain has a demo that uses the Protegrity capability best suited to it:
-
-- **Healthcare, HIPAA de-identification** ([`scripts/healthcare_deidentify.py`](scripts/healthcare_deidentify.py)).
-  The Anonymization risk engine on a patient dataset, framed as the Privacy Rule's two
-  standards: Safe Harbor (remove/tokenize direct identifiers) and Expert Determination
-  (re-identification risk before vs after k-anonymization). Measured: marketer risk 0.96→0.47,
-  reported honestly including where k-anonymity stays 1 and more generalization would be needed.
-- **Customer-support, role-differentiated detokenization** ([`scripts/demo_support_gates.py`](scripts/demo_support_gates.py)).
-  The dual-gate pattern: the *same* protected reply detokenizes to a masked view for a support
-  agent and a full view for a supervisor (application-enforced, not Protegrity policy).
-- **Year-in-clear dates** (`quasi-yearclear` scope). A partial-protection variant that protects
-  dates with `datetime_yc` (year kept, month/day tokenized); measured to recover the small
-  date-tokenization utility cost while still hiding the exact date.
-
-The **protection-technique frontier** ([`scripts/compare_protection_methods.py`](scripts/compare_protection_methods.py))
-measures four Protegrity capabilities on one corpus: tokenization (all three re-identification
-risk models), k-anonymity generalization, synthetic data scored by **TSTR** (train-on-synthetic,
-test-on-real — reported as directional, since on this corpus the reference task sits near the
-chance floor, so the retention ratio is read as a direction, not a precise utility figure), and a
-differential-privacy point that is honestly reported as tier-gated in Developer Edition (the
-shareable-aggregate stage where DP belongs).
-
-## Demo UI
-
-A judge-facing web demo replays the verified batch run and runs the chatbot live, over the
-**same** protection primitives the pipeline uses, so a serving surface can never drift from the
-measured guarantees. One command, no `npm` build:
-
-    uvicorn ui.api.app:app --port 8600   # then open http://localhost:8600
-
-- **Global header:** Use case (Batch | Chatbot) · Domain (AML / healthcare / customer-support)
-  · Replay/Live toggle.
-- **Batch:** the architecture flow (`INGEST → TRAIN → EMBED → RETRIEVE → INFER → EGRESS →
-  PRESENT`) as a clickable stepper; each stage reveals the **real committed-artifact metrics**
-  (AP-vs-scope + SHAP/PR plots from MLflow, semantic-erasure recall, the LLM curve, hybrid
-  precision, ingest counts). A provenance header names the domain, corpus fingerprint, and model.
-- **Chatbot:** two tabs — *Conversation* (a live protected turn) and *Pipeline internals* (that
-  turn's boundary: inbound tokenised → what the model saw → egress scan → role-gated
-  re-identification), for any domain.
-
-The FastAPI seam (`ui/api/`) wraps existing library functions; Replay reads the committed
-artifacts and never mutates them. See [`ui/README.md`](ui/README.md) for the slice status
-(replay batch and live chatbot built; live-batch cost rails and polish are the remaining slices).
-
-## Guardrails on ourselves
-
-Spend is capped hard (`AMLGUARD_MAX_SPEND_USD`, default $5), checked **before** each call
-using the request's actual prompt length, reserved under a process-wide ledger lock, and
-raises a distinct `SpendCapExceeded` that can never enter a fallback path. Responses are
-cached to disk, so re-running an unchanged evaluation costs nothing. The full eight-scope
-clean curve on Sonnet 5 cost **$2.71**, every call billed once and single-model verified.
-
-Runs where the model never answered are **excluded and reported** rather than plotted: a
-scope whose calls all failed still writes a result file full of zeros, which reads as a
-dramatic finding rather than an infrastructure failure.
-
-## Honest limitations
-
-- **The LLM utility curve is underpowered for small effects.** 57 checkpoints per scope
-  detect only a difference on the order of the observed discordance at 80% power (the MDE is
-  feasibility-capped); after Holm-Bonferroni correction across the six-comparison family,
-  every scope-to-scope comparison is inconclusive (the widest, `none` vs `all`, is raw
-  p=0.023 but corrected p*=0.158). The attributable effect lives in the trained-model curve.
-- **This controls identifier exposure, not inferential privacy.** Neighbourhood linkage
-  recovers 52.0% of parties from topology alone, and no protection scope changes that.
-  Published work finds commercial PII scrubbing still permits ~66% attribute inference
-  (Staab et al., ICLR 2025), consistent with what we measure.
-- **Every result is one corpus seed** (`seed=20260811`); there is no seed loop, so AP
-  differences between adjacent scopes carry no sampling distribution. The AMOUNT effect is
-  large enough to report; a 1-point gap between identity scopes is not.
-- **The illicit population is 10.2% of parties**, against well under 1% in real
-  institutional data. A deliberate trade so 122 typology instances are independently
-  scorable; it makes guilty-walk features more informative here than in production.
-- **Scope `none` deliberately sends clear (synthetic) identifiers to the hosted model.** It
-  is the baseline every curve point is measured against; a protection claim should name its
-  own exceptions. All PII in this corpus is generated (555-prefix phones, 9xx SSNs).
-- **Trade-based laundering is nearly invisible to the classifier: 25% recall at
-  threshold**, against funnel 68%, round-tripping 53%, layering 44%. TBML's defining
-  indicator (invoice value mismatch) cannot exist in a ledger-only corpus, so the
-  aggregate AP conceals the typology the model sees worst, and the per-typology
-  denominators are small enough that 25% is a handful of instances. Stated rather than
-  averaged away.
-- **The groundedness gate covers figures and party ids only.** A reversed payment direction
-  or a qualitative fabrication passes it; those classes are unguarded and named as such.
-- **The filing-clock urgency term saturates on this corpus** (all queue-head alerts are past
-  the 30-day mark by construction of the date range), so the shipped ordering is
-  evidence-driven; the clock becomes discriminative on a live feed.
+**Effective use of Developer Edition**: all five capabilities. Data Discovery, Data
+Protection (all four operations: protect, unprotect, reprotect, discovery), and Semantic
+Guardrail run the pipeline; Anonymization and Synthetic Data power the measured
+protection-technique frontier below, including the undocumented behaviours catalogued
+above.
 
 ## Repository layout
 
