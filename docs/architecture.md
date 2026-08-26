@@ -16,6 +16,8 @@ independently checks that no in-scope identifier survives anywhere in the protec
 
 ## End-to-end architecture
 
+![System architecture overview: protect at ingestion, the protected pipeline, guarded delivery, and the assurance plane](diagrams/architecture-overview.png)
+
 ![AMLGuard end-to-end pipeline: seven protected stages between the trust boundaries, with observability and cross-cutting concerns](diagrams/architecture-pipeline.svg)
 
 <sub>Diagrams share one palette and a sync (solid) / async (dashed) arrow legend — see

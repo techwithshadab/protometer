@@ -24,6 +24,12 @@ whom) · **[docs/architecture.md](docs/architecture.md)** (how it's built).
 Full design: [docs/architecture.md](docs/architecture.md) · Generated results:
 [docs/results-aml.md](docs/results-aml.md)
 
+![Live assistant with the protection boundary panel: the inbound message tokenized, the model seeing tokens only, and a reply held at the egress gate](docs/img/ui-live-egress.jpg)
+
+<sub>The live assistant, captured from the running app: the user's message is tokenized inbound, the
+model sees tokens only, and this reply was **held at the egress gate** — the analyst sees a withheld
+notice, never the leak.</sub>
+
 **Try the demo UI** (`make docker-up` → http://localhost:8600): the app + its Postgres come up in one
 command, corpus auto-loaded, and Replay mode plus the healthcare/support views work with no cloud
 dependency. Live chat and paid batch stages additionally need the vendor Developer-Edition services
@@ -441,6 +447,8 @@ above.
 ## Protection across seven pipeline stages
 
 The challenge requires two.
+
+![System architecture: tokenized at the boundary, protected by construction inside — protect at ingestion, the protected pipeline, and guarded delivery, over an assurance plane](docs/diagrams/architecture-overview.png)
 
 | Stage | What is protected | How Protegrity protects it |
 |---|---|---|
