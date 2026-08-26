@@ -446,9 +446,7 @@ above.
 
 ## Protection across seven pipeline stages
 
-The challenge requires two.
-
-![System architecture: tokenized at the boundary, protected by construction inside — protect at ingestion, the protected pipeline, and guarded delivery, over an assurance plane](docs/diagrams/architecture-overview.png)
+![System architecture: plaintext sources flow through ingest-time protection across a trust boundary into the protected zone (ledger, training, vector index, retrieval, inference), then through the egress guard chain and the role gate to per-role presentation, over an assurance plane](docs/diagrams/architecture-overview.png)
 
 | Stage | What is protected | How Protegrity protects it |
 |---|---|---|
