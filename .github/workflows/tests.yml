@@ -1,0 +1,56 @@
+name: tests
+on:
+  push:
+  pull_request:
+jobs:
+  invariants:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12"]  # numpy 2.5 / shap 0.52 require >=3.12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - run: pip install -r requirements.txt ruff==0.16.3
+      - run: ruff check src scripts tests ui
+      - name: invariant tests
+        env:
+          AMLGUARD_NO_TRACKING: "1"
+          AMLGUARD_NO_TRACING: "1"
+        run: python -m pytest tests/ -q
+
+  docs-in-sync:
+    # Docs derive from the committed artifacts. This regenerates them and fails if
+    # the committed docs are stale, catching "artifact updated, docs not regenerated". It reads
+    # only JSON artifacts, no Protegrity services or hosted models are needed.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: regenerate derived docs from artifacts (only if artifacts are committed)
+        env:
+          PYTHON: python
+          AMLGUARD_NO_TRACKING: "1"
+          AMLGUARD_NO_TRACING: "1"
+        run: |
+          # The docs derive from committed eval artifacts. On a checkout without them (they may
+          # be absent on a fork or before a run is committed), skip regeneration rather than
+          # fail on spurious drift, there is nothing to be stale against.
+          if [ ! -f data/eval/training.json ]; then
+            echo "eval artifacts not committed; skipping docs-in-sync check"
+            exit 0
+          fi
+          make docs
+          if ! git diff --quiet -- README.md docs/results-aml.md data/eval/key_metrics.json; then
+            echo "::error::Derived docs are stale. Run 'make docs' and commit the result."
+            git --no-pager diff -- README.md docs/results-aml.md data/eval/key_metrics.json
+            exit 1
+          fi
+          echo "docs are in sync with the artifacts"

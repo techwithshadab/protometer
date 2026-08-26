@@ -1,0 +1,110 @@
+# AMLGuard application: the FastAPI+UI app, plus the app Postgres it depends on.
+#
+# Postgres is NOT redefined here: this file INCLUDES the single canonical definition in
+# docker/app/postgres/compose.yml (container `amlguard_postgres`, host port 5433) and only ADDS the app
+# service + the shared network. That way there is exactly one Postgres definition in the repo,
+# whether you start it from docker/app/postgres or from here — no duplicate `amlguard_postgres`
+# container-name clash.
+#
+# Standalone-usable (Replay + healthcare/support demos work with just the app + Postgres), and also
+# `include`d by compose.full.yml, which additionally starts the vendor Discovery/Guardrail/
+# Anonymization/Synthetic services on the same `protegrity-network`.
+#
+# Paths below are relative to THIS file (docker/app/ui/): the build context is the repo root
+# (../../..) because the Dockerfile copies src/, data/, etc.; the postgres stack is ../postgres/
+# and the observability stacks are ../../observability/<stack>/.
+#
+#   docker compose -f docker/app/ui/compose.yml up -d --build      (or: make docker-up)
+#   open http://localhost:8600
+
+# Fixed project name (independent of the compose file's directory), so container
+# names, the shared network, and `make docker-ps` stay stable.
+name: protegrity
+include:
+  # The one canonical app-Postgres definition (container amlguard_postgres, port 5433, schemas
+  # aml/healthcare/support). Reused verbatim so there is never a second, conflicting definition.
+  - ../postgres/compose.yml            # docker/app/postgres/
+
+networks:
+  # Same named bridge the vendor Developer-Edition composes use, so when the full stack is up the
+  # app can reach Discovery/Guardrail by container name. Declared identically everywhere it appears,
+  # so the definitions merge and the first service up creates it (no pre-step, no external:true).
+  protegrity-network:
+    name: ${DOCKER_NETWORK_NAME:-protegrity-network}
+
+services:
+  # The included Postgres, renamed path-style (app-postgres) and attached to the shared network so
+  # the app reaches it by that name and the full stack has everything co-networked. Same path-style
+  # convention as docker-compose.full.yml, so names are identical in standalone and full modes.
+  postgres:
+    container_name: app-postgres
+    networks:
+      protegrity-network:
+        aliases: [app-postgres]
+
+  amlguard_app:
+    build:
+      context: ../../..              # repo root: the Dockerfile copies src/, scripts/, ui/, data/
+      dockerfile: docker/app/ui/Dockerfile
+    image: amlguard-app:latest
+    container_name: app-ui
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # Load the repo-root .env so the credentials documented there (DEV_EDITION_*, AWS_*, etc.) reach
+    # the container. Compose only auto-loads a .env next to the compose file (here docker/app/ui/),
+    # not the repo root, so this makes the README's `cp .env.example .env` actually take effect. The
+    # file is optional: `required: false` means the stack still comes up (Replay mode, local model)
+    # when there is no .env. Values in `environment:` below still override the file where they overlap.
+    env_file:
+      - path: ../../../.env
+        required: false
+    environment:
+      # Reach the in-network services by their path-style NAME (not localhost — that is the app
+      # container itself). These override the app's localhost defaults (settings.py). In standalone
+      # mode only app-postgres is up; the vendor/observability names resolve once the full stack is.
+      AMLGUARD_POSTGRES_URL: postgresql://amlguard:amlguard@app-postgres:5432/amlguard
+      AMLGUARD_DISCOVERY_URL: http://vendor-de-classification:8050/pty/data-discovery/v2/classify/text
+      AMLGUARD_GUARDRAIL_URL: http://vendor-de-guardrail:8001/pty/semantic-guardrail/v1.1/conversations/messages/scan
+      AMLGUARD_ANONYMIZATION_URL: http://vendor-de-anon:8085/pty/anonymization/v3
+      AMLGUARD_SYNTHETIC_URL: http://vendor-de-synthetic:8000/pty/syntheticdata/v2
+      # Observability (optional; the app degrades gracefully if absent). In standalone mode MLflow
+      # is host-run (host.docker.internal); the full stack overrides this to observability-mlflow.
+      AMLGUARD_MLFLOW_URI: ${AMLGUARD_MLFLOW_URI:-http://host.docker.internal:5001}
+      # AWS region needs an in-container default (there is no ~/.aws in the image). The AWS
+      # CREDENTIALS themselves (AWS_ACCESS_KEY_ID / _SECRET_ACCESS_KEY / _SESSION_TOKEN) and the
+      # Protegrity DEV_EDITION_* credentials come from the env_file above — they are deliberately NOT
+      # repeated here, because an `environment:` entry (even one interpolating to an empty string)
+      # OVERRIDES the env_file, which would blank them out. Live chat + paid batch stages use the
+      # hosted model when these are present; with none, Replay mode works and live chat falls back to
+      # the local open-source model below.
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      # Marks that we're containerized, so settings.ollama_url() defaults to the HOST's Ollama
+      # (host.docker.internal) rather than the container's own localhost. NOT a URL, so it cannot
+      # clobber a user's OLLAMA_URL: an explicit OLLAMA_URL (from .env via the env_file above) always
+      # wins in code. Point it at the in-stack `ollama` service with OLLAMA_URL=http://ollama:11434.
+      # The model-choice vars (OLLAMA_URL, AMLGUARD_LOCAL_MODEL default llama3.2, AMLGUARD_HOSTED_MODEL,
+      # AMLGUARD_UI_MODEL, AMLGUARD_AUTO_PULL_MODEL) are deliberately NOT hardcoded here: their defaults
+      # live in the app (settings.py) and any override comes from the env_file, which an `environment:`
+      # entry would otherwise override.
+      AMLGUARD_IN_CONTAINER: "1"
+      # A live chat turn can be a real billed call; cap turns per process so an exposed port can't run
+      # up cost. 50 is only the fallback default: the interpolation reads AMLGUARD_UI_MAX_TURNS from the
+      # `--env-file .env` (make targets pass it), so setting it in .env raises/lowers the cap.
+      AMLGUARD_UI_MAX_TURNS: ${AMLGUARD_UI_MAX_TURNS:-50}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      # The MLflow store (backend db + artifact PNGs) is on the host, not baked into the image
+      # (it holds run artifacts, including model reasoning over clear narratives at scope `none`).
+      # Mount it READ-ONLY so /api/plot can serve the committed SHAP/PR/ROC plots the training run
+      # logged. Without this the plot endpoint 404s in the container (the store dir is empty).
+      # Host path is relative to this file (docker/app/ui/ → ../../observability/mlflow/store); the
+      # container target matches DEFAULT_TRACKING_DIR (docker/observability/mlflow/store).
+      - ../../observability/mlflow/store:/app/docker/observability/mlflow/store:ro
+    # Loopback-only on the host: this API bills LLM calls and re-identifies PII, no LAN exposure.
+    ports:
+      - "127.0.0.1:8600:8600"
+    networks:
+      - protegrity-network
+    restart: unless-stopped

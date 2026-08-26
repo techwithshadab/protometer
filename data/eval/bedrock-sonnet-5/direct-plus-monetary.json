@@ -1,0 +1,1527 @@
+{
+  "scope": "direct-plus-monetary",
+  "model": "bedrock/us.anthropic.claude-sonnet-5",
+  "mean_checkpoint_score": 0.8029,
+  "verifiable_score": 0.8085,
+  "task_completion_rate": 0.4706,
+  "stratum_scores": {
+    "aggregation": 0.875,
+    "identity": 0.8972,
+    "narrative": 0.7857,
+    "typology": 0.6667
+  },
+  "seconds": 51.3,
+  "models_used": [
+    "bedrock/us.anthropic.claude-sonnet-5"
+  ],
+  "egress": {
+    "discounted": 7,
+    "clean": 7,
+    "blocked": 3
+  },
+  "llm_stats": {
+    "calls": 31,
+    "billed_calls": 31,
+    "cache_hits": 0,
+    "input_tokens": 81416,
+    "output_tokens": 6736,
+    "total_cost_usd": 0.345288,
+    "total_seconds": 128.92,
+    "latency_p50": 3.54,
+    "latency_p90": 5.84,
+    "latency_p95": 12.35,
+    "latency_p99": 12.54,
+    "latency_max": 12.54
+  },
+  "tasks": [
+    {
+      "task_id": "T01-STR000",
+      "completed": true,
+      "mean_score": 1.0,
+      "error": "",
+      "model": "bedrock/us.anthropic.claude-sonnet-5",
+      "seconds": 8.89,
+      "checkpoints": [
+        {
+          "checkpoint_id": "STR000-typology",
+          "stratum": "typology",
+          "scoring": "exact",
+          "passed": true,
+          "score": 1.0,
+          "expected": "structuring",
+          "actual": "structuring",
+          "detail": ""
+        },
+        {
+          "checkpoint_id": "STR000-counterparties",
+          "stratum": "identity",
+          "scoring": "set",
+          "passed": true,
+          "score": 1.0,
+          "expected": "['P00571']",
+          "actual": "['P00571']",
+          "detail": "precision 1.00 recall 1.00"
+        },
+        {
+          "checkpoint_id": "STR000-total",
+          "stratum": "aggregation",
+          "scoring": "numeric",
+          "passed": true,
+          "score": 1.0,
+          "expected": "83472.0",
+          "actual": "83472",
+          "detail": "relative error 0.0000"
+        },
+        {
+          "checkpoint_id": "STR000-count",
+          "stratum": "aggregation",
+          "scoring": "numeric",
+          "passed": true,
+          "score": 1.0,
+          "expected": "9",
+          "actual": "9",
+          "detail": "relative error 0.0000"
+        },
+        {
+          "checkpoint_id": "STR000-reasoning",
+          "stratum": "narrative",
+          "scoring": "judge",
+          "passed": true,
+          "score": 1.0,
+          "expected": "structuring",
+          "actual": "P02463 made 9 cash/ATM deposits to P00571 between 2025-06-20 and 2025-07-07, each amount ($1,162\u2013$8,685) kept below the $10,000 CTR reporting threshold, cluster",
+          "detail": "Cites specific deposit count, amount range, threshold avoidance, and time window consistent with structuring."
+        }
+      ]
+    },
+    {
+      "task_id": "T02-LAY000",
+      "completed": true,
+      "mean_score": 1.0,
+      "error": "",
+      "model": "bedrock/us.anthropic.claude-sonnet-5",
+      "seconds": 11.67,
+      "checkpoints": [
+        {
+          "checkpoint_id": "LAY000-typology",
+          "stratum": "typology",
+          "scoring": "exact",
+          "passed": true,
+          "score": 1.0,
+          "expected": "layering",
+          "actual": "layering",
+          "detail": ""
+        },
+        {
+          "checkpoint_id": "LAY000-counterparties",
+          "stratum": "identity",
+          "scoring": "set",
+          "passed": true,
+          "score": 1.0,
+          "expected": "['P00258', 'P03490', 'P03974']",
+          "actual": "['P00258', 'P03490', 'P03974']",
+          "detail": "precision 1.00 recall 1.00"
+        },
+        {
+          "checkpoint_id": "LAY000-total",
+          "stratum": "aggregation",
+          "scoring": "numeric",
+          "passed": true,
+          "score": 1.0,
+          "expected": "128340.0",
+          "actual": "128340.00",
+          "detail": "relative error 0.0000"
+        },
+        {
+          "checkpoint_id": "LAY000-count",
+          "stratum": "aggregation",
+          "scoring": "numeric",
+          "passed": true,
+          "score": 1.0,
+          "expected": "3",
+          "actual": "3",
+          "detail": "relative error 0.0000"
+        },
+        {
+          "checkpoint_id": "LAY000-reasoning",
+          "stratum": "narrative",
+          "scoring": "judge",
+          "passed": true,
+          "score": 1.0,
+          "expected": "layering",
+          "actual": "P02317 originates a chain (P02317->P03490->P00258, plus related hop involving P03974) with amounts decreasing slightly at each hop, matching the detected layeri",
+          "detail": "Cites a specific multi-hop chain with slightly decreasing amounts across counterparties, consistent with layering eviden"
+        }
+      ]
+    },
+    {
+      "task_id": "T03-RTP000",
+      "completed": true,
+      "mean_score": 1.0,
+      "error": "",
+      "model": "bedrock/us.anthropic.claude-sonnet-5",
+      "seconds": 9.54,
+      "checkpoints": [
+        {
+          "checkpoint_id": "RTP000-typology",
+          "stratum": "typology",
+          "scoring": "exact",
+          "passed": true,
+          "score": 1.0,
+          "expected": "round_tripping",
+          "actual": "round_tripping",
+          "detail": ""
+        },
+        {
+          "checkpoint_id": "RTP000-counterparties",
+          "stratum": "identity",
+          "scoring": "set",
+          "passed": true,
+          "score": 1.0,
+          "expected": "['P01656', 'P02385', 'P02707']",
+          "actual": "['P01656', 'P02385', 'P02707']",
+          "detail": "precision 1.00 recall 1.00"
+        },
+        {
+          "checkpoint_id": "RTP000-total",
+          "stratum": "aggregation",
+          "scoring": "numeric",
+          "passed": true,
+          "score": 1.0,
+          "expected": "160550.0",
+          "actual": "160550.0",
+          "detail": "relative error 0.0000"
+        },
+        {
+          "checkpoint_id": "RTP000-count",
+          "stratum": "aggregation",
+          "scoring": "numeric",
+          "passed": true,
+          "score": 1.0,
+          "expected": "4",
+          "actual": "4",
+          "detail": "relative error 0.0000"
+        },
+        {
+          "checkpoint_id": "RTP000-reasoning",
+          "stratum": "narrative",
+          "scoring": "judge",
+          "passed": true,
+          "score": 1.0,
+          "expected": "round_tripping",
+          "actual": "Funds originate from P01746 (TXN002870 to P02385), pass through intermediaries P02707 and P01656, and return to P01746 (TXN003232), matching the detected round-",
+          "detail": "Cites specific transaction IDs, entities, and closed-loop counterparty structure consistent with round-tripping."
+        }
+      ]
+    },
+    {
+      "task_id": "T04-FUN000",
+      "completed": false,
+      "mean_score": 0.5818,
+      "error": "",
+      "model": "bedrock/us.anthropic.claude-sonnet-5",
+      "seconds": 10.57,
+      "checkpoints": [
+        {
+          "checkpoint_id": "FUN000-typology",
+          "stratum": "typology",
+          "scoring": "exact",
+          "passed": false,
+          "score": 0.0,
+          "expected": "funnel_account",
+          "actual": "structuring",
+          "detail": ""
+        },
+        {
+          "checkpoint_id": "FUN000-counterparties",
+          "stratum": "identity",
+          "scoring": "set",
+          "passed": false,
+          "score": 0.9091,
+          "expected": "['P00626', 'P00773', 'P01896', 'P02740', 'P02855', 'P03392']",
+          "actual": "['P00626', 'P01896', 'P02740', 'P02855', 'P03392']",
+          "detail": "precision 1.00 recall 0.83"
+        },
+        {
+          "checkpoint_id": "FUN000-total",
+          "stratum": "aggregation",
+          "scoring": "numeric",
+          "passed": false,
+          "score": 0.0,
+          "expected": "9559.0",
+          "actual": "69643",
+          "detail": "relative error 6.2856"
+        },
+        {
+          "checkpoint_id": "FUN000-count",
+          "stratum": "aggregation",
+          "scoring": "numeric",
+          "passed": true,
+          "score": 1.0,
+          "expected": "9",
+          "actual": "9",
+          "detail": "relative error 0.0000"
+        },
+        {
+          "checkpoint_id": "FUN000-reasoning",
+          "stratum": "narrative",
+          "scoring": "judge",
+          "passed": true,
+          "score": 1.0,
+          "expected": "funnel_account",
+          "actual": "P00249 received 8 sub-threshold cash/branch/ATM deposits from 5 separate depositors (P00626, P01896, P02740, P02855, P03392) clustered within days in April 2025",
+          "detail": "Cites specific evidence (8 sub-threshold deposits from 5 depositors, April 2025 clustering, below $10k threshold, rapid "
+        }
+      ]
+    },
+    {
+      "task_id": "T05-TBM000",
+      "completed": false,
+      "mean_score": 0.7714,
+      "error": "",
+      "model": "bedrock/us.anthropic.claude-sonnet-5",
+      "seconds": 13.93,
+      "checkpoints": [
+        {
+          "checkpoint_id": "TBM000-typology",
+          "stratum": "typology",
+          "scoring": "exact",
+          "passed": true,
+          "score": 1.0,
+          "expected": "trade_based",
+          "actual": "trade_based",
+          "detail": ""
+        },
+        {
+          "checkpoint_id": "TBM000-counterparties",
+          "stratum": "identity",
+          "scoring": "set",
+          "passed": false,
+          "score": 0.8571,
+          "expected": "['P00017', 'P00404', 'P03454', 'P03940']",
+          "actual": "['P00404', 'P03454', 'P03940']",
+          "detail": "precision 1.00 recall 0.75"
+        },
+        {
+          "checkpoint_id": "TBM000-total",
+          "stratum": "aggregation",
+          "scoring": "numeric",
+          "passed": false,
+          "score": 0.0,
+          "expected": "103000.0",
+          "actual": "261000",
+          "detail": "relative error 1.5340"
+        },
+        {
+          "checkpoint_id": "TBM000-count",
+          "stratum": "aggregation",
+          "scoring": "numeric",
+          "passed": true,
+          "score": 1.0,
+          "expected": "4",
+          "actual": "4",
+          "detail": "relative error 0.0000"
+        },
+        {
+          "checkpoint_id": "TBM000-reasoning",
+          "stratum": "narrative",
+          "scoring": "judge",
+          "passed": true,
+          "score": 1.0,
+          "expected": "trade_based",
+          "actual": "P00754 made four payments (TXN004265, TXN004398, TXN004871, TXN005077) all referencing the same invoice INV-30960 but settled to three different beneficiaries (",
+          "detail": "Cites specific transaction IDs, a shared invoice reference, and multiple mismatched beneficiaries as concrete evidence o"
+        }
+      ]
+    },
+    {
+      "task_id": "T06-STR001",
+      "completed": true,
+      "mean_score": 1.0,
+      "error": "",
+      "model": "bedrock/us.anthropic.claude-sonnet-5",
+      "seconds": 10.89,
+      "checkpoints": [
+        {
+          "checkpoint_id": "STR001-typology",
+          "stratum": "typology",
+          "scoring": "exact",
+          "passed": true,
+          "score": 1.0,
+          "expected": "structuring",
+          "actual": "structuring",
+          "detail": ""
+        },
+        {
+          "checkpoint_id": "STR001-counterparties",
+          "stratum": "identity",
+          "scoring": "set",
+          "passed": true,
+          "score": 1.0,
+          "expected": "['P01768']",
+          "actual": "['P01768']",
+          "detail": "precision 1.00 recall 1.00"
+        },
+        {
+          "checkpoint_id": "STR001-total",
+          "stratum": "aggregation",
+          "scoring": "numeric",
+          "passed": true,
+          "score": 1.0,
+          "expected": "83372.0",
+          "actual": "83372",
+          "detail": "relative error 0.0000"
+        },
+        {
+          "checkpoint_id": "STR001-count",
+          "stratum": "aggregation",
+          "scoring": "numeric",
+          "passed": true,
+          "score": 1.0,
+          "expected": "9",
+          "actual": "9",
+          "detail": "relative error 0.0000"
+        },
+        {
+          "checkpoint_id": "STR001-reasoning",
+          "stratum": "narrative",
+          "scoring": "judge",
+          "passed": true,
+          "score": 1.0,
+          "expected": "structuring",
+          "actual": "P03247 made 9 deposits (atm_deposit/cash_deposit/branch_deposit) to P01768, each individually below the $10,000 reporting threshold, clustered between 2025-04-2",
+          "detail": "Cites specific count of deposits, sub-threshold amounts, clustered timing, and consistent counterparty, directly evidenc"
+        }
+      ]
+    },
+    {
+      "task_id": "T07-LAY002",
+      "completed": true,
+      "mean_score": 1.0,
+      "error": "",
+      "model": "bedrock/us.anthropic.claude-sonnet-5",
+      "seconds": 7.78,
+      "checkpoints": [
+        {
+          "checkpoint_id": "LAY002-typology",
+          "stratum": "typology",
+          "scoring": "exact",
+          "passed": true,
+          "score": 1.0,
+          "expected": "layering",
+          "actual": "layering",
+          "detail": ""
+        },
+        {
+          "checkpoint_id": "LAY002-counterparties",
+          "stratum": "identity",
+          "scoring": "set",
+          "passed": true,
+          "score": 1.0,
+          "expected": "['P00697', 'P01065', 'P02254', 'P03933']",
+          "actual": "['P00697', 'P01065', 'P02254', 'P03933']",
+          "detail": "precision 1.00 recall 1.00"
+        },
+        {
+          "checkpoint_id": "LAY002-total",
+          "stratum": "aggregation",
+          "scoring": "numeric",
+          "passed": true,
+          "score": 1.0,
+          "expected": "166380.0",
+          "actual": "166380.00",
+          "detail": "relative error 0.0000"
+        },
+        {
+          "checkpoint_id": "LAY002-count",
+          "stratum": "aggregation",
+          "scoring": "numeric",
+          "passed": true,
+          "score": 1.0,
+          "expected": "4",
+          "actual": "4",
+          "detail": "relative error 0.0000"
+        },
+        {
+          "checkpoint_id": "LAY002-reasoning",
+          "stratum": "narrative",
+          "scoring": "judge",
+          "passed": true,
+          "score": 1.0,
+          "expected": "layering",
+          "actual": "P02586 receives a large sum via P03756 (contract milestone) then sends 976335.08 to P02254 as an 'intercompany loan', which chains onward through P03933 with am",
+          "detail": "Cites specific amounts, transaction IDs, chained counterparties, and shrinking amounts across hops as evidence of layeri"
+        }
+      ]
+    },
+    {
+      "task_id": "T08-RTP002",
+      "completed": true,
+      "mean_score": 1.0,
+      "error": "",
+      "model": "bedrock/us.anthropic.claude-sonnet-5",
+      "seconds": 8.19,
+      "checkpoints": [
+        {
+          "checkpoint_id": "RTP002-typology",
+          "stratum": "typology",
+          "scoring": "exact",
+          "passed": true,
+          "score": 1.0,
+          "expected": "round_tripping",
+          "actual": "round_tripping",
+          "detail": ""
+        },
+        {
+          "checkpoint_id": "RTP002-counterparties",
+          "stratum": "identity",
+          "scoring": "set",
+          "passed": true,
+          "score": 1.0,
+          "expected": "['P00795', 'P01419']",
+          "actual": "['P00795', 'P01419']",
+          "detail": "precision 1.00 recall 1.00"
+        },
+        {
+          "checkpoint_id": "RTP002-total",
+          "stratum": "aggregation",
+          "scoring": "numeric",
+          "passed": true,
+          "score": 1.0,
+          "expected": "100700.0",
+          "actual": "100700.00",
+          "detail": "relative error 0.0000"
+        },
+        {
+          "checkpoint_id": "RTP002-count",
+          "stratum": "aggregation",
+          "scoring": "numeric",
+          "passed": true,
+          "score": 1.0,
+          "expected": "3",
+          "actual": "3",
+          "detail": "relative error 0.0000"
+        },
+        {
+          "checkpoint_id": "RTP002-reasoning",
+          "stratum": "narrative",
+          "scoring": "judge",
+          "passed": true,
+          "score": 1.0,
+          "expected": "round_tripping",
+          "actual": "Funds originate from P01617 and pass through intermediaries P01419 and P00795 before returning to P01617 (TXN004999, TXN005177, TXN005354), forming a closed loo",
+          "detail": "Cites specific transaction IDs and a closed-loop originator-to-beneficiary path through named intermediaries, matching r"
+        }
+      ]
+    },
+    {
+      "task_id": "T09-STR000-entity",
+      "completed": true,
+      "mean_score": 1.0,
+      "error": "",
+      "model": "bedrock/us.anthropic.claude-sonnet-5",
+      "seconds": 3.78,
+      "checkpoints": [
+        {
+          "checkpoint_id": "STR000-distinct-cp",
+          "stratum": "identity",
+          "scoring": "numeric",
+          "passed": true,
+          "score": 1.0,
+          "expected": "2",
+          "actual": "2",
+          "detail": "relative error 0.0000"
+        },
+        {
+          "checkpoint_id": "STR000-top-cp",
+          "stratum": "identity",
+          "scoring": "exact",
+          "passed": true,
+          "score": 1.0,
+          "expected": "P00571",
+          "actual": "P00571",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "task_id": "T10-LAY000-entity",
+      "completed": false,
+      "mean_score": 0.5,
+      "error": "",
+      "model": "bedrock/us.anthropic.claude-sonnet-5",
+      "seconds": 7.08,
+      "checkpoints": [
+        {
+          "checkpoint_id": "LAY000-distinct-cp",
+          "stratum": "identity",
+          "scoring": "numeric",
+          "passed": true,
+          "score": 1.0,
+          "expected": "3",
+          "actual": "3",
+          "detail": "relative error 0.0000"
+        },
+        {
+          "checkpoint_id": "LAY000-top-cp",
+          "stratum": "identity",
+          "scoring": "exact",
+          "passed": false,
+          "score": 0.0,
+          "expected": "P03978",
+          "actual": "P03490",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "task_id": "T11-STR000-discriminate",
+      "completed": false,
+      "mean_score": 0.5,
+      "error": "",
+      "model": "bedrock/us.anthropic.claude-sonnet-5",
+      "seconds": 7.2,
+      "checkpoints": [
+        {
+          "checkpoint_id": "STR000-discriminate",
+          "stratum": "typology",
+          "scoring": "exact",
+          "passed": true,
+          "score": 1.0,
+          "expected": "structuring",
+          "actual": "structuring",
+          "detail": ""
+        },
+        {
+          "checkpoint_id": "STR000-grounding",
+          "stratum": "narrative",
+          "scoring": "judge",
+          "passed": false,
+          "score": 0.0,
+          "expected": "structuring",
+          "actual": "9 deposits, each below the $10,000 reporting threshold, totalling 83472",
+          "detail": "The quoted evidence is just transaction table statistics restating the structuring label, not case-note prose offering i"
+        }
+      ]
+    },
+    {
+      "task_id": "T12-LAY000-discriminate",
+      "completed": false,
+      "mean_score": 0.0,
+      "error": "",
+      "model": "bedrock/us.anthropic.claude-sonnet-5",
+      "seconds": 8.82,
+      "checkpoints": [
+        {
+          "checkpoint_id": "LAY000-discriminate",
+          "stratum": "typology",
+          "scoring": "exact",
+          "passed": false,
+          "score": 0.0,
+          "expected": "layering",
+          "actual": "trade_based",
+          "detail": ""
+        },
+        {
+          "checkpoint_id": "LAY000-grounding",
+          "stratum": "narrative",
+          "scoring": "judge",
+          "passed": false,
+          "score": 0.0,
+          "expected": "layering",
+          "actual": "Monitoring identified 3 round-value payments totalling $142,000.00 against a single invoice reference (INV-32433), settled partly to third parties unrelated to ",
+          "detail": "The evidence appears to be transaction/summary-derived data rather than a direct quote from case-note prose, and it mere"
+        }
+      ]
+    },
+    {
+      "task_id": "T13-RTP000-discriminate",
+      "completed": false,
+      "mean_score": 0.5,
+      "error": "",
+      "model": "bedrock/us.anthropic.claude-sonnet-5",
+      "seconds": 11.48,
+      "checkpoints": [
+        {
+          "checkpoint_id": "RTP000-discriminate",
+          "stratum": "typology",
+          "scoring": "exact",
+          "passed": true,
+          "score": 1.0,
+          "expected": "round_tripping",
+          "actual": "round_tripping",
+          "detail": ""
+        },
+        {
+          "checkpoint_id": "RTP000-grounding",
+          "stratum": "narrative",
+          "scoring": "judge",
+          "passed": false,
+          "score": 0.0,
+          "expected": "round_tripping",
+          "actual": "3 round-value payments totalling $142,000.00 against a single invoice reference (INV-32433), settled partly to third parties unrelated to the underlying trade",
+          "detail": "The reasoning appears to summarize structured transaction/invoice data rather than quoting case-note prose, and it doesn"
+        }
+      ]
+    },
+    {
+      "task_id": "T14-STR000-counterfactual",
+      "completed": false,
+      "mean_score": 0.5,
+      "error": "",
+      "model": "bedrock/us.anthropic.claude-sonnet-5",
+      "seconds": 22.12,
+      "checkpoints": [
+        {
+          "checkpoint_id": "STR000-counterfactual",
+          "stratum": "narrative",
+          "scoring": "judge",
+          "passed": true,
+          "score": 1.0,
+          "expected": "documented cash-intensive business with declared turnover matching the deposits",
+          "actual": "If P02463 is a legitimate small-business owner or agent for P00571 (e.g., a retail outlet, franchise, or cash-intensive business remitting daily takings to a pa",
+          "detail": "It specifies concrete exculpatory evidence (matching historical patterns, POS/sales logs, documented business relationsh"
+        },
+        {
+          "checkpoint_id": "STR000-next-step",
+          "stratum": "typology",
+          "scoring": "exact",
+          "passed": false,
+          "score": 0.0,
+          "expected": "escalate",
+          "actual": "request_information",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "task_id": "T15-LAY000-counterfactual",
+      "completed": false,
+      "mean_score": 0.5,
+      "error": "",
+      "model": "bedrock/us.anthropic.claude-sonnet-5",
+      "seconds": 25.82,
+      "checkpoints": [
+        {
+          "checkpoint_id": "LAY000-counterfactual",
+          "stratum": "narrative",
+          "scoring": "judge",
+          "passed": true,
+          "score": 1.0,
+          "expected": "genuine trade documentation for each hop showing goods actually moved",
+          "actual": "If P02317 and the counterparties P00258, P03490, and P03974 are legitimately related entities (e.g. subsidiaries, intercompany treasury units, or a group cash-p",
+          "detail": "It specifies concrete exculpatory evidence (matching invoices/contracts reconciling timing and amounts, proof of affilia"
+        },
+        {
+          "checkpoint_id": "LAY000-next-step",
+          "stratum": "typology",
+          "scoring": "exact",
+          "passed": false,
+          "score": 0.0,
+          "expected": "escalate",
+          "actual": "<missing>",
+          "detail": "answer has no key 'analytical_next_step'"
+        }
+      ]
+    },
+    {
+      "task_id": "T16-RTP000-counterfactual",
+      "completed": false,
+      "mean_score": 0.5,
+      "error": "",
+      "model": "bedrock/us.anthropic.claude-sonnet-5",
+      "seconds": 28.49,
+      "checkpoints": [
+        {
+          "checkpoint_id": "RTP000-counterfactual",
+          "stratum": "narrative",
+          "scoring": "judge",
+          "passed": true,
+          "score": 1.0,
+          "expected": "an intercompany loan agreement with a repayment schedule",
+          "actual": "The round-tripping and layering flagged for P01746 both involve memos referencing legitimate-looking trade and financing activity (e.g., 'freight charges', 'pay",
+          "detail": "It specifies concrete exculpatory evidence (matching contracts/invoices, ownership chart proving affiliation, loan repay"
+        },
+        {
+          "checkpoint_id": "RTP000-next-step",
+          "stratum": "typology",
+          "scoring": "exact",
+          "passed": false,
+          "score": 0.0,
+          "expected": "escalate",
+          "actual": "<missing>",
+          "detail": "answer has no key 'analytical_next_step'"
+        }
+      ]
+    },
+    {
+      "task_id": "T17-triage",
+      "completed": true,
+      "mean_score": 1.0,
+      "error": "",
+      "model": "bedrock/us.anthropic.claude-sonnet-5",
+      "seconds": 6.72,
+      "checkpoints": [
+        {
+          "checkpoint_id": "triage-precision-at-3",
+          "stratum": "typology",
+          "scoring": "ranked",
+          "passed": true,
+          "score": 1.0,
+          "expected": "['ALERT0003', 'ALERT0031']",
+          "actual": "['ALERT0003', 'ALERT0031', 'ALERT0291', 'ALERT0300', 'ALERT0245', 'ALERT0234', 'ALERT0286', 'ALERT0372', 'ALERT0128', 'ALERT0201', 'ALERT0375', 'ALERT0319']",
+          "detail": "2/2 in top 3"
+        }
+      ]
+    }
+  ],
+  "copy_baseline": {
+    "mean_checkpoint_score": 0.5222,
+    "tasks": [
+      {
+        "task_id": "T01-STR000",
+        "completed": false,
+        "mean_score": 0.8,
+        "error": "",
+        "model": "",
+        "seconds": 0.0,
+        "checkpoints": [
+          {
+            "checkpoint_id": "STR000-typology",
+            "stratum": "typology",
+            "scoring": "exact",
+            "passed": true,
+            "score": 1.0,
+            "expected": "structuring",
+            "actual": "structuring",
+            "detail": ""
+          },
+          {
+            "checkpoint_id": "STR000-counterparties",
+            "stratum": "identity",
+            "scoring": "set",
+            "passed": true,
+            "score": 1.0,
+            "expected": "['P00571']",
+            "actual": "['P00571']",
+            "detail": "precision 1.00 recall 1.00"
+          },
+          {
+            "checkpoint_id": "STR000-total",
+            "stratum": "aggregation",
+            "scoring": "numeric",
+            "passed": true,
+            "score": 1.0,
+            "expected": "83472.0",
+            "actual": "83472",
+            "detail": "relative error 0.0000"
+          },
+          {
+            "checkpoint_id": "STR000-count",
+            "stratum": "aggregation",
+            "scoring": "numeric",
+            "passed": true,
+            "score": 1.0,
+            "expected": "9",
+            "actual": "9",
+            "detail": "relative error 0.0000"
+          },
+          {
+            "checkpoint_id": "STR000-reasoning",
+            "stratum": "narrative",
+            "scoring": "judge",
+            "passed": false,
+            "score": 0.0,
+            "expected": "structuring",
+            "actual": "9 deposits, each below the $10,000 reporting threshold, totalling 83472",
+            "detail": "no judge configured"
+          }
+        ]
+      },
+      {
+        "task_id": "T02-LAY000",
+        "completed": false,
+        "mean_score": 0.8,
+        "error": "",
+        "model": "",
+        "seconds": 0.0,
+        "checkpoints": [
+          {
+            "checkpoint_id": "LAY000-typology",
+            "stratum": "typology",
+            "scoring": "exact",
+            "passed": true,
+            "score": 1.0,
+            "expected": "layering",
+            "actual": "layering",
+            "detail": ""
+          },
+          {
+            "checkpoint_id": "LAY000-counterparties",
+            "stratum": "identity",
+            "scoring": "set",
+            "passed": true,
+            "score": 1.0,
+            "expected": "['P00258', 'P03490', 'P03974']",
+            "actual": "['P00258', 'P03490', 'P03974']",
+            "detail": "precision 1.00 recall 1.00"
+          },
+          {
+            "checkpoint_id": "LAY000-total",
+            "stratum": "aggregation",
+            "scoring": "numeric",
+            "passed": true,
+            "score": 1.0,
+            "expected": "128340.0",
+            "actual": "128340.00",
+            "detail": "relative error 0.0000"
+          },
+          {
+            "checkpoint_id": "LAY000-count",
+            "stratum": "aggregation",
+            "scoring": "numeric",
+            "passed": true,
+            "score": 1.0,
+            "expected": "3",
+            "actual": "3",
+            "detail": "relative error 0.0000"
+          },
+          {
+            "checkpoint_id": "LAY000-reasoning",
+            "stratum": "narrative",
+            "scoring": "judge",
+            "passed": false,
+            "score": 0.0,
+            "expected": "layering",
+            "actual": "3 sequential transfers through 3 intermediaries",
+            "detail": "no judge configured"
+          }
+        ]
+      },
+      {
+        "task_id": "T03-RTP000",
+        "completed": false,
+        "mean_score": 0.8,
+        "error": "",
+        "model": "",
+        "seconds": 0.0,
+        "checkpoints": [
+          {
+            "checkpoint_id": "RTP000-typology",
+            "stratum": "typology",
+            "scoring": "exact",
+            "passed": true,
+            "score": 1.0,
+            "expected": "round_tripping",
+            "actual": "round_tripping",
+            "detail": ""
+          },
+          {
+            "checkpoint_id": "RTP000-counterparties",
+            "stratum": "identity",
+            "scoring": "set",
+            "passed": true,
+            "score": 1.0,
+            "expected": "['P01656', 'P02385', 'P02707']",
+            "actual": "['P01656', 'P02385', 'P02707']",
+            "detail": "precision 1.00 recall 1.00"
+          },
+          {
+            "checkpoint_id": "RTP000-total",
+            "stratum": "aggregation",
+            "scoring": "numeric",
+            "passed": true,
+            "score": 1.0,
+            "expected": "160550.0",
+            "actual": "160550.00",
+            "detail": "relative error 0.0000"
+          },
+          {
+            "checkpoint_id": "RTP000-count",
+            "stratum": "aggregation",
+            "scoring": "numeric",
+            "passed": true,
+            "score": 1.0,
+            "expected": "4",
+            "actual": "4",
+            "detail": "relative error 0.0000"
+          },
+          {
+            "checkpoint_id": "RTP000-reasoning",
+            "stratum": "narrative",
+            "scoring": "judge",
+            "passed": false,
+            "score": 0.0,
+            "expected": "round_tripping",
+            "actual": "4 sequential transfers through 3 intermediaries, returning to the subject",
+            "detail": "no judge configured"
+          }
+        ]
+      },
+      {
+        "task_id": "T04-FUN000",
+        "completed": false,
+        "mean_score": 0.5818,
+        "error": "",
+        "model": "",
+        "seconds": 0.0,
+        "checkpoints": [
+          {
+            "checkpoint_id": "FUN000-typology",
+            "stratum": "typology",
+            "scoring": "exact",
+            "passed": true,
+            "score": 1.0,
+            "expected": "funnel_account",
+            "actual": "funnel_account",
+            "detail": ""
+          },
+          {
+            "checkpoint_id": "FUN000-counterparties",
+            "stratum": "identity",
+            "scoring": "set",
+            "passed": false,
+            "score": 0.9091,
+            "expected": "['P00626', 'P00773', 'P01896', 'P02740', 'P02855', 'P03392']",
+            "actual": "['P00626', 'P01896', 'P02740', 'P02855', 'P03392']",
+            "detail": "precision 1.00 recall 0.83"
+          },
+          {
+            "checkpoint_id": "FUN000-total",
+            "stratum": "aggregation",
+            "scoring": "numeric",
+            "passed": false,
+            "score": 0.0,
+            "expected": "9559.0",
+            "actual": "69643",
+            "detail": "relative error 6.2856"
+          },
+          {
+            "checkpoint_id": "FUN000-count",
+            "stratum": "aggregation",
+            "scoring": "numeric",
+            "passed": true,
+            "score": 1.0,
+            "expected": "9",
+            "actual": "9",
+            "detail": "relative error 0.0000"
+          },
+          {
+            "checkpoint_id": "FUN000-reasoning",
+            "stratum": "narrative",
+            "scoring": "judge",
+            "passed": false,
+            "score": 0.0,
+            "expected": "funnel_account",
+            "actual": "8 sub-threshold deposits from 5 separate depositors totalling 69643, withdrawn within days",
+            "detail": "no judge configured"
+          }
+        ]
+      },
+      {
+        "task_id": "T05-TBM000",
+        "completed": false,
+        "mean_score": 0.5714,
+        "error": "",
+        "model": "",
+        "seconds": 0.0,
+        "checkpoints": [
+          {
+            "checkpoint_id": "TBM000-typology",
+            "stratum": "typology",
+            "scoring": "exact",
+            "passed": true,
+            "score": 1.0,
+            "expected": "trade_based",
+            "actual": "trade_based",
+            "detail": ""
+          },
+          {
+            "checkpoint_id": "TBM000-counterparties",
+            "stratum": "identity",
+            "scoring": "set",
+            "passed": false,
+            "score": 0.8571,
+            "expected": "['P00017', 'P00404', 'P03454', 'P03940']",
+            "actual": "['P00404', 'P03454', 'P03940']",
+            "detail": "precision 1.00 recall 0.75"
+          },
+          {
+            "checkpoint_id": "TBM000-total",
+            "stratum": "aggregation",
+            "scoring": "numeric",
+            "passed": false,
+            "score": 0.0,
+            "expected": "103000.0",
+            "actual": "261000",
+            "detail": "relative error 1.5340"
+          },
+          {
+            "checkpoint_id": "TBM000-count",
+            "stratum": "aggregation",
+            "scoring": "numeric",
+            "passed": true,
+            "score": 1.0,
+            "expected": "4",
+            "actual": "4",
+            "detail": "relative error 0.0000"
+          },
+          {
+            "checkpoint_id": "TBM000-reasoning",
+            "stratum": "narrative",
+            "scoring": "judge",
+            "passed": false,
+            "score": 0.0,
+            "expected": "trade_based",
+            "actual": "4 payments totalling 261000 against a single reference (payment INV-30960), settled to 3 different beneficiaries",
+            "detail": "no judge configured"
+          }
+        ]
+      },
+      {
+        "task_id": "T06-STR001",
+        "completed": false,
+        "mean_score": 0.8,
+        "error": "",
+        "model": "",
+        "seconds": 0.0,
+        "checkpoints": [
+          {
+            "checkpoint_id": "STR001-typology",
+            "stratum": "typology",
+            "scoring": "exact",
+            "passed": true,
+            "score": 1.0,
+            "expected": "structuring",
+            "actual": "structuring",
+            "detail": ""
+          },
+          {
+            "checkpoint_id": "STR001-counterparties",
+            "stratum": "identity",
+            "scoring": "set",
+            "passed": true,
+            "score": 1.0,
+            "expected": "['P01768']",
+            "actual": "['P01768']",
+            "detail": "precision 1.00 recall 1.00"
+          },
+          {
+            "checkpoint_id": "STR001-total",
+            "stratum": "aggregation",
+            "scoring": "numeric",
+            "passed": true,
+            "score": 1.0,
+            "expected": "83372.0",
+            "actual": "83372",
+            "detail": "relative error 0.0000"
+          },
+          {
+            "checkpoint_id": "STR001-count",
+            "stratum": "aggregation",
+            "scoring": "numeric",
+            "passed": true,
+            "score": 1.0,
+            "expected": "9",
+            "actual": "9",
+            "detail": "relative error 0.0000"
+          },
+          {
+            "checkpoint_id": "STR001-reasoning",
+            "stratum": "narrative",
+            "scoring": "judge",
+            "passed": false,
+            "score": 0.0,
+            "expected": "structuring",
+            "actual": "9 deposits, each below the $10,000 reporting threshold, totalling 83372",
+            "detail": "no judge configured"
+          }
+        ]
+      },
+      {
+        "task_id": "T07-LAY002",
+        "completed": false,
+        "mean_score": 0.8,
+        "error": "",
+        "model": "",
+        "seconds": 0.0,
+        "checkpoints": [
+          {
+            "checkpoint_id": "LAY002-typology",
+            "stratum": "typology",
+            "scoring": "exact",
+            "passed": true,
+            "score": 1.0,
+            "expected": "layering",
+            "actual": "layering",
+            "detail": ""
+          },
+          {
+            "checkpoint_id": "LAY002-counterparties",
+            "stratum": "identity",
+            "scoring": "set",
+            "passed": true,
+            "score": 1.0,
+            "expected": "['P00697', 'P01065', 'P02254', 'P03933']",
+            "actual": "['P00697', 'P01065', 'P02254', 'P03933']",
+            "detail": "precision 1.00 recall 1.00"
+          },
+          {
+            "checkpoint_id": "LAY002-total",
+            "stratum": "aggregation",
+            "scoring": "numeric",
+            "passed": true,
+            "score": 1.0,
+            "expected": "166380.0",
+            "actual": "166380.00",
+            "detail": "relative error 0.0000"
+          },
+          {
+            "checkpoint_id": "LAY002-count",
+            "stratum": "aggregation",
+            "scoring": "numeric",
+            "passed": true,
+            "score": 1.0,
+            "expected": "4",
+            "actual": "4",
+            "detail": "relative error 0.0000"
+          },
+          {
+            "checkpoint_id": "LAY002-reasoning",
+            "stratum": "narrative",
+            "scoring": "judge",
+            "passed": false,
+            "score": 0.0,
+            "expected": "layering",
+            "actual": "4 sequential transfers through 4 intermediaries",
+            "detail": "no judge configured"
+          }
+        ]
+      },
+      {
+        "task_id": "T08-RTP002",
+        "completed": false,
+        "mean_score": 0.8,
+        "error": "",
+        "model": "",
+        "seconds": 0.0,
+        "checkpoints": [
+          {
+            "checkpoint_id": "RTP002-typology",
+            "stratum": "typology",
+            "scoring": "exact",
+            "passed": true,
+            "score": 1.0,
+            "expected": "round_tripping",
+            "actual": "round_tripping",
+            "detail": ""
+          },
+          {
+            "checkpoint_id": "RTP002-counterparties",
+            "stratum": "identity",
+            "scoring": "set",
+            "passed": true,
+            "score": 1.0,
+            "expected": "['P00795', 'P01419']",
+            "actual": "['P00795', 'P01419']",
+            "detail": "precision 1.00 recall 1.00"
+          },
+          {
+            "checkpoint_id": "RTP002-total",
+            "stratum": "aggregation",
+            "scoring": "numeric",
+            "passed": true,
+            "score": 1.0,
+            "expected": "100700.0",
+            "actual": "100700.00",
+            "detail": "relative error 0.0000"
+          },
+          {
+            "checkpoint_id": "RTP002-count",
+            "stratum": "aggregation",
+            "scoring": "numeric",
+            "passed": true,
+            "score": 1.0,
+            "expected": "3",
+            "actual": "3",
+            "detail": "relative error 0.0000"
+          },
+          {
+            "checkpoint_id": "RTP002-reasoning",
+            "stratum": "narrative",
+            "scoring": "judge",
+            "passed": false,
+            "score": 0.0,
+            "expected": "round_tripping",
+            "actual": "3 sequential transfers through 2 intermediaries, returning to the subject",
+            "detail": "no judge configured"
+          }
+        ]
+      },
+      {
+        "task_id": "T09-STR000-entity",
+        "completed": false,
+        "mean_score": 0.0,
+        "error": "",
+        "model": "",
+        "seconds": 0.0,
+        "checkpoints": [
+          {
+            "checkpoint_id": "STR000-distinct-cp",
+            "stratum": "identity",
+            "scoring": "numeric",
+            "passed": false,
+            "score": 0.0,
+            "expected": "2",
+            "actual": "<missing>",
+            "detail": "answer has no key 'distinct_counterparties'"
+          },
+          {
+            "checkpoint_id": "STR000-top-cp",
+            "stratum": "identity",
+            "scoring": "exact",
+            "passed": false,
+            "score": 0.0,
+            "expected": "P00571",
+            "actual": "<missing>",
+            "detail": "answer has no key 'most_frequent_counterparty'"
+          }
+        ]
+      },
+      {
+        "task_id": "T10-LAY000-entity",
+        "completed": false,
+        "mean_score": 0.0,
+        "error": "",
+        "model": "",
+        "seconds": 0.0,
+        "checkpoints": [
+          {
+            "checkpoint_id": "LAY000-distinct-cp",
+            "stratum": "identity",
+            "scoring": "numeric",
+            "passed": false,
+            "score": 0.0,
+            "expected": "3",
+            "actual": "<missing>",
+            "detail": "answer has no key 'distinct_counterparties'"
+          },
+          {
+            "checkpoint_id": "LAY000-top-cp",
+            "stratum": "identity",
+            "scoring": "exact",
+            "passed": false,
+            "score": 0.0,
+            "expected": "P03978",
+            "actual": "<missing>",
+            "detail": "answer has no key 'most_frequent_counterparty'"
+          }
+        ]
+      },
+      {
+        "task_id": "T11-STR000-discriminate",
+        "completed": false,
+        "mean_score": 0.0,
+        "error": "",
+        "model": "",
+        "seconds": 0.0,
+        "checkpoints": [
+          {
+            "checkpoint_id": "STR000-discriminate",
+            "stratum": "typology",
+            "scoring": "exact",
+            "passed": false,
+            "score": 0.0,
+            "expected": "structuring",
+            "actual": "<missing>",
+            "detail": "answer has no key 'supported_typology'"
+          },
+          {
+            "checkpoint_id": "STR000-grounding",
+            "stratum": "narrative",
+            "scoring": "judge",
+            "passed": false,
+            "score": 0.0,
+            "expected": "structuring",
+            "actual": "<missing>",
+            "detail": "answer has no key 'evidence_quote'"
+          }
+        ]
+      },
+      {
+        "task_id": "T12-LAY000-discriminate",
+        "completed": false,
+        "mean_score": 0.0,
+        "error": "",
+        "model": "",
+        "seconds": 0.0,
+        "checkpoints": [
+          {
+            "checkpoint_id": "LAY000-discriminate",
+            "stratum": "typology",
+            "scoring": "exact",
+            "passed": false,
+            "score": 0.0,
+            "expected": "layering",
+            "actual": "<missing>",
+            "detail": "answer has no key 'supported_typology'"
+          },
+          {
+            "checkpoint_id": "LAY000-grounding",
+            "stratum": "narrative",
+            "scoring": "judge",
+            "passed": false,
+            "score": 0.0,
+            "expected": "layering",
+            "actual": "<missing>",
+            "detail": "answer has no key 'evidence_quote'"
+          }
+        ]
+      },
+      {
+        "task_id": "T13-RTP000-discriminate",
+        "completed": false,
+        "mean_score": 0.0,
+        "error": "",
+        "model": "",
+        "seconds": 0.0,
+        "checkpoints": [
+          {
+            "checkpoint_id": "RTP000-discriminate",
+            "stratum": "typology",
+            "scoring": "exact",
+            "passed": false,
+            "score": 0.0,
+            "expected": "round_tripping",
+            "actual": "<missing>",
+            "detail": "answer has no key 'supported_typology'"
+          },
+          {
+            "checkpoint_id": "RTP000-grounding",
+            "stratum": "narrative",
+            "scoring": "judge",
+            "passed": false,
+            "score": 0.0,
+            "expected": "round_tripping",
+            "actual": "<missing>",
+            "detail": "answer has no key 'evidence_quote'"
+          }
+        ]
+      },
+      {
+        "task_id": "T14-STR000-counterfactual",
+        "completed": false,
+        "mean_score": 0.0,
+        "error": "",
+        "model": "",
+        "seconds": 0.0,
+        "checkpoints": [
+          {
+            "checkpoint_id": "STR000-counterfactual",
+            "stratum": "narrative",
+            "scoring": "judge",
+            "passed": false,
+            "score": 0.0,
+            "expected": "documented cash-intensive business with declared turnover matching the deposits",
+            "actual": "<missing>",
+            "detail": "answer has no key 'exculpatory_evidence'"
+          },
+          {
+            "checkpoint_id": "STR000-next-step",
+            "stratum": "typology",
+            "scoring": "exact",
+            "passed": false,
+            "score": 0.0,
+            "expected": "escalate",
+            "actual": "<missing>",
+            "detail": "answer has no key 'analytical_next_step'"
+          }
+        ]
+      },
+      {
+        "task_id": "T15-LAY000-counterfactual",
+        "completed": false,
+        "mean_score": 0.0,
+        "error": "",
+        "model": "",
+        "seconds": 0.0,
+        "checkpoints": [
+          {
+            "checkpoint_id": "LAY000-counterfactual",
+            "stratum": "narrative",
+            "scoring": "judge",
+            "passed": false,
+            "score": 0.0,
+            "expected": "genuine trade documentation for each hop showing goods actually moved",
+            "actual": "<missing>",
+            "detail": "answer has no key 'exculpatory_evidence'"
+          },
+          {
+            "checkpoint_id": "LAY000-next-step",
+            "stratum": "typology",
+            "scoring": "exact",
+            "passed": false,
+            "score": 0.0,
+            "expected": "escalate",
+            "actual": "<missing>",
+            "detail": "answer has no key 'analytical_next_step'"
+          }
+        ]
+      },
+      {
+        "task_id": "T16-RTP000-counterfactual",
+        "completed": false,
+        "mean_score": 0.0,
+        "error": "",
+        "model": "",
+        "seconds": 0.0,
+        "checkpoints": [
+          {
+            "checkpoint_id": "RTP000-counterfactual",
+            "stratum": "narrative",
+            "scoring": "judge",
+            "passed": false,
+            "score": 0.0,
+            "expected": "an intercompany loan agreement with a repayment schedule",
+            "actual": "<missing>",
+            "detail": "answer has no key 'exculpatory_evidence'"
+          },
+          {
+            "checkpoint_id": "RTP000-next-step",
+            "stratum": "typology",
+            "scoring": "exact",
+            "passed": false,
+            "score": 0.0,
+            "expected": "escalate",
+            "actual": "<missing>",
+            "detail": "answer has no key 'analytical_next_step'"
+          }
+        ]
+      },
+      {
+        "task_id": "T17-triage",
+        "completed": false,
+        "mean_score": 0.0,
+        "error": "",
+        "model": "",
+        "seconds": 0.0,
+        "checkpoints": [
+          {
+            "checkpoint_id": "triage-precision-at-3",
+            "stratum": "typology",
+            "scoring": "ranked",
+            "passed": false,
+            "score": 0.0,
+            "expected": "['ALERT0003', 'ALERT0031']",
+            "actual": "<missing>",
+            "detail": "answer has no key 'ranked_alert_ids'"
+          }
+        ]
+      }
+    ]
+  },
+  "corpus_fingerprint": "36e2bee325e4",
+  "index_fingerprint": "dd57a75f6cd45047",
+  "run_id": "cf4f9b38fc66",
+  "detection_ledger": "clear"
+}

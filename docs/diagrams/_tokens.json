@@ -1,0 +1,19 @@
+{
+  "ink": "#1F2937",
+  "inkSoft": "#5A6784",
+  "page": "#FFFFFF",
+  "card": "#FFFFFF",
+  "hair": "#D8DEEC",
+  "accent": "#2F6FDB",
+  "accentSoft": "#DCE7FA",
+  "font": "'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif",
+  "bands": {
+    "green":  {"fill": "#EAF3EC", "head": "#3E9E6B", "border": "#CFE6D6"},
+    "purple": {"fill": "#EFEAF7", "head": "#7A5AB6", "border": "#DED3EF"},
+    "blue":   {"fill": "#E8F0FB", "head": "#3D74C9", "border": "#CFE0F5"},
+    "teal":   {"fill": "#E7F4F5", "head": "#2FB6C4", "border": "#C7E8EC"},
+    "amber":  {"fill": "#FBF3E2", "head": "#E0A43B", "border": "#F0E2C0"},
+    "red":    {"fill": "#FBECEC", "head": "#D25C5C", "border": "#F2D6D6"},
+    "slate":  {"fill": "#EEF1F6", "head": "#5A6784", "border": "#DBE1EC"}
+  }
+}

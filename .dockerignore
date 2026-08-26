@@ -1,0 +1,42 @@
+# Keep the build context small and the image clean. The app needs src/, scripts/, config/, ui/,
+# and the CLEAR corpus (data/corpus) + committed eval artifacts (data/eval) for Replay; it does
+# NOT need the venv, the vendored vendor-de images, node build trees, or the observability volumes.
+
+# Python / build
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+
+# Vendored Developer-Edition repo (runs as its own containers, never copied into the app image)
+vendor-de/
+
+# The docker/ dir holds compose files + config + the 39M MLflow store (mounted at runtime, never
+# baked into the image). Exclude it all, but RE-INCLUDE the entrypoint the Dockerfile copies.
+docker/
+!docker/entrypoint.sh
+deck/node_modules/
+node_modules/
+
+# The protected corpus is regenerated per scope on the host from the clear corpus; it is large and
+# the app does not serve the bulk of it. Exclude it, but RE-INCLUDE the small summary the Ingest
+# stage reveals (ingestion_summary.json) so the batch view's Ingest metrics render in-container.
+data/protected/
+!data/protected/ingestion_summary.json
+data/.amlguard.lock
+data/eval/_live/
+
+# Local env + secrets never bake into the image (passed at runtime as env)
+.env
+*.log
+
+# Git / editor / OS noise
+.git/
+.github/
+.DS_Store
+*.swp

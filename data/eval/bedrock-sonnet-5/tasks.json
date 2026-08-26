@@ -1,0 +1,594 @@
+[
+  {
+    "task_id": "T01-STR000",
+    "question": "Party P02463 has been flagged by transaction monitoring. Their full transaction history is provided, and most of it is ordinary business activity. Identify the SUSPICIOUS SUBSET of transactions that together form a single money-laundering pattern, and report on that subset ONLY.\n\nOrdinary activity, payroll, rent, supplier payments, insurance, utilities, subscriptions, is not part of the pattern and must be excluded from every figure you report.\n\nDETECTED CANDIDATE PATTERNS lists patterns found by deterministic rules, with exact figures. When a candidate matches your conclusion, copy its total_amount, transaction_count and counterparties EXACTLY rather than recomputing them from the ledger. Use the transaction network and case notes to decide WHICH candidate is correct and to explain why.\n\nLook for one of these patterns:\n- structuring: repeated cash or branch deposits by the same party, each just below a $10,000 reporting threshold, clustered in a short window\n- layering: a chain of transfers where the beneficiary of one transfer is the originator of the next, with the amount shrinking slightly at each hop\n- round_tripping: value that leaves this party and returns to it through intermediaries, so this party is both the first originator and final beneficiary",
+    "party_id": "P02463",
+    "typology_id": "STR000",
+    "checkpoints": [
+      {
+        "checkpoint_id": "STR000-typology",
+        "stratum": "typology",
+        "scoring": "exact",
+        "answer_key": "typology",
+        "expected": "structuring",
+        "description": "Correct laundering typology identified"
+      },
+      {
+        "checkpoint_id": "STR000-counterparties",
+        "stratum": "identity",
+        "scoring": "set",
+        "answer_key": "counterparties",
+        "expected": "['P00571']",
+        "description": "Counterparties in the pattern resolved correctly"
+      },
+      {
+        "checkpoint_id": "STR000-total",
+        "stratum": "aggregation",
+        "scoring": "numeric",
+        "answer_key": "total_amount",
+        "expected": "83472.0",
+        "description": "Total value moved through the pattern"
+      },
+      {
+        "checkpoint_id": "STR000-count",
+        "stratum": "aggregation",
+        "scoring": "numeric",
+        "answer_key": "transaction_count",
+        "expected": "9",
+        "description": "Number of transactions in the pattern"
+      },
+      {
+        "checkpoint_id": "STR000-reasoning",
+        "stratum": "narrative",
+        "scoring": "judge",
+        "answer_key": "reasoning",
+        "expected": "structuring",
+        "description": "Reasoning cites evidence consistent with the typology"
+      }
+    ]
+  },
+  {
+    "task_id": "T02-LAY000",
+    "question": "Party P02317 has been flagged by transaction monitoring. Their full transaction history is provided, and most of it is ordinary business activity. Identify the SUSPICIOUS SUBSET of transactions that together form a single money-laundering pattern, and report on that subset ONLY.\n\nOrdinary activity, payroll, rent, supplier payments, insurance, utilities, subscriptions, is not part of the pattern and must be excluded from every figure you report.\n\nDETECTED CANDIDATE PATTERNS lists patterns found by deterministic rules, with exact figures. When a candidate matches your conclusion, copy its total_amount, transaction_count and counterparties EXACTLY rather than recomputing them from the ledger. Use the transaction network and case notes to decide WHICH candidate is correct and to explain why.\n\nLook for one of these patterns:\n- structuring: repeated cash or branch deposits by the same party, each just below a $10,000 reporting threshold, clustered in a short window\n- layering: a chain of transfers where the beneficiary of one transfer is the originator of the next, with the amount shrinking slightly at each hop\n- round_tripping: value that leaves this party and returns to it through intermediaries, so this party is both the first originator and final beneficiary",
+    "party_id": "P02317",
+    "typology_id": "LAY000",
+    "checkpoints": [
+      {
+        "checkpoint_id": "LAY000-typology",
+        "stratum": "typology",
+        "scoring": "exact",
+        "answer_key": "typology",
+        "expected": "layering",
+        "description": "Correct laundering typology identified"
+      },
+      {
+        "checkpoint_id": "LAY000-counterparties",
+        "stratum": "identity",
+        "scoring": "set",
+        "answer_key": "counterparties",
+        "expected": "['P00258', 'P03490', 'P03974']",
+        "description": "Counterparties in the pattern resolved correctly"
+      },
+      {
+        "checkpoint_id": "LAY000-total",
+        "stratum": "aggregation",
+        "scoring": "numeric",
+        "answer_key": "total_amount",
+        "expected": "128340.0",
+        "description": "Total value moved through the pattern"
+      },
+      {
+        "checkpoint_id": "LAY000-count",
+        "stratum": "aggregation",
+        "scoring": "numeric",
+        "answer_key": "transaction_count",
+        "expected": "3",
+        "description": "Number of transactions in the pattern"
+      },
+      {
+        "checkpoint_id": "LAY000-reasoning",
+        "stratum": "narrative",
+        "scoring": "judge",
+        "answer_key": "reasoning",
+        "expected": "layering",
+        "description": "Reasoning cites evidence consistent with the typology"
+      }
+    ]
+  },
+  {
+    "task_id": "T03-RTP000",
+    "question": "Party P01746 has been flagged by transaction monitoring. Their full transaction history is provided, and most of it is ordinary business activity. Identify the SUSPICIOUS SUBSET of transactions that together form a single money-laundering pattern, and report on that subset ONLY.\n\nOrdinary activity, payroll, rent, supplier payments, insurance, utilities, subscriptions, is not part of the pattern and must be excluded from every figure you report.\n\nDETECTED CANDIDATE PATTERNS lists patterns found by deterministic rules, with exact figures. When a candidate matches your conclusion, copy its total_amount, transaction_count and counterparties EXACTLY rather than recomputing them from the ledger. Use the transaction network and case notes to decide WHICH candidate is correct and to explain why.\n\nLook for one of these patterns:\n- structuring: repeated cash or branch deposits by the same party, each just below a $10,000 reporting threshold, clustered in a short window\n- layering: a chain of transfers where the beneficiary of one transfer is the originator of the next, with the amount shrinking slightly at each hop\n- round_tripping: value that leaves this party and returns to it through intermediaries, so this party is both the first originator and final beneficiary",
+    "party_id": "P01746",
+    "typology_id": "RTP000",
+    "checkpoints": [
+      {
+        "checkpoint_id": "RTP000-typology",
+        "stratum": "typology",
+        "scoring": "exact",
+        "answer_key": "typology",
+        "expected": "round_tripping",
+        "description": "Correct laundering typology identified"
+      },
+      {
+        "checkpoint_id": "RTP000-counterparties",
+        "stratum": "identity",
+        "scoring": "set",
+        "answer_key": "counterparties",
+        "expected": "['P01656', 'P02385', 'P02707']",
+        "description": "Counterparties in the pattern resolved correctly"
+      },
+      {
+        "checkpoint_id": "RTP000-total",
+        "stratum": "aggregation",
+        "scoring": "numeric",
+        "answer_key": "total_amount",
+        "expected": "160550.0",
+        "description": "Total value moved through the pattern"
+      },
+      {
+        "checkpoint_id": "RTP000-count",
+        "stratum": "aggregation",
+        "scoring": "numeric",
+        "answer_key": "transaction_count",
+        "expected": "4",
+        "description": "Number of transactions in the pattern"
+      },
+      {
+        "checkpoint_id": "RTP000-reasoning",
+        "stratum": "narrative",
+        "scoring": "judge",
+        "answer_key": "reasoning",
+        "expected": "round_tripping",
+        "description": "Reasoning cites evidence consistent with the typology"
+      }
+    ]
+  },
+  {
+    "task_id": "T04-FUN000",
+    "question": "Party P00249 has been flagged by transaction monitoring. Their full transaction history is provided, and most of it is ordinary business activity. Identify the SUSPICIOUS SUBSET of transactions that together form a single money-laundering pattern, and report on that subset ONLY.\n\nOrdinary activity, payroll, rent, supplier payments, insurance, utilities, subscriptions, is not part of the pattern and must be excluded from every figure you report.\n\nDETECTED CANDIDATE PATTERNS lists patterns found by deterministic rules, with exact figures. When a candidate matches your conclusion, copy its total_amount, transaction_count and counterparties EXACTLY rather than recomputing them from the ledger. Use the transaction network and case notes to decide WHICH candidate is correct and to explain why.\n\nLook for one of these patterns:\n- structuring: repeated cash or branch deposits by the same party, each just below a $10,000 reporting threshold, clustered in a short window\n- layering: a chain of transfers where the beneficiary of one transfer is the originator of the next, with the amount shrinking slightly at each hop\n- round_tripping: value that leaves this party and returns to it through intermediaries, so this party is both the first originator and final beneficiary",
+    "party_id": "P00249",
+    "typology_id": "FUN000",
+    "checkpoints": [
+      {
+        "checkpoint_id": "FUN000-typology",
+        "stratum": "typology",
+        "scoring": "exact",
+        "answer_key": "typology",
+        "expected": "funnel_account",
+        "description": "Correct laundering typology identified"
+      },
+      {
+        "checkpoint_id": "FUN000-counterparties",
+        "stratum": "identity",
+        "scoring": "set",
+        "answer_key": "counterparties",
+        "expected": "['P00626', 'P00773', 'P01896', 'P02740', 'P02855', 'P03392']",
+        "description": "Counterparties in the pattern resolved correctly"
+      },
+      {
+        "checkpoint_id": "FUN000-total",
+        "stratum": "aggregation",
+        "scoring": "numeric",
+        "answer_key": "total_amount",
+        "expected": "9559.0",
+        "description": "Total value moved through the pattern"
+      },
+      {
+        "checkpoint_id": "FUN000-count",
+        "stratum": "aggregation",
+        "scoring": "numeric",
+        "answer_key": "transaction_count",
+        "expected": "9",
+        "description": "Number of transactions in the pattern"
+      },
+      {
+        "checkpoint_id": "FUN000-reasoning",
+        "stratum": "narrative",
+        "scoring": "judge",
+        "answer_key": "reasoning",
+        "expected": "funnel_account",
+        "description": "Reasoning cites evidence consistent with the typology"
+      }
+    ]
+  },
+  {
+    "task_id": "T05-TBM000",
+    "question": "Party P00754 has been flagged by transaction monitoring. Their full transaction history is provided, and most of it is ordinary business activity. Identify the SUSPICIOUS SUBSET of transactions that together form a single money-laundering pattern, and report on that subset ONLY.\n\nOrdinary activity, payroll, rent, supplier payments, insurance, utilities, subscriptions, is not part of the pattern and must be excluded from every figure you report.\n\nDETECTED CANDIDATE PATTERNS lists patterns found by deterministic rules, with exact figures. When a candidate matches your conclusion, copy its total_amount, transaction_count and counterparties EXACTLY rather than recomputing them from the ledger. Use the transaction network and case notes to decide WHICH candidate is correct and to explain why.\n\nLook for one of these patterns:\n- structuring: repeated cash or branch deposits by the same party, each just below a $10,000 reporting threshold, clustered in a short window\n- layering: a chain of transfers where the beneficiary of one transfer is the originator of the next, with the amount shrinking slightly at each hop\n- round_tripping: value that leaves this party and returns to it through intermediaries, so this party is both the first originator and final beneficiary",
+    "party_id": "P00754",
+    "typology_id": "TBM000",
+    "checkpoints": [
+      {
+        "checkpoint_id": "TBM000-typology",
+        "stratum": "typology",
+        "scoring": "exact",
+        "answer_key": "typology",
+        "expected": "trade_based",
+        "description": "Correct laundering typology identified"
+      },
+      {
+        "checkpoint_id": "TBM000-counterparties",
+        "stratum": "identity",
+        "scoring": "set",
+        "answer_key": "counterparties",
+        "expected": "['P00017', 'P00404', 'P03454', 'P03940']",
+        "description": "Counterparties in the pattern resolved correctly"
+      },
+      {
+        "checkpoint_id": "TBM000-total",
+        "stratum": "aggregation",
+        "scoring": "numeric",
+        "answer_key": "total_amount",
+        "expected": "103000.0",
+        "description": "Total value moved through the pattern"
+      },
+      {
+        "checkpoint_id": "TBM000-count",
+        "stratum": "aggregation",
+        "scoring": "numeric",
+        "answer_key": "transaction_count",
+        "expected": "4",
+        "description": "Number of transactions in the pattern"
+      },
+      {
+        "checkpoint_id": "TBM000-reasoning",
+        "stratum": "narrative",
+        "scoring": "judge",
+        "answer_key": "reasoning",
+        "expected": "trade_based",
+        "description": "Reasoning cites evidence consistent with the typology"
+      }
+    ]
+  },
+  {
+    "task_id": "T06-STR001",
+    "question": "Party P03247 has been flagged by transaction monitoring. Their full transaction history is provided, and most of it is ordinary business activity. Identify the SUSPICIOUS SUBSET of transactions that together form a single money-laundering pattern, and report on that subset ONLY.\n\nOrdinary activity, payroll, rent, supplier payments, insurance, utilities, subscriptions, is not part of the pattern and must be excluded from every figure you report.\n\nDETECTED CANDIDATE PATTERNS lists patterns found by deterministic rules, with exact figures. When a candidate matches your conclusion, copy its total_amount, transaction_count and counterparties EXACTLY rather than recomputing them from the ledger. Use the transaction network and case notes to decide WHICH candidate is correct and to explain why.\n\nLook for one of these patterns:\n- structuring: repeated cash or branch deposits by the same party, each just below a $10,000 reporting threshold, clustered in a short window\n- layering: a chain of transfers where the beneficiary of one transfer is the originator of the next, with the amount shrinking slightly at each hop\n- round_tripping: value that leaves this party and returns to it through intermediaries, so this party is both the first originator and final beneficiary",
+    "party_id": "P03247",
+    "typology_id": "STR001",
+    "checkpoints": [
+      {
+        "checkpoint_id": "STR001-typology",
+        "stratum": "typology",
+        "scoring": "exact",
+        "answer_key": "typology",
+        "expected": "structuring",
+        "description": "Correct laundering typology identified"
+      },
+      {
+        "checkpoint_id": "STR001-counterparties",
+        "stratum": "identity",
+        "scoring": "set",
+        "answer_key": "counterparties",
+        "expected": "['P01768']",
+        "description": "Counterparties in the pattern resolved correctly"
+      },
+      {
+        "checkpoint_id": "STR001-total",
+        "stratum": "aggregation",
+        "scoring": "numeric",
+        "answer_key": "total_amount",
+        "expected": "83372.0",
+        "description": "Total value moved through the pattern"
+      },
+      {
+        "checkpoint_id": "STR001-count",
+        "stratum": "aggregation",
+        "scoring": "numeric",
+        "answer_key": "transaction_count",
+        "expected": "9",
+        "description": "Number of transactions in the pattern"
+      },
+      {
+        "checkpoint_id": "STR001-reasoning",
+        "stratum": "narrative",
+        "scoring": "judge",
+        "answer_key": "reasoning",
+        "expected": "structuring",
+        "description": "Reasoning cites evidence consistent with the typology"
+      }
+    ]
+  },
+  {
+    "task_id": "T07-LAY002",
+    "question": "Party P02586 has been flagged by transaction monitoring. Their full transaction history is provided, and most of it is ordinary business activity. Identify the SUSPICIOUS SUBSET of transactions that together form a single money-laundering pattern, and report on that subset ONLY.\n\nOrdinary activity, payroll, rent, supplier payments, insurance, utilities, subscriptions, is not part of the pattern and must be excluded from every figure you report.\n\nDETECTED CANDIDATE PATTERNS lists patterns found by deterministic rules, with exact figures. When a candidate matches your conclusion, copy its total_amount, transaction_count and counterparties EXACTLY rather than recomputing them from the ledger. Use the transaction network and case notes to decide WHICH candidate is correct and to explain why.\n\nLook for one of these patterns:\n- structuring: repeated cash or branch deposits by the same party, each just below a $10,000 reporting threshold, clustered in a short window\n- layering: a chain of transfers where the beneficiary of one transfer is the originator of the next, with the amount shrinking slightly at each hop\n- round_tripping: value that leaves this party and returns to it through intermediaries, so this party is both the first originator and final beneficiary",
+    "party_id": "P02586",
+    "typology_id": "LAY002",
+    "checkpoints": [
+      {
+        "checkpoint_id": "LAY002-typology",
+        "stratum": "typology",
+        "scoring": "exact",
+        "answer_key": "typology",
+        "expected": "layering",
+        "description": "Correct laundering typology identified"
+      },
+      {
+        "checkpoint_id": "LAY002-counterparties",
+        "stratum": "identity",
+        "scoring": "set",
+        "answer_key": "counterparties",
+        "expected": "['P00697', 'P01065', 'P02254', 'P03933']",
+        "description": "Counterparties in the pattern resolved correctly"
+      },
+      {
+        "checkpoint_id": "LAY002-total",
+        "stratum": "aggregation",
+        "scoring": "numeric",
+        "answer_key": "total_amount",
+        "expected": "166380.0",
+        "description": "Total value moved through the pattern"
+      },
+      {
+        "checkpoint_id": "LAY002-count",
+        "stratum": "aggregation",
+        "scoring": "numeric",
+        "answer_key": "transaction_count",
+        "expected": "4",
+        "description": "Number of transactions in the pattern"
+      },
+      {
+        "checkpoint_id": "LAY002-reasoning",
+        "stratum": "narrative",
+        "scoring": "judge",
+        "answer_key": "reasoning",
+        "expected": "layering",
+        "description": "Reasoning cites evidence consistent with the typology"
+      }
+    ]
+  },
+  {
+    "task_id": "T08-RTP002",
+    "question": "Party P01617 has been flagged by transaction monitoring. Their full transaction history is provided, and most of it is ordinary business activity. Identify the SUSPICIOUS SUBSET of transactions that together form a single money-laundering pattern, and report on that subset ONLY.\n\nOrdinary activity, payroll, rent, supplier payments, insurance, utilities, subscriptions, is not part of the pattern and must be excluded from every figure you report.\n\nDETECTED CANDIDATE PATTERNS lists patterns found by deterministic rules, with exact figures. When a candidate matches your conclusion, copy its total_amount, transaction_count and counterparties EXACTLY rather than recomputing them from the ledger. Use the transaction network and case notes to decide WHICH candidate is correct and to explain why.\n\nLook for one of these patterns:\n- structuring: repeated cash or branch deposits by the same party, each just below a $10,000 reporting threshold, clustered in a short window\n- layering: a chain of transfers where the beneficiary of one transfer is the originator of the next, with the amount shrinking slightly at each hop\n- round_tripping: value that leaves this party and returns to it through intermediaries, so this party is both the first originator and final beneficiary",
+    "party_id": "P01617",
+    "typology_id": "RTP002",
+    "checkpoints": [
+      {
+        "checkpoint_id": "RTP002-typology",
+        "stratum": "typology",
+        "scoring": "exact",
+        "answer_key": "typology",
+        "expected": "round_tripping",
+        "description": "Correct laundering typology identified"
+      },
+      {
+        "checkpoint_id": "RTP002-counterparties",
+        "stratum": "identity",
+        "scoring": "set",
+        "answer_key": "counterparties",
+        "expected": "['P00795', 'P01419']",
+        "description": "Counterparties in the pattern resolved correctly"
+      },
+      {
+        "checkpoint_id": "RTP002-total",
+        "stratum": "aggregation",
+        "scoring": "numeric",
+        "answer_key": "total_amount",
+        "expected": "100700.0",
+        "description": "Total value moved through the pattern"
+      },
+      {
+        "checkpoint_id": "RTP002-count",
+        "stratum": "aggregation",
+        "scoring": "numeric",
+        "answer_key": "transaction_count",
+        "expected": "3",
+        "description": "Number of transactions in the pattern"
+      },
+      {
+        "checkpoint_id": "RTP002-reasoning",
+        "stratum": "narrative",
+        "scoring": "judge",
+        "answer_key": "reasoning",
+        "expected": "round_tripping",
+        "description": "Reasoning cites evidence consistent with the typology"
+      }
+    ]
+  },
+  {
+    "task_id": "T09-STR000-entity",
+    "question": "Consider ONLY transactions where party P02463 is itself the originator or the beneficiary. Ignore transactions between other parties.\n\nHow many distinct parties does P02463 transact with directly, and which single one appears in the most transactions with P02463?",
+    "party_id": "P02463",
+    "typology_id": "STR000",
+    "checkpoints": [
+      {
+        "checkpoint_id": "STR000-distinct-cp",
+        "stratum": "identity",
+        "scoring": "numeric",
+        "answer_key": "distinct_counterparties",
+        "expected": "2",
+        "description": "Distinct counterparty count"
+      },
+      {
+        "checkpoint_id": "STR000-top-cp",
+        "stratum": "identity",
+        "scoring": "exact",
+        "answer_key": "most_frequent_counterparty",
+        "expected": "P00571",
+        "description": "Most frequent counterparty resolved"
+      }
+    ]
+  },
+  {
+    "task_id": "T10-LAY000-entity",
+    "question": "Consider ONLY transactions where party P02317 is itself the originator or the beneficiary. Ignore transactions between other parties.\n\nHow many distinct parties does P02317 transact with directly, and which single one appears in the most transactions with P02317?",
+    "party_id": "P02317",
+    "typology_id": "LAY000",
+    "checkpoints": [
+      {
+        "checkpoint_id": "LAY000-distinct-cp",
+        "stratum": "identity",
+        "scoring": "numeric",
+        "answer_key": "distinct_counterparties",
+        "expected": "3",
+        "description": "Distinct counterparty count"
+      },
+      {
+        "checkpoint_id": "LAY000-top-cp",
+        "stratum": "identity",
+        "scoring": "exact",
+        "answer_key": "most_frequent_counterparty",
+        "expected": "P03978",
+        "description": "Most frequent counterparty resolved"
+      }
+    ]
+  },
+  {
+    "task_id": "T11-STR000-discriminate",
+    "question": "Transaction monitoring has surfaced SEVERAL candidate patterns for party P02463. They cannot all be correct, the detection rules fire on structural shape alone and do not read the case notes.\n\nYour job is to decide which candidate the NARRATIVE EVIDENCE actually supports, and to say why the others do not fit.\n\nDo not simply take the first or highest-ranked candidate. The ranking reflects chain length and transaction value, not evidential support. Read the case notes and let them decide.\n\nState which candidate the case notes corroborate, and identify one candidate the evidence contradicts.",
+    "party_id": "P02463",
+    "typology_id": "STR000",
+    "checkpoints": [
+      {
+        "checkpoint_id": "STR000-discriminate",
+        "stratum": "typology",
+        "scoring": "exact",
+        "answer_key": "supported_typology",
+        "expected": "structuring",
+        "description": "Correct candidate chosen against competing alternatives"
+      },
+      {
+        "checkpoint_id": "STR000-grounding",
+        "stratum": "narrative",
+        "scoring": "judge",
+        "answer_key": "evidence_quote",
+        "expected": "structuring",
+        "description": "Choice grounded in an actual phrase from the case notes"
+      }
+    ]
+  },
+  {
+    "task_id": "T12-LAY000-discriminate",
+    "question": "Transaction monitoring has surfaced SEVERAL candidate patterns for party P02317. They cannot all be correct, the detection rules fire on structural shape alone and do not read the case notes.\n\nYour job is to decide which candidate the NARRATIVE EVIDENCE actually supports, and to say why the others do not fit.\n\nDo not simply take the first or highest-ranked candidate. The ranking reflects chain length and transaction value, not evidential support. Read the case notes and let them decide.\n\nState which candidate the case notes corroborate, and identify one candidate the evidence contradicts.",
+    "party_id": "P02317",
+    "typology_id": "LAY000",
+    "checkpoints": [
+      {
+        "checkpoint_id": "LAY000-discriminate",
+        "stratum": "typology",
+        "scoring": "exact",
+        "answer_key": "supported_typology",
+        "expected": "layering",
+        "description": "Correct candidate chosen against competing alternatives"
+      },
+      {
+        "checkpoint_id": "LAY000-grounding",
+        "stratum": "narrative",
+        "scoring": "judge",
+        "answer_key": "evidence_quote",
+        "expected": "layering",
+        "description": "Choice grounded in an actual phrase from the case notes"
+      }
+    ]
+  },
+  {
+    "task_id": "T13-RTP000-discriminate",
+    "question": "Transaction monitoring has surfaced SEVERAL candidate patterns for party P01746. They cannot all be correct, the detection rules fire on structural shape alone and do not read the case notes.\n\nYour job is to decide which candidate the NARRATIVE EVIDENCE actually supports, and to say why the others do not fit.\n\nDo not simply take the first or highest-ranked candidate. The ranking reflects chain length and transaction value, not evidential support. Read the case notes and let them decide.\n\nState which candidate the case notes corroborate, and identify one candidate the evidence contradicts.",
+    "party_id": "P01746",
+    "typology_id": "RTP000",
+    "checkpoints": [
+      {
+        "checkpoint_id": "RTP000-discriminate",
+        "stratum": "typology",
+        "scoring": "exact",
+        "answer_key": "supported_typology",
+        "expected": "round_tripping",
+        "description": "Correct candidate chosen against competing alternatives"
+      },
+      {
+        "checkpoint_id": "RTP000-grounding",
+        "stratum": "narrative",
+        "scoring": "judge",
+        "answer_key": "evidence_quote",
+        "expected": "round_tripping",
+        "description": "Choice grounded in an actual phrase from the case notes"
+      }
+    ]
+  },
+  {
+    "task_id": "T14-STR000-counterfactual",
+    "question": "Party P02463 shows a pattern consistent with money laundering.\n\nBefore escalating, state what evidence would DISPROVE the suspicion, what a reviewer could find that would legitimately explain this activity and justify closing the alert.\n\nThen state which single piece of currently-available information most supports escalation, and what is missing from the file that a reviewer would need next.",
+    "party_id": "P02463",
+    "typology_id": "STR000",
+    "checkpoints": [
+      {
+        "checkpoint_id": "STR000-counterfactual",
+        "stratum": "narrative",
+        "scoring": "judge",
+        "answer_key": "exculpatory_evidence",
+        "expected": "documented cash-intensive business with declared turnover matching the deposits",
+        "description": "Identifies evidence that would legitimately explain the pattern"
+      },
+      {
+        "checkpoint_id": "STR000-next-step",
+        "stratum": "typology",
+        "scoring": "exact",
+        "answer_key": "analytical_next_step",
+        "expected": "escalate",
+        "description": "Reaches the correct analytical next step"
+      }
+    ]
+  },
+  {
+    "task_id": "T15-LAY000-counterfactual",
+    "question": "Party P02317 shows a pattern consistent with money laundering.\n\nBefore escalating, state what evidence would DISPROVE the suspicion, what a reviewer could find that would legitimately explain this activity and justify closing the alert.\n\nThen state which single piece of currently-available information most supports escalation, and what is missing from the file that a reviewer would need next.",
+    "party_id": "P02317",
+    "typology_id": "LAY000",
+    "checkpoints": [
+      {
+        "checkpoint_id": "LAY000-counterfactual",
+        "stratum": "narrative",
+        "scoring": "judge",
+        "answer_key": "exculpatory_evidence",
+        "expected": "genuine trade documentation for each hop showing goods actually moved",
+        "description": "Identifies evidence that would legitimately explain the pattern"
+      },
+      {
+        "checkpoint_id": "LAY000-next-step",
+        "stratum": "typology",
+        "scoring": "exact",
+        "answer_key": "analytical_next_step",
+        "expected": "escalate",
+        "description": "Reaches the correct analytical next step"
+      }
+    ]
+  },
+  {
+    "task_id": "T16-RTP000-counterfactual",
+    "question": "Party P01746 shows a pattern consistent with money laundering.\n\nBefore escalating, state what evidence would DISPROVE the suspicion, what a reviewer could find that would legitimately explain this activity and justify closing the alert.\n\nThen state which single piece of currently-available information most supports escalation, and what is missing from the file that a reviewer would need next.",
+    "party_id": "P01746",
+    "typology_id": "RTP000",
+    "checkpoints": [
+      {
+        "checkpoint_id": "RTP000-counterfactual",
+        "stratum": "narrative",
+        "scoring": "judge",
+        "answer_key": "exculpatory_evidence",
+        "expected": "an intercompany loan agreement with a repayment schedule",
+        "description": "Identifies evidence that would legitimately explain the pattern"
+      },
+      {
+        "checkpoint_id": "RTP000-next-step",
+        "stratum": "typology",
+        "scoring": "exact",
+        "answer_key": "analytical_next_step",
+        "expected": "escalate",
+        "description": "Reaches the correct analytical next step"
+      }
+    ]
+  },
+  {
+    "task_id": "T17-triage",
+    "question": "The following transaction-monitoring alerts are awaiting review.\n\n- ALERT0003 | subject P01204 | scenario STRUCTURING_THRESHOLD | score 94 | prior alerts on subject: 7 (same scenario: 4) | linked alerts: 2 | reason: Multiple deposits below reporting threshold\n- ALERT0031 | subject P01003 | scenario STRUCTURING_THRESHOLD | score 88 | prior alerts on subject: 4 (same scenario: 3) | linked alerts: 3 | reason: Multiple deposits below reporting threshold\n- ALERT0128 | subject P01447 | scenario CROSS_BORDER_VOLUME | score 36 | prior alerts on subject: 0 (same scenario: 0) | linked alerts: 0 | reason: Aggregate cross-border volume exceeds threshold\n- ALERT0201 | subject P00007 | scenario CROSS_BORDER_VOLUME | score 30 | prior alerts on subject: 0 (same scenario: 0) | linked alerts: 0 | reason: Aggregate cross-border volume exceeds threshold\n- ALERT0234 | subject P01055 | scenario PEP_ACTIVITY | score 33 | prior alerts on subject: 0 (same scenario: 0) | linked alerts: 0 | reason: Activity involving a politically exposed person\n- ALERT0245 | subject P03603 | scenario PEP_ACTIVITY | score 30 | prior alerts on subject: 0 (same scenario: 0) | linked alerts: 1 | reason: Activity involving a politically exposed person\n- ALERT0286 | subject P02916 | scenario PEP_ACTIVITY | score 30 | prior alerts on subject: 0 (same scenario: 0) | linked alerts: 0 | reason: Activity involving a politically exposed person\n- ALERT0291 | subject P01671 | scenario PEP_ACTIVITY | score 36 | prior alerts on subject: 0 (same scenario: 0) | linked alerts: 1 | reason: Activity involving a politically exposed person\n- ALERT0300 | subject P03659 | scenario CROSS_BORDER_VOLUME | score 30 | prior alerts on subject: 0 (same scenario: 0) | linked alerts: 1 | reason: Aggregate cross-border volume exceeds threshold\n- ALERT0319 | subject P02156 | scenario CROSS_BORDER_VOLUME | score 30 | prior alerts on subject: 0 (same scenario: 0) | linked alerts: 0 | reason: Aggregate cross-border volume exceeds threshold\n- ALERT0372 | subject P02561 | scenario PEP_ACTIVITY | score 30 | prior alerts on subject: 0 (same scenario: 0) | linked alerts: 0 | reason: Activity involving a politically exposed person\n- ALERT0375 | subject P02100 | scenario ROUND_AMOUNT | score 34 | prior alerts on subject: 0 (same scenario: 0) | linked alerts: 0 | reason: Repeated round-value transfers\n\nRank them by investigative priority, which should an analyst examine first. Do NOT recommend closing or suppressing any alert; every alert will be reviewed regardless. You are ordering a queue, not filtering it.\n\nWeigh the rule score, the subject's prior alert history (repeat alerting on one subject is a stronger signal than any single alert), how many alerts are linked to the same subject, and whether the scenario describes a pattern or a one-off event.",
+    "party_id": null,
+    "typology_id": null,
+    "checkpoints": [
+      {
+        "checkpoint_id": "triage-precision-at-3",
+        "stratum": "typology",
+        "scoring": "ranked",
+        "answer_key": "ranked_alert_ids",
+        "expected": "['ALERT0003', 'ALERT0031']",
+        "description": "Escalating alerts ranked in the top 3"
+      }
+    ]
+  }
+]

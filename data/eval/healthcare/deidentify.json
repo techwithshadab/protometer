@@ -1,0 +1,70 @@
+{
+  "domain": "healthcare",
+  "use_case": "deidentification",
+  "dataset": "vendor-de/anonymization/samples/python/sample-app-anonymization/datastore/patient_data.csv",
+  "safe_harbor": {
+    "standard": "HIPAA Safe Harbor (45 CFR 164.514(b)(2))",
+    "identifiers_present": {
+      "names": [
+        "name"
+      ],
+      "geographic_subdivisions_smaller_than_state": [
+        "zip_code",
+        "region"
+      ],
+      "dates_except_year": [
+        "diagnosis_date"
+      ],
+      "medical_record_or_beneficiary_numbers": [
+        "patient_id"
+      ]
+    },
+    "columns_removed": [
+      "name",
+      "patient_id",
+      "diagnosis_date"
+    ],
+    "name_handling": "Patient names tokenized",
+    "noop_names_redacted": 0,
+    "n_records": 500,
+    "note": "Direct identifiers removed; names never survive as cleartext (any value tokenization returns unchanged is caught and redacted). Quasi-identifiers (age/gender/zip/region/blood_type) remain and are addressed by Expert Determination."
+  },
+  "expert_determination": {
+    "standard": "HIPAA Expert Determination (45 CFR 164.514(b)(1))",
+    "quasi_identifiers": [
+      "age",
+      "gender",
+      "zip_code",
+      "region",
+      "blood_type"
+    ],
+    "sensitive_attribute": "disease",
+    "n_records": 500,
+    "before": {
+      "prosecutor_risk": 1.0,
+      "journalist_risk": 1.0,
+      "marketer_risk": 0.964,
+      "k_anonymity": 1,
+      "highest_risk_level": "very_high",
+      "equivalence_classes": 482,
+      "smallest_class_size": 1
+    },
+    "after": {
+      "prosecutor_risk": 1.0,
+      "journalist_risk": 1.0,
+      "marketer_risk": 0.4729,
+      "k_anonymity": 1,
+      "highest_risk_level": "very_high",
+      "equivalence_classes": 166,
+      "smallest_class_size": 1
+    },
+    "k_anonymization": {
+      "k": 5,
+      "information_loss": 0.3389255804451789,
+      "suppressed_count": 149,
+      "rows_out": 351
+    },
+    "expert_determination_met": false,
+    "expert_determination_framing": "Prosecutor (worst-case) risk did NOT drop to a small value (it is 1.0) and k-anonymity is 1 (<5), so Expert Determination is NOT met on this sample: more generalization/suppression or fewer quasi-identifiers would be required. The AVERAGE-case (marketer) risk did fall substantially, which is a real but weaker guarantee. Reported honestly rather than claiming a standard the numbers do not meet."
+  }
+}

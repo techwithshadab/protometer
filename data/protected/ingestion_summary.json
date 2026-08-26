@@ -1,0 +1,250 @@
+{
+  "status": "complete",
+  "error": "",
+  "scopes_completed": [
+    "none",
+    "direct",
+    "direct-plus-context",
+    "direct-plus-temporal",
+    "direct-plus-monetary",
+    "quasi",
+    "all",
+    "direct-nondeterministic"
+  ],
+  "total_failures": 282,
+  "total_noops": 0,
+  "reports": [
+    {
+      "scope": "none",
+      "parties": 4000,
+      "transactions": 6827,
+      "narratives": 752,
+      "entities_found": 0,
+      "entities_protected": 0,
+      "entities_skipped": {},
+      "entities_by_source": {},
+      "protection_failures": {},
+      "protection_noops": {},
+      "seconds": 0.1,
+      "seconds_in_discovery": 0.0,
+      "source_fingerprint": "36e2bee325e4",
+      "protection_stats": null
+    },
+    {
+      "scope": "direct",
+      "parties": 4000,
+      "transactions": 6827,
+      "narratives": 752,
+      "entities_found": 5403,
+      "entities_protected": 4962,
+      "entities_skipped": {},
+      "entities_by_source": {
+        "discovery": 4462,
+        "roster": 941
+      },
+      "protection_failures": {},
+      "protection_noops": {},
+      "seconds": 313.0,
+      "seconds_in_discovery": 2357.89,
+      "source_fingerprint": "36e2bee325e4",
+      "protection_stats": {
+        "api_calls": 121,
+        "values_protected": 23304,
+        "cache_hits": 2737,
+        "cache_hit_rate": 0.1051,
+        "retries": 0,
+        "seconds_in_api": 15.87,
+        "latency_p50": 0.101,
+        "latency_p90": 0.113,
+        "latency_p95": 0.127,
+        "latency_p99": 0.211
+      }
+    },
+    {
+      "scope": "direct-plus-context",
+      "parties": 4000,
+      "transactions": 6827,
+      "narratives": 752,
+      "entities_found": 5317,
+      "entities_protected": 4962,
+      "entities_skipped": {},
+      "entities_by_source": {
+        "discovery": 4462,
+        "roster": 855
+      },
+      "protection_failures": {},
+      "protection_noops": {},
+      "seconds": 329.4,
+      "seconds_in_discovery": 2285.86,
+      "source_fingerprint": "36e2bee325e4",
+      "protection_stats": {
+        "api_calls": 122,
+        "values_protected": 23354,
+        "cache_hits": 2675,
+        "cache_hit_rate": 0.1028,
+        "retries": 1,
+        "seconds_in_api": 11.38,
+        "latency_p50": 0.092,
+        "latency_p90": 0.109,
+        "latency_p95": 0.114,
+        "latency_p99": 0.212
+      }
+    },
+    {
+      "scope": "direct-plus-temporal",
+      "parties": 4000,
+      "transactions": 6827,
+      "narratives": 752,
+      "entities_found": 5230,
+      "entities_protected": 5084,
+      "entities_skipped": {},
+      "entities_by_source": {
+        "discovery": 4462,
+        "roster": 768
+      },
+      "protection_failures": {
+        "datetime": 94
+      },
+      "protection_noops": {},
+      "seconds": 311.7,
+      "seconds_in_discovery": 2310.72,
+      "source_fingerprint": "36e2bee325e4",
+      "protection_stats": {
+        "api_calls": 135,
+        "values_protected": 25661,
+        "cache_hits": 2731,
+        "cache_hit_rate": 0.0962,
+        "retries": 0,
+        "seconds_in_api": 20.33,
+        "latency_p50": 0.096,
+        "latency_p90": 0.108,
+        "latency_p95": 0.115,
+        "latency_p99": 0.143
+      }
+    },
+    {
+      "scope": "direct-plus-monetary",
+      "parties": 4000,
+      "transactions": 6827,
+      "narratives": 752,
+      "entities_found": 5316,
+      "entities_protected": 5107,
+      "entities_skipped": {},
+      "entities_by_source": {
+        "discovery": 4462,
+        "roster": 854
+      },
+      "protection_failures": {},
+      "protection_noops": {},
+      "seconds": 334.5,
+      "seconds_in_discovery": 2325.43,
+      "source_fingerprint": "36e2bee325e4",
+      "protection_stats": {
+        "api_calls": 154,
+        "values_protected": 29752,
+        "cache_hits": 2678,
+        "cache_hit_rate": 0.0826,
+        "retries": 1,
+        "seconds_in_api": 11.53,
+        "latency_p50": 0.073,
+        "latency_p90": 0.083,
+        "latency_p95": 0.086,
+        "latency_p99": 0.124
+      }
+    },
+    {
+      "scope": "quasi",
+      "parties": 4000,
+      "transactions": 6827,
+      "narratives": 752,
+      "entities_found": 5229,
+      "entities_protected": 5229,
+      "entities_skipped": {},
+      "entities_by_source": {
+        "discovery": 4462,
+        "roster": 767
+      },
+      "protection_failures": {
+        "datetime": 94
+      },
+      "protection_noops": {},
+      "seconds": 365.4,
+      "seconds_in_discovery": 2566.18,
+      "source_fingerprint": "36e2bee325e4",
+      "protection_stats": {
+        "api_calls": 167,
+        "values_protected": 32059,
+        "cache_hits": 2734,
+        "cache_hit_rate": 0.0786,
+        "retries": 1,
+        "seconds_in_api": 41.57,
+        "latency_p50": 0.074,
+        "latency_p90": 0.11,
+        "latency_p95": 0.122,
+        "latency_p99": 0.461
+      }
+    },
+    {
+      "scope": "all",
+      "parties": 4000,
+      "transactions": 6827,
+      "narratives": 752,
+      "entities_found": 5229,
+      "entities_protected": 5229,
+      "entities_skipped": {},
+      "entities_by_source": {
+        "discovery": 4462,
+        "roster": 767
+      },
+      "protection_failures": {
+        "datetime": 94
+      },
+      "protection_noops": {},
+      "seconds": 759.4,
+      "seconds_in_discovery": 2262.35,
+      "source_fingerprint": "36e2bee325e4",
+      "protection_stats": {
+        "api_calls": 167,
+        "values_protected": 32059,
+        "cache_hits": 2734,
+        "cache_hit_rate": 0.0786,
+        "retries": 4,
+        "seconds_in_api": 24.15,
+        "latency_p50": 0.086,
+        "latency_p90": 0.145,
+        "latency_p95": 0.174,
+        "latency_p99": 0.242
+      }
+    },
+    {
+      "scope": "direct-nondeterministic",
+      "parties": 4000,
+      "transactions": 6827,
+      "narratives": 752,
+      "entities_found": 5403,
+      "entities_protected": 4962,
+      "entities_skipped": {},
+      "entities_by_source": {
+        "discovery": 4462,
+        "roster": 941
+      },
+      "protection_failures": {},
+      "protection_noops": {},
+      "seconds": 917.2,
+      "seconds_in_discovery": 1606.55,
+      "source_fingerprint": "36e2bee325e4",
+      "protection_stats": {
+        "api_calls": 804,
+        "values_protected": 37676,
+        "cache_hits": 0,
+        "cache_hit_rate": 0.0,
+        "retries": 4,
+        "seconds_in_api": 61.28,
+        "latency_p50": 0.071,
+        "latency_p90": 0.083,
+        "latency_p95": 0.108,
+        "latency_p99": 0.157
+      }
+    }
+  ]
+}

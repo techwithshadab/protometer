@@ -1,0 +1,32 @@
+# AMLGuard application Postgres: a queryable data layer for the corpus (per-domain schemas) and
+# the MLflow backend store. Separate from the two Postgres instances the stack already runs
+# (pty-anon-postgres, langfuse-postgres) so nothing collides. Host port 5433 to avoid a clash with
+# a local 5432. Loopback-bound like every other sidecar.
+#
+#   cd docker/app/postgres && docker compose up -d
+#
+# The corpus files under data/corpus stay the source of truth (reproducibility + fingerprinting);
+# this DB is a queryable mirror loaded by scripts/load_corpus_db.py, plus MLflow's backend store.
+services:
+  postgres:
+    image: postgres:17
+    container_name: amlguard_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: amlguard
+      POSTGRES_PASSWORD: amlguard
+      POSTGRES_DB: amlguard
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - amlguard_pg_data:/var/lib/postgresql/data
+      # Schema bootstrap runs once, on an empty data dir.
+      - ./init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U amlguard -d amlguard"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  amlguard_pg_data:

@@ -1,0 +1,60 @@
+{
+  "metadata_risk": {
+    "quasi_identifiers": [
+      "jurisdiction",
+      "party_type",
+      "risk_rating",
+      "is_pep"
+    ],
+    "n_records": 4000,
+    "k_anonymity": 2,
+    "highest_risk_level": "high",
+    "prosecutor_risk": 0.5,
+    "journalist_risk": 0.5,
+    "marketer_risk": 0.0067,
+    "equivalence_classes": 27
+  },
+  "generalized_amounts": {
+    "method": "k-anonymity interval generalization (k=5), midpoint-encoded",
+    "average_precision": 0.4855,
+    "roc_auc": 0.721,
+    "tokenized_amount_ap": 0.4505,
+    "clear_ap": 0.4735,
+    "vendor_metrics": {
+      "information_loss": 0.38988093516475725,
+      "suppressed_count": 15
+    }
+  },
+  "synthetic_ledger": {
+    "rows": 6827,
+    "identity_linkage": "none by construction: no real identifier is emitted",
+    "amount_mean": {
+      "real": 29820.77,
+      "synthetic": 29939.6
+    },
+    "amount_p50": {
+      "real": 9243.0,
+      "synthetic": 9175.25
+    },
+    "amount_p95": {
+      "real": 144064.87,
+      "synthetic": 144280.22
+    },
+    "channel_l1_distance": 0.0354,
+    "vendor_evaluate": {
+      "mutual_information": 0.005057684479951839,
+      "tstr_score": null,
+      "trtr_score": null,
+      "rare_population": null
+    },
+    "tstr": {
+      "task": "predict channel from amount (macro-F1 on a held-out real test set)",
+      "train_real_test_real": 0.1055,
+      "train_synth_test_real": 0.0843,
+      "utility_retained": 0.799,
+      "chance_macro_f1": 0.0909,
+      "reference_above_chance": false,
+      "note": "reference task is only marginally above chance, so the retention ratio is weak evidence, read TSTR/TRTR as directional, not precise"
+    }
+  }
+}

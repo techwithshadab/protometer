@@ -1,0 +1,53 @@
+vendor-de/
+vendor-sdk/
+.venv/
+.env
+__pycache__/
+*.pyc
+data/cache/
+.chroma/
+data/index/
+# All protected-corpus files stay local EXCEPT the ingestion summary: pure counts/latency/
+# fingerprints (no values, no PII), and the UI's Replay Ingest stage reads it on a fresh clone.
+data/protected/*
+!data/protected/ingestion_summary.json
+*.log
+
+# Telemetry and response caches — never committed.
+#
+# The result JSONs in data/eval/ ARE committable: they are what docs/results.md verifies
+# against, and they carry no clear identifiers (prompts are deliberately not serialized into
+# eval results; hybrid provenance prompts contain only protected values at protecting scopes).
+# The exclusions below are the leak paths around them: LLM caches hold raw completions —
+# including, at scope `none`, model reasoning over clear narratives — and mlruns holds the
+# tracking database plus logged artifacts. None of it belongs in a repository whose thesis is
+# that sensitive data stays controlled.
+docker/observability/mlflow/store/
+data/llm_cache/
+data/eval/**/llm_cache/
+vendor/
+
+# --no-llm smoke outputs. Written under a distinct `-ranking` suffix precisely so they can
+# never clobber a paid artifact; they are 500KB of reproducible-for-free duplication and do
+# not belong in history.
+data/eval/*-ranking.json
+data/eval/**/*-ranking.json
+# Live-batch run isolation dir: holds fresh LLM outputs from UI-triggered runs.
+data/eval/_live/
+# Judge caches carry completions the same way llm caches do.
+data/eval/**/judge_cache/
+# Graph-feature disk memo — pure derived data, rebuilt on demand.
+data/cache/
+.claude/settings.local.json
+
+# ── Internal working materials: kept local, never pushed to the public repo ─────
+# Slide decks, presenter script, and the submission email draft.
+deck/
+# The full engineering decision log is internal; public docs describe decisions inline.
+docs/adr/
+# Agent/team working agreements and internal vocabulary.
+CLAUDE.md
+docs/CONTEXT.md
+# OS and runtime junk.
+.DS_Store
+data/.amlguard.lock

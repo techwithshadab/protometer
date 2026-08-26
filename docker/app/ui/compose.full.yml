@@ -1,0 +1,229 @@
+# AMLGuard FULL STACK as ONE project: the app + its Postgres, the vendor Protegrity
+# Developer-Edition services (Discovery, Guardrail, Anonymization, Synthetic-Data), AND the
+# observability planes (MLflow, Prometheus/Grafana/Pushgateway, Langfuse) — all nested under a
+# single Compose project on one shared `protegrity-network`, one lifecycle.
+#
+#   docker compose -f docker-compose.full.yml up -d --build      # (or: make docker-full)
+#   open http://localhost:8600           # AMLGuard UI
+#   open http://localhost:5001           # MLflow
+#   open http://localhost:3000           # Langfuse
+#   open http://localhost:3001           # Grafana
+#   docker compose -f docker-compose.full.yml down               # stops EVERYTHING together
+#
+# ONE PROJECT: because every stack is `include`d here (not started from its own directory), all
+# containers share this project. `docker compose -f docker-compose.full.yml down/ps/logs` manage
+# them together, and there are no cross-project container-name clashes. To avoid clashes, do NOT
+# also start the same stacks from docker/* or vendor-de/*; this file owns them now.
+#
+# WHAT IS AND ISN'T BUNDLED
+#   * DOES nest the app, its Postgres, the four vendor DE services, and all three observability
+#     planes, wiring the app to them by container name.
+#   * Applies this repo's platform/loopback overrides to the vendor DE composes (amd64 pin for
+#     Apple Silicon; loopback-only publishing).
+#   * Langfuse is included via ../langfuse/compose.nested.yml, which renames its
+#     generic infra services (postgres/redis/minio/clickhouse) so they do not collide with the app
+#     Postgres under `include` (see that file's header). The vendored compose is left untouched.
+#   * DOES NOT bundle AWS Bedrock (external cloud): live chat + paid batch stages need AWS creds in
+#     your environment / .env. Replay mode and the healthcare/support batch demos need none of it.
+#
+# PREREQUISITES
+#   * `docker login ghcr.io` once with a Developer-Edition token (free registration) for the vendor
+#     images. Without it the vendor services fail to pull; the app + Postgres + observability still
+#     come up and Replay mode works.
+#   * Vendor images are amd64-only; on Apple Silicon they run under emulation (slow but works).
+#   * MEMORY: this is the heavy configuration (vendor DE + Langfuse's ClickHouse at 3g + MLflow +
+#     the app). On a ~15GB Docker VM it fits with headroom; on a smaller VM, prefer
+#     compose.yml (app + Postgres only) and start observability/Langfuse selectively.
+
+# include paths are resolved relative to THIS file's directory (docker/app/ui/): the repo root is
+# ../../.. (vendor-de images), and the docker/ stacks are ../../<group>/<stack>/.
+# Fixed project name (independent of the compose file's directory), so container
+# names, the shared network, and `make docker-ps` stay stable.
+name: protegrity
+include:
+  # ── Vendor Developer-Edition services (paired with this repo's platform/loopback overrides) ──
+  - path:
+      - ../../../vendor-de/data-discovery/docker-compose.yml
+      - ../../vendor/discovery.override.yml
+  - path:
+      - ../../../vendor-de/semantic-guardrail/docker-compose.yml
+      - ../../vendor/guardrail.override.yml
+  - ../../../vendor-de/anonymization/docker-compose.yml
+  - ../../../vendor-de/synthetic-data/docker-compose.yml
+
+  # ── Observability planes ─────────────────────────────────────────────────────────────────────
+  - ../../observability/mlflow/compose.yml           # MLflow (:5001)
+  - ../../observability/infra/compose.yml            # Prometheus/Grafana/Pushgateway
+  - ../../observability/langfuse/compose.nested.yml  # Langfuse, renamed to avoid collisions
+
+  # ── The app + its Postgres ───────────────────────────────────────────────────────────────────
+  - compose.yml
+
+# ── Service categorization + PATH-STYLE NAMING ───────────────────────────────────────────────
+# The service KEYS (left column) are fixed by the included composes and cannot be renamed without
+# editing vendor files. So the naming convention is applied from HERE, two ways that DO override
+# cleanly onto an included service:
+#
+#   * `container_name`  → the path-style name shown in `docker ps` / Docker Desktop:
+#                         app-ui, app-postgres, vendor-de-classification, observability-mlflow,
+#                         observability-langfuse-postgres, ...  so a raw `docker ps` reads as the tree.
+#   * network `aliases` → the SAME path-style name as a DNS hostname on protegrity-network, so
+#                         services reach each other by the clean tree name (the app env below uses
+#                         these aliases). The original service-key DNS name still resolves too.
+#
+# Plus the grouping already in place:
+#   * `com.docker.compose.group` / `com.docker.compose.subgroup` LABELS → the tree in `make docker-ps`.
+#   * `profiles` → selective bring-up. vendor-de + observability are profiled; the app group has NO
+#     profile (core, always starts — it only depends_on postgres, both in the app group).
+services:
+  # ── app (core; no profile → always starts) ──
+  # Names, aliases, and neighbour URLs are set in docker-compose.app.yml (path-style, identical in
+  # standalone and full modes). Here we only ADD the group label and, since MLflow is in-project
+  # now, override its URL from the standalone host.docker.internal to the in-network name.
+  amlguard_app:
+    labels: {com.docker.compose.group: app}
+    environment:
+      AMLGUARD_MLFLOW_URI: http://observability-mlflow:5000
+      # Langfuse is in-project now, reach it by its in-network name, NOT the host's 127.0.0.1:3000
+      # (which inside the app container is the app itself → connection-refused, then ~15s of OTel
+      # export + managed-prompt retries on the live-turn path). The app derives both the SDK host and
+      # the OTel traces endpoint from this one var. Overrides the .env host value in-stack only.
+      LANGFUSE_HOST: http://observability-langfuse-web:3000
+  postgres:
+    labels: {com.docker.compose.group: app}
+
+  # ── ollama (OPTIONAL in-stack open-source model server) ──────────────────────────────────────
+  # By default the app reaches Ollama on the HOST (host.docker.internal:11434 — see compose.yml),
+  # which is lighter and keeps the model cache on the host. This service is an ALTERNATIVE for a
+  # fully self-contained run with no host install: it is behind the `local-model` profile, so it
+  # only starts when you ask for it, and you must also point the app at it:
+  #
+  #   OLLAMA_URL=http://ollama:11434 \
+  #   docker compose -f docker/app/ui/compose.full.yml --profile local-model up -d ollama amlguard_app
+  #
+  # CPU inference only (no GPU passthrough here) — fine for the demo, slower than a host GPU. Pull
+  # the model into it once: `docker exec ollama ollama pull llama3.2` (or set
+  # AMLGUARD_AUTO_PULL_MODEL=true so the app pulls it on first use). The named volume persists it.
+  # The app reaches it by the in-network name `ollama:11434`, so no host port is published by
+  # default — that also avoids a clash with a host Ollama already on :11434. Uncomment the `ports`
+  # block to reach this container's Ollama from the host too (only if the host's own :11434 is free).
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    labels: {com.docker.compose.group: app}
+    profiles: [local-model]
+    volumes:
+      - ollama-models:/root/.ollama
+    # ports:
+    #   - "127.0.0.1:11435:11434"   # host:container — 11435 to avoid clashing with a host Ollama
+    networks:
+      protegrity-network:
+        aliases: [ollama]
+    restart: unless-stopped
+
+  # ── vendor-de (Protegrity Developer-Edition services) ──
+  classification-service:
+    container_name: vendor-de-classification
+    labels: {com.docker.compose.group: vendor-de}
+    profiles: [vendor-de]
+    networks: {protegrity-network: {aliases: [vendor-de-classification]}}
+  context-provider-service:
+    container_name: vendor-de-context
+    labels: {com.docker.compose.group: vendor-de}
+    profiles: [vendor-de]
+    networks: {protegrity-network: {aliases: [vendor-de-context]}}
+  pattern-provider-service:
+    container_name: vendor-de-pattern
+    labels: {com.docker.compose.group: vendor-de}
+    profiles: [vendor-de]
+    networks: {protegrity-network: {aliases: [vendor-de-pattern]}}
+  semantic-guardrail-service:
+    container_name: vendor-de-guardrail
+    labels: {com.docker.compose.group: vendor-de}
+    profiles: [vendor-de]
+    networks: {protegrity-network: {aliases: [vendor-de-guardrail]}}
+  anon-service:
+    container_name: vendor-de-anon
+    labels: {com.docker.compose.group: vendor-de}
+    profiles: [vendor-de]
+    networks: {protegrity-network: {aliases: [vendor-de-anon]}}
+  pty-anondb-service:
+    container_name: vendor-de-anon-db
+    labels: {com.docker.compose.group: vendor-de}
+    profiles: [vendor-de]
+    networks: {protegrity-network: {aliases: [vendor-de-anon-db]}}
+  synthetic-data-service:
+    container_name: vendor-de-synthetic
+    labels: {com.docker.compose.group: vendor-de}
+    profiles: [vendor-de]
+    networks: {protegrity-network: {aliases: [vendor-de-synthetic]}}
+  pty-syndb-service:
+    container_name: vendor-de-synthetic-db
+    labels: {com.docker.compose.group: vendor-de}
+    profiles: [vendor-de]
+    networks: {protegrity-network: {aliases: [vendor-de-synthetic-db]}}
+
+  # ── observability (MLflow + Prometheus/Grafana + Langfuse) ──
+  mlflow:
+    container_name: observability-mlflow
+    labels: {com.docker.compose.group: observability}
+    profiles: [observability]
+    networks: {protegrity-network: {aliases: [observability-mlflow]}}
+  prometheus:
+    container_name: observability-prometheus
+    labels: {com.docker.compose.group: observability}
+    profiles: [observability]
+    networks: {protegrity-network: {aliases: [observability-prometheus]}}
+  grafana:
+    container_name: observability-grafana
+    labels: {com.docker.compose.group: observability}
+    profiles: [observability]
+    networks: {protegrity-network: {aliases: [observability-grafana]}}
+  pushgateway:
+    container_name: observability-pushgateway
+    labels: {com.docker.compose.group: observability}
+    profiles: [observability]
+    networks: {protegrity-network: {aliases: [observability-pushgateway]}}
+  # Langfuse is a sub-tree WITHIN observability (subgroup label → the tree in `make docker-ps`).
+  # Renamed path-style here too. NOTE: the langfuse services reach EACH OTHER by their service-key
+  # DNS names (langfuse-postgres, etc.) wired in docker-compose.nested.yml; the aliases below are
+  # ADDITIONAL names, so both resolve and inter-langfuse wiring is untouched.
+  langfuse-web:
+    container_name: observability-langfuse-web
+    labels: {com.docker.compose.group: observability, com.docker.compose.subgroup: langfuse}
+    profiles: [observability]
+    networks: {protegrity-network: {aliases: [observability-langfuse-web]}}
+  langfuse-worker:
+    container_name: observability-langfuse-worker
+    labels: {com.docker.compose.group: observability, com.docker.compose.subgroup: langfuse}
+    profiles: [observability]
+    networks: {protegrity-network: {aliases: [observability-langfuse-worker]}}
+  langfuse-clickhouse:
+    container_name: observability-langfuse-clickhouse
+    labels: {com.docker.compose.group: observability, com.docker.compose.subgroup: langfuse}
+    profiles: [observability]
+    networks: {protegrity-network: {aliases: [observability-langfuse-clickhouse]}}
+  langfuse-minio:
+    container_name: observability-langfuse-minio
+    labels: {com.docker.compose.group: observability, com.docker.compose.subgroup: langfuse}
+    profiles: [observability]
+    networks: {protegrity-network: {aliases: [observability-langfuse-minio]}}
+  langfuse-postgres:
+    container_name: observability-langfuse-postgres
+    labels: {com.docker.compose.group: observability, com.docker.compose.subgroup: langfuse}
+    profiles: [observability]
+    networks: {protegrity-network: {aliases: [observability-langfuse-postgres]}}
+  langfuse-redis:
+    container_name: observability-langfuse-redis
+    labels: {com.docker.compose.group: observability, com.docker.compose.subgroup: langfuse}
+    profiles: [observability]
+    networks: {protegrity-network: {aliases: [observability-langfuse-redis]}}
+
+networks:
+  protegrity-network:
+    name: ${DOCKER_NETWORK_NAME:-protegrity-network}
+
+volumes:
+  # Persists the in-stack Ollama model cache (only used with the `local-model` profile), so the
+  # one-time model pull survives container recreation.
+  ollama-models:

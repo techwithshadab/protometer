@@ -1,0 +1,107 @@
+{
+  "domain": "healthcare",
+  "subtitle": "One synthetic patient record: Safe Harbor removes the direct identifiers, Expert Determination quantifies what risk remains.",
+  "note": "Fully synthetic record. No real person is depicted. This is the only place a clear is the only place a clear value is shown, paired with its protected form, to illustrate the transformation.",
+  "role_views": [
+    {
+      "name": "researcher",
+      "label": "Researcher",
+      "may_unprotect": [],
+      "sees": "Patient: [PERSON: masked] \u00b7 MRN [MED_REC: masked] \u00b7 ZIP [GEO: masked] \u00b7 region [GEO: masked] \u00b7 diagnosis_date [DATE: masked] \u00b7 Dx: type-2 diabetes, hypertension.",
+      "revealed": 0,
+      "withheld": 5,
+      "fully": false
+    },
+    {
+      "name": "billing",
+      "label": "Billing / Claims",
+      "may_unprotect": [
+        "MEDICAL_RECORD_NUMBER",
+        "MED_REC",
+        "PERSON"
+      ],
+      "sees": "Patient: Sana Choudhury \u00b7 MRN MRx88 \u00b7 ZIP [GEO: masked] \u00b7 region [GEO: masked] \u00b7 diagnosis_date [DATE: masked] \u00b7 Dx: type-2 diabetes, hypertension.",
+      "revealed": 1,
+      "withheld": 3,
+      "fully": false
+    },
+    {
+      "name": "clinician",
+      "label": "Treating Clinician",
+      "may_unprotect": [
+        "ACCOUNT_NAME",
+        "ACCOUNT_NUMBER",
+        "ADDRESS",
+        "AGE",
+        "AMOUNT",
+        "BANK_ACCOUNT",
+        "CITY",
+        "CREDIT_CARD",
+        "CRYPTO_ADDRESS",
+        "CURRENCY",
+        "CURRENCY_CODE",
+        "CURRENCY_NAME",
+        "CURRENCY_SYMBOL",
+        "DATETIME",
+        "DATE_OF_BIRTH",
+        "DOB",
+        "DRIVER_LICENSE",
+        "EMAIL_ADDRESS",
+        "GENDER",
+        "HEALTH_CARE_ID",
+        "IN_GSTIN",
+        "IN_VEHICLE_REGISTRATION",
+        "IN_VOTER",
+        "IP_ADDRESS",
+        "KR_RRN",
+        "LOCATION",
+        "MAC_ADDRESS",
+        "NATIONAL_ID",
+        "NRP",
+        "ORGANIZATION",
+        "ORGANIZATION_NAME",
+        "PASSPORT",
+        "PASSWORD",
+        "PERSON",
+        "PHONE_NUMBER",
+        "SOCIAL_SECURITY_ID",
+        "TAX_ID",
+        "TH_TNIN",
+        "TITLE",
+        "URL",
+        "USERNAME",
+        "USER_NAME"
+      ],
+      "sees": "Patient: Sana Choudhury \u00b7 MRN 88431 \u00b7 ZIP 91344 \u00b7 region West \u00b7 diagnosis_date 2025-03-14 \u00b7 Dx: type-2 diabetes, hypertension.",
+      "revealed": 5,
+      "withheld": 0,
+      "fully": true
+    }
+  ],
+  "subject_name_clear": "Sana Choudhury",
+  "subject_party_id": "(clinical sample)",
+  "token_counts": {},
+  "identity_tokens": 4,
+  "clear_narrative": "Patient: Sana Choudhury \u00b7 MRN 88431 \u00b7 ZIP 91344 \u00b7 region West \u00b7 diagnosis_date 2025-03-14 \u00b7 Dx: type-2 diabetes, hypertension.",
+  "protected_narrative": "Patient: [PERSON]2S3y A47Vmilfi[/PERSON] \u00b7 MRN [MED_REC]MRx88[/MED_REC] \u00b7 ZIP [GEO]913xx[/GEO] \u00b7 region [GEO]West[/GEO] \u00b7 diagnosis_date [DATE]2025[/DATE] \u00b7 Dx: type-2 diabetes, hypertension.",
+  "stages": [
+    {
+      "id": "safe_harbor",
+      "title": "Safe Harbor",
+      "in_label": "Clear clinical record",
+      "in": "Patient: Sana Choudhury \u00b7 MRN 88431 \u00b7 ZIP 91344 \u00b7 region West \u00b7 diagnosis_date 2025-03-14 \u00b7 Dx: type-2 diabetes, hypertension.",
+      "out_label": "De-identified record (HIPAA Safe Harbor)",
+      "out": "Patient: [PERSON]2S3y A47Vmilfi[/PERSON] \u00b7 MRN [MED_REC]MRx88[/MED_REC] \u00b7 ZIP [GEO]913xx[/GEO] \u00b7 region [GEO]West[/GEO] \u00b7 diagnosis_date [DATE]2025[/DATE] \u00b7 Dx: type-2 diabetes, hypertension.",
+      "caption": "4/18 Safe-Harbor identifier categories present are removed or tokenized (names; geographic subdivisions smaller than state; dates except year; medical record or beneficiary numbers); the clinical facts remain."
+    },
+    {
+      "id": "expert_determination",
+      "title": "Expert Determination",
+      "in_label": "Residual re-identification risk (before k-anonymization)",
+      "in": "prosecutor 1.0 \u00b7 journalist 1.0 \u00b7 marketer 0.964 \u00b7 k=1",
+      "out_label": "Risk after k=5 generalization",
+      "out": "prosecutor 1.0 \u00b7 journalist 1.0 \u00b7 marketer 0.4729 \u00b7 k=1: NOT certified on this sample (worst-case risk unchanged)",
+      "caption": "The residual risk is quantified and reported honestly, not asserted away."
+    }
+  ]
+}

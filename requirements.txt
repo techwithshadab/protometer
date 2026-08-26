@@ -1,0 +1,41 @@
+# Pinned to the versions every committed result was produced with, so a reviewer reproducing
+# the numbers gets the same library behaviour rather than whatever resolves today.
+
+# Protection, retrieval, and the hosted Developer Edition SDK.
+boto3==1.43.70
+chromadb==1.5.9
+protegrity-ai-developer-python==1.2.1
+PyYAML==6.0.3
+requests==2.34.2
+requests-oauthlib==2.0.0
+
+# Training, graph features, and explainability. These were imported throughout `src/` but
+# never declared, so `pip install -r requirements.txt && pytest` failed on a clean clone at
+# the first `import numpy` — the repo appeared broken to anyone who had not already installed
+# them incidentally.
+numpy==2.5.2
+scikit-learn==1.9.0
+networkx==3.6.1
+shap==0.52.0
+mlflow==3.15.1
+
+# Test suite.
+pytest==9.1.1
+
+# Optional model providers, declared in config/models.yaml but not required by any committed
+# result: the Bedrock path routes through boto3 above, and the local path through Ollama's
+# HTTP API. Install these only to run `--model anthropic-*` or `--model openai-*`.
+#   pip install anthropic openai
+langfuse==4.14.4
+prometheus-client==0.21.1
+
+# Local Postgres data layer (ADR-0053): the corpus mirror (per-domain schemas) and the MLflow
+# backend store. psycopg v3 is the app driver; SQLAlchemy is what MLflow uses for a Postgres
+# backend-store-uri. Both degrade to no-ops / file fallback when Postgres is not running.
+psycopg[binary]==3.2.3
+SQLAlchemy==2.0.36
+
+# Demo UI serving layer (ui/api/app.py + ui/web). Needed to run the FastAPI app and the
+# single-page frontend; the Docker image installs these too. CLI-only pipeline runs don't need them.
+fastapi==0.141.1
+uvicorn==0.52.1

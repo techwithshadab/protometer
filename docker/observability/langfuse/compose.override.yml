@@ -1,0 +1,29 @@
+# AMLGuard override: every port loopback-bound, same posture as the project's other
+# sidecars (MLflow, Discovery, Semantic Guardrail), and memory-bounded so the stack cannot
+# OOM the shared Docker VM, an unbounded ClickHouse took postgres down with it once.
+services:
+  langfuse-web:
+    ports: !override
+      - 127.0.0.1:3000:3000
+    # Node sizes its heap from the cgroup limit; 768m left ~380MB of JS heap and the app
+    # OOM-crash-looped at boot. 2g is the documented comfortable floor for langfuse-web.
+    mem_limit: 2g
+    environment:
+      NODE_OPTIONS: --max-old-space-size=1536
+  langfuse-worker:
+    mem_limit: 768m
+  clickhouse:
+    # 1536m OOM'd the events->traces materialized-view projection under sustained ingestion
+    # (the events_core_mv insert hit ClickHouse's internal max_server_memory_usage and rejected
+    # traces, surfacing as "Bad request" to clients and leaving traces unprojected). 3g gives the
+    # projection headroom; the VM is 15.35GB with ample free, so this does not risk the VM.
+    mem_limit: 3g
+  minio:
+    ports: !override
+      - 127.0.0.1:9090:9000
+      - 127.0.0.1:9091:9001
+    mem_limit: 384m
+  redis:
+    mem_limit: 256m
+  postgres:
+    mem_limit: 512m

@@ -1,0 +1,2467 @@
+[
+  {
+    "typology_id": "STR000",
+    "typology": "structuring",
+    "subject_party_id": "P02463",
+    "party_ids": [
+      "P00571",
+      "P02463"
+    ],
+    "transaction_ids": [
+      "TXN003777",
+      "TXN003778",
+      "TXN003779",
+      "TXN003802",
+      "TXN003824",
+      "TXN003850",
+      "TXN003872",
+      "TXN004095",
+      "TXN004190"
+    ],
+    "total_amount": "83472"
+  },
+  {
+    "typology_id": "STR001",
+    "typology": "structuring",
+    "subject_party_id": "P03247",
+    "party_ids": [
+      "P01768",
+      "P03247"
+    ],
+    "transaction_ids": [
+      "TXN002433",
+      "TXN002516",
+      "TXN002561",
+      "TXN002611",
+      "TXN002612",
+      "TXN002613",
+      "TXN002659",
+      "TXN002687",
+      "TXN002872"
+    ],
+    "total_amount": "83372"
+  },
+  {
+    "typology_id": "STR002",
+    "typology": "structuring",
+    "subject_party_id": "P03097",
+    "party_ids": [
+      "P03097",
+      "P03213"
+    ],
+    "transaction_ids": [
+      "TXN004768",
+      "TXN004838",
+      "TXN004866",
+      "TXN004867",
+      "TXN004892",
+      "TXN004909",
+      "TXN005044",
+      "TXN005073",
+      "TXN005098",
+      "TXN005152"
+    ],
+    "total_amount": "92595"
+  },
+  {
+    "typology_id": "STR003",
+    "typology": "structuring",
+    "subject_party_id": "P01204",
+    "party_ids": [
+      "P01180",
+      "P01204"
+    ],
+    "transaction_ids": [
+      "TXN000108",
+      "TXN000109",
+      "TXN000121",
+      "TXN000150",
+      "TXN000151",
+      "TXN000257",
+      "TXN000321",
+      "TXN000387",
+      "TXN000417",
+      "TXN000461"
+    ],
+    "total_amount": "95645"
+  },
+  {
+    "typology_id": "STR004",
+    "typology": "structuring",
+    "subject_party_id": "P03236",
+    "party_ids": [
+      "P02335",
+      "P03236"
+    ],
+    "transaction_ids": [
+      "TXN002410",
+      "TXN002434",
+      "TXN002533",
+      "TXN002583",
+      "TXN002688",
+      "TXN002738",
+      "TXN002873",
+      "TXN002874"
+    ],
+    "total_amount": "75266"
+  },
+  {
+    "typology_id": "STR005",
+    "typology": "structuring",
+    "subject_party_id": "P01203",
+    "party_ids": [
+      "P01203",
+      "P01490"
+    ],
+    "transaction_ids": [
+      "TXN000786",
+      "TXN000824",
+      "TXN000851",
+      "TXN000896",
+      "TXN000941",
+      "TXN001015"
+    ],
+    "total_amount": "55264"
+  },
+  {
+    "typology_id": "STR006",
+    "typology": "structuring",
+    "subject_party_id": "P02742",
+    "party_ids": [
+      "P01768",
+      "P02742"
+    ],
+    "transaction_ids": [
+      "TXN002191",
+      "TXN002297",
+      "TXN002316",
+      "TXN002317",
+      "TXN002334",
+      "TXN002389",
+      "TXN002411",
+      "TXN002469",
+      "TXN002496",
+      "TXN002497",
+      "TXN002562"
+    ],
+    "total_amount": "102313"
+  },
+  {
+    "typology_id": "STR007",
+    "typology": "structuring",
+    "subject_party_id": "P00703",
+    "party_ids": [
+      "P00703",
+      "P03412"
+    ],
+    "transaction_ids": [
+      "TXN001523",
+      "TXN001565",
+      "TXN001589",
+      "TXN001651",
+      "TXN001812",
+      "TXN001840",
+      "TXN001857"
+    ],
+    "total_amount": "64794"
+  },
+  {
+    "typology_id": "STR008",
+    "typology": "structuring",
+    "subject_party_id": "P03697",
+    "party_ids": [
+      "P03697",
+      "P03960"
+    ],
+    "transaction_ids": [
+      "TXN004115",
+      "TXN004163",
+      "TXN004164",
+      "TXN004244",
+      "TXN004245",
+      "TXN004288"
+    ],
+    "total_amount": "55639"
+  },
+  {
+    "typology_id": "STR009",
+    "typology": "structuring",
+    "subject_party_id": "P03236",
+    "party_ids": [
+      "P00658",
+      "P03236"
+    ],
+    "transaction_ids": [
+      "TXN004793",
+      "TXN004794",
+      "TXN004795",
+      "TXN004839",
+      "TXN004868",
+      "TXN004893",
+      "TXN004894",
+      "TXN004935",
+      "TXN004936",
+      "TXN005045",
+      "TXN005214"
+    ],
+    "total_amount": "104812"
+  },
+  {
+    "typology_id": "STR010",
+    "typology": "structuring",
+    "subject_party_id": "P02643",
+    "party_ids": [
+      "P01490",
+      "P02643"
+    ],
+    "transaction_ids": [
+      "TXN001997",
+      "TXN002018",
+      "TXN002049",
+      "TXN002081",
+      "TXN002082",
+      "TXN002105",
+      "TXN002228",
+      "TXN002248",
+      "TXN002298",
+      "TXN002318"
+    ],
+    "total_amount": "94125"
+  },
+  {
+    "typology_id": "STR011",
+    "typology": "structuring",
+    "subject_party_id": "P00609",
+    "party_ids": [
+      "P00609",
+      "P02982"
+    ],
+    "transaction_ids": [
+      "TXN006140",
+      "TXN006141",
+      "TXN006209",
+      "TXN006210",
+      "TXN006319",
+      "TXN006320",
+      "TXN006350",
+      "TXN006351",
+      "TXN006399",
+      "TXN006423"
+    ],
+    "total_amount": "95303"
+  },
+  {
+    "typology_id": "STR012",
+    "typology": "structuring",
+    "subject_party_id": "P02087",
+    "party_ids": [
+      "P00676",
+      "P02087"
+    ],
+    "transaction_ids": [
+      "TXN001197",
+      "TXN001214",
+      "TXN001283",
+      "TXN001300",
+      "TXN001347",
+      "TXN001369",
+      "TXN001481",
+      "TXN001502",
+      "TXN001546",
+      "TXN001547",
+      "TXN001548"
+    ],
+    "total_amount": "103071"
+  },
+  {
+    "typology_id": "STR013",
+    "typology": "structuring",
+    "subject_party_id": "P02136",
+    "party_ids": [
+      "P01532",
+      "P02136"
+    ],
+    "transaction_ids": [
+      "TXN005074",
+      "TXN005075",
+      "TXN005128",
+      "TXN005153",
+      "TXN005301",
+      "TXN005399",
+      "TXN005400",
+      "TXN005401",
+      "TXN005426",
+      "TXN005448",
+      "TXN005449"
+    ],
+    "total_amount": "101000"
+  },
+  {
+    "typology_id": "STR014",
+    "typology": "structuring",
+    "subject_party_id": "P03403",
+    "party_ids": [
+      "P02741",
+      "P03403"
+    ],
+    "transaction_ids": [
+      "TXN003078",
+      "TXN003131",
+      "TXN003155",
+      "TXN003321",
+      "TXN003345",
+      "TXN003376"
+    ],
+    "total_amount": "57181"
+  },
+  {
+    "typology_id": "STR015",
+    "typology": "structuring",
+    "subject_party_id": "P02386",
+    "party_ids": [
+      "P02386",
+      "P03028"
+    ],
+    "transaction_ids": [
+      "TXN002660",
+      "TXN002661",
+      "TXN002689",
+      "TXN002757",
+      "TXN002814",
+      "TXN002841",
+      "TXN002978"
+    ],
+    "total_amount": "65603"
+  },
+  {
+    "typology_id": "STR016",
+    "typology": "structuring",
+    "subject_party_id": "P03517",
+    "party_ids": [
+      "P00065",
+      "P03517"
+    ],
+    "transaction_ids": [
+      "TXN004577",
+      "TXN004617",
+      "TXN004674",
+      "TXN004869",
+      "TXN004937",
+      "TXN004979",
+      "TXN005001"
+    ],
+    "total_amount": "66539"
+  },
+  {
+    "typology_id": "STR017",
+    "typology": "structuring",
+    "subject_party_id": "P01579",
+    "party_ids": [
+      "P01579",
+      "P02335"
+    ],
+    "transaction_ids": [
+      "TXN005234",
+      "TXN005302",
+      "TXN005332",
+      "TXN005402",
+      "TXN005450",
+      "TXN005507",
+      "TXN005530",
+      "TXN005576"
+    ],
+    "total_amount": "75963"
+  },
+  {
+    "typology_id": "STR018",
+    "typology": "structuring",
+    "subject_party_id": "P00072",
+    "party_ids": [
+      "P00072",
+      "P00490"
+    ],
+    "transaction_ids": [
+      "TXN005178",
+      "TXN005215",
+      "TXN005282",
+      "TXN005376",
+      "TXN005403",
+      "TXN005473"
+    ],
+    "total_amount": "55750"
+  },
+  {
+    "typology_id": "STR019",
+    "typology": "structuring",
+    "subject_party_id": "P02304",
+    "party_ids": [
+      "P02304",
+      "P03195"
+    ],
+    "transaction_ids": [
+      "TXN000388",
+      "TXN000389",
+      "TXN000418",
+      "TXN000419",
+      "TXN000505",
+      "TXN000566",
+      "TXN000640",
+      "TXN000641",
+      "TXN000681",
+      "TXN000682",
+      "TXN000741"
+    ],
+    "total_amount": "105059"
+  },
+  {
+    "typology_id": "STR020",
+    "typology": "structuring",
+    "subject_party_id": "P02583",
+    "party_ids": [
+      "P02430",
+      "P02583"
+    ],
+    "transaction_ids": [
+      "TXN004050",
+      "TXN004116",
+      "TXN004140",
+      "TXN004222",
+      "TXN004317",
+      "TXN004344",
+      "TXN004470",
+      "TXN004471"
+    ],
+    "total_amount": "74331"
+  },
+  {
+    "typology_id": "STR021",
+    "typology": "structuring",
+    "subject_party_id": "P03676",
+    "party_ids": [
+      "P02861",
+      "P03676"
+    ],
+    "transaction_ids": [
+      "TXN000597",
+      "TXN000683",
+      "TXN000787",
+      "TXN000825",
+      "TXN000852",
+      "TXN000912",
+      "TXN000990"
+    ],
+    "total_amount": "63990"
+  },
+  {
+    "typology_id": "STR022",
+    "typology": "structuring",
+    "subject_party_id": "P01946",
+    "party_ids": [
+      "P01946",
+      "P03711"
+    ],
+    "transaction_ids": [
+      "TXN005235",
+      "TXN005404",
+      "TXN005451",
+      "TXN005531",
+      "TXN005554",
+      "TXN005577"
+    ],
+    "total_amount": "57221"
+  },
+  {
+    "typology_id": "STR023",
+    "typology": "structuring",
+    "subject_party_id": "P03697",
+    "party_ids": [
+      "P03697",
+      "P03960"
+    ],
+    "transaction_ids": [
+      "TXN001702",
+      "TXN001703",
+      "TXN001769",
+      "TXN001813",
+      "TXN001841",
+      "TXN001858",
+      "TXN001887",
+      "TXN001888",
+      "TXN001998",
+      "TXN002019"
+    ],
+    "total_amount": "94085"
+  },
+  {
+    "typology_id": "STR024",
+    "typology": "structuring",
+    "subject_party_id": "P02992",
+    "party_ids": [
+      "P02749",
+      "P02992"
+    ],
+    "transaction_ids": [
+      "TXN003306",
+      "TXN003346",
+      "TXN003347",
+      "TXN003423",
+      "TXN003446",
+      "TXN003514",
+      "TXN003561"
+    ],
+    "total_amount": "67076"
+  },
+  {
+    "typology_id": "STR025",
+    "typology": "structuring",
+    "subject_party_id": "P03131",
+    "party_ids": [
+      "P03131",
+      "P03990"
+    ],
+    "transaction_ids": [
+      "TXN002435",
+      "TXN002470",
+      "TXN002498",
+      "TXN002584",
+      "TXN002636",
+      "TXN002782",
+      "TXN002842"
+    ],
+    "total_amount": "65350"
+  },
+  {
+    "typology_id": "STR026",
+    "typology": "structuring",
+    "subject_party_id": "P00710",
+    "party_ids": [
+      "P00710",
+      "P03468"
+    ],
+    "transaction_ids": [
+      "TXN002229",
+      "TXN002230",
+      "TXN002299",
+      "TXN002300",
+      "TXN002335",
+      "TXN002364",
+      "TXN002390",
+      "TXN002391",
+      "TXN002412",
+      "TXN002436",
+      "TXN002499"
+    ],
+    "total_amount": "101252"
+  },
+  {
+    "typology_id": "STR027",
+    "typology": "structuring",
+    "subject_party_id": "P03543",
+    "party_ids": [
+      "P01715",
+      "P03543"
+    ],
+    "transaction_ids": [
+      "TXN003729",
+      "TXN003780",
+      "TXN003825",
+      "TXN004117",
+      "TXN004118",
+      "TXN004119",
+      "TXN004141"
+    ],
+    "total_amount": "64513"
+  },
+  {
+    "typology_id": "STR028",
+    "typology": "structuring",
+    "subject_party_id": "P01867",
+    "party_ids": [
+      "P00676",
+      "P01867"
+    ],
+    "transaction_ids": [
+      "TXN004165",
+      "TXN004246",
+      "TXN004414",
+      "TXN004472",
+      "TXN004489",
+      "TXN004536"
+    ],
+    "total_amount": "56222"
+  },
+  {
+    "typology_id": "STR029",
+    "typology": "structuring",
+    "subject_party_id": "P00703",
+    "party_ids": [
+      "P00652",
+      "P00703"
+    ],
+    "transaction_ids": [
+      "TXN005076",
+      "TXN005099",
+      "TXN005154",
+      "TXN005260",
+      "TXN005333",
+      "TXN005355",
+      "TXN005377",
+      "TXN005405",
+      "TXN005452",
+      "TXN005453",
+      "TXN005488"
+    ],
+    "total_amount": "104347"
+  },
+  {
+    "typology_id": "STR030",
+    "typology": "structuring",
+    "subject_party_id": "P03742",
+    "party_ids": [
+      "P01589",
+      "P03742"
+    ],
+    "transaction_ids": [
+      "TXN004490",
+      "TXN004618",
+      "TXN004648",
+      "TXN004743",
+      "TXN004796",
+      "TXN004819",
+      "TXN004870",
+      "TXN004895"
+    ],
+    "total_amount": "76624"
+  },
+  {
+    "typology_id": "STR031",
+    "typology": "structuring",
+    "subject_party_id": "P01003",
+    "party_ids": [
+      "P01003",
+      "P02631"
+    ],
+    "transaction_ids": [
+      "TXN000110",
+      "TXN000152",
+      "TXN000216",
+      "TXN000269",
+      "TXN000270",
+      "TXN000335",
+      "TXN000390",
+      "TXN000420"
+    ],
+    "total_amount": "74607"
+  },
+  {
+    "typology_id": "STR032",
+    "typology": "structuring",
+    "subject_party_id": "P03680",
+    "party_ids": [
+      "P03680",
+      "P03777"
+    ],
+    "transaction_ids": [
+      "TXN004415",
+      "TXN004452",
+      "TXN004491",
+      "TXN004537",
+      "TXN004619",
+      "TXN004649",
+      "TXN004675",
+      "TXN004701",
+      "TXN004769",
+      "TXN004797"
+    ],
+    "total_amount": "95513"
+  },
+  {
+    "typology_id": "STR033",
+    "typology": "structuring",
+    "subject_party_id": "P02583",
+    "party_ids": [
+      "P00349",
+      "P02583"
+    ],
+    "transaction_ids": [
+      "TXN003377",
+      "TXN003461",
+      "TXN003486",
+      "TXN003515",
+      "TXN003562",
+      "TXN003596",
+      "TXN003618",
+      "TXN003660",
+      "TXN003661",
+      "TXN003709"
+    ],
+    "total_amount": "93036"
+  },
+  {
+    "typology_id": "LAY000",
+    "typology": "layering",
+    "subject_party_id": "P02317",
+    "party_ids": [
+      "P00258",
+      "P02317",
+      "P03490",
+      "P03974"
+    ],
+    "transaction_ids": [
+      "TXN004220",
+      "TXN004264",
+      "TXN004380"
+    ],
+    "total_amount": "138000"
+  },
+  {
+    "typology_id": "LAY001",
+    "typology": "layering",
+    "subject_party_id": "P01182",
+    "party_ids": [
+      "P00658",
+      "P00921",
+      "P01182",
+      "P01374",
+      "P03490",
+      "P03897"
+    ],
+    "transaction_ids": [
+      "TXN002270",
+      "TXN002315",
+      "TXN002468",
+      "TXN002495",
+      "TXN002560"
+    ],
+    "total_amount": "60000"
+  },
+  {
+    "typology_id": "LAY002",
+    "typology": "layering",
+    "subject_party_id": "P02586",
+    "party_ids": [
+      "P00697",
+      "P01065",
+      "P02254",
+      "P02586",
+      "P03933"
+    ],
+    "transaction_ids": [
+      "TXN003869",
+      "TXN003966",
+      "TXN004112",
+      "TXN004186"
+    ],
+    "total_amount": "177000"
+  },
+  {
+    "typology_id": "LAY003",
+    "typology": "layering",
+    "subject_party_id": "P00987",
+    "party_ids": [
+      "P00379",
+      "P00987",
+      "P01749",
+      "P03028"
+    ],
+    "transaction_ids": [
+      "TXN000460",
+      "TXN000596",
+      "TXN000696"
+    ],
+    "total_amount": "5000"
+  },
+  {
+    "typology_id": "LAY004",
+    "typology": "layering",
+    "subject_party_id": "P02680",
+    "party_ids": [
+      "P00149",
+      "P02067",
+      "P02680",
+      "P03526"
+    ],
+    "transaction_ids": [
+      "TXN001431",
+      "TXN001521",
+      "TXN001649"
+    ],
+    "total_amount": "112000"
+  },
+  {
+    "typology_id": "LAY005",
+    "typology": "layering",
+    "subject_party_id": "P02668",
+    "party_ids": [
+      "P01406",
+      "P01463",
+      "P02668",
+      "P03695"
+    ],
+    "transaction_ids": [
+      "TXN001750",
+      "TXN001794",
+      "TXN001886"
+    ],
+    "total_amount": "30000"
+  },
+  {
+    "typology_id": "LAY006",
+    "typology": "layering",
+    "subject_party_id": "P03030",
+    "party_ids": [
+      "P02099",
+      "P02756",
+      "P03030",
+      "P03159"
+    ],
+    "transaction_ids": [
+      "TXN004596",
+      "TXN004741",
+      "TXN004865"
+    ],
+    "total_amount": "137000"
+  },
+  {
+    "typology_id": "LAY007",
+    "typology": "layering",
+    "subject_party_id": "P00397",
+    "party_ids": [
+      "P00006",
+      "P00016",
+      "P00397",
+      "P00969",
+      "P01115",
+      "P02075"
+    ],
+    "transaction_ids": [
+      "TXN001588",
+      "TXN001615",
+      "TXN001724",
+      "TXN001838",
+      "TXN001974"
+    ],
+    "total_amount": "147000"
+  },
+  {
+    "typology_id": "LAY008",
+    "typology": "layering",
+    "subject_party_id": "P02447",
+    "party_ids": [
+      "P01601",
+      "P01617",
+      "P01842",
+      "P02447",
+      "P02774",
+      "P03711"
+    ],
+    "transaction_ids": [
+      "TXN001063",
+      "TXN001085",
+      "TXN001176",
+      "TXN001281",
+      "TXN001323"
+    ],
+    "total_amount": "156000"
+  },
+  {
+    "typology_id": "LAY009",
+    "typology": "layering",
+    "subject_party_id": "P01532",
+    "party_ids": [
+      "P00450",
+      "P00822",
+      "P01532",
+      "P02158",
+      "P03218"
+    ],
+    "transaction_ids": [
+      "TXN002902",
+      "TXN003050",
+      "TXN003077",
+      "TXN003181"
+    ],
+    "total_amount": "8000"
+  },
+  {
+    "typology_id": "LAY010",
+    "typology": "layering",
+    "subject_party_id": "P01969",
+    "party_ids": [
+      "P01454",
+      "P01681",
+      "P01969",
+      "P03839",
+      "P03933"
+    ],
+    "transaction_ids": [
+      "TXN003870",
+      "TXN003923",
+      "TXN003988",
+      "TXN004047"
+    ],
+    "total_amount": "6500"
+  },
+  {
+    "typology_id": "LAY011",
+    "typology": "layering",
+    "subject_party_id": "P00973",
+    "party_ids": [
+      "P00973",
+      "P01463",
+      "P01779",
+      "P01881"
+    ],
+    "transaction_ids": [
+      "TXN002712",
+      "TXN002868",
+      "TXN002952"
+    ],
+    "total_amount": "124000"
+  },
+  {
+    "typology_id": "LAY012",
+    "typology": "layering",
+    "subject_party_id": "P02171",
+    "party_ids": [
+      "P00460",
+      "P02019",
+      "P02171",
+      "P02341",
+      "P03423",
+      "P03777"
+    ],
+    "transaction_ids": [
+      "TXN004597",
+      "TXN004700",
+      "TXN004717",
+      "TXN004742",
+      "TXN004818"
+    ],
+    "total_amount": "135000"
+  },
+  {
+    "typology_id": "LAY013",
+    "typology": "layering",
+    "subject_party_id": "P03256",
+    "party_ids": [
+      "P01660",
+      "P02586",
+      "P03256",
+      "P03756"
+    ],
+    "transaction_ids": [
+      "TXN000822",
+      "TXN000970",
+      "TXN000988"
+    ],
+    "total_amount": "128000"
+  },
+  {
+    "typology_id": "LAY014",
+    "typology": "layering",
+    "subject_party_id": "P00293",
+    "party_ids": [
+      "P00293",
+      "P00359",
+      "P01043",
+      "P02575",
+      "P03519"
+    ],
+    "transaction_ids": [
+      "TXN002610",
+      "TXN002658",
+      "TXN002813",
+      "TXN002869"
+    ],
+    "total_amount": "176000"
+  },
+  {
+    "typology_id": "LAY015",
+    "typology": "layering",
+    "subject_party_id": "P02254",
+    "party_ids": [
+      "P00387",
+      "P00795",
+      "P02254",
+      "P02438"
+    ],
+    "transaction_ids": [
+      "TXN002953",
+      "TXN002977",
+      "TXN003051"
+    ],
+    "total_amount": "5000"
+  },
+  {
+    "typology_id": "LAY016",
+    "typology": "layering",
+    "subject_party_id": "P03422",
+    "party_ids": [
+      "P01065",
+      "P01343",
+      "P02864",
+      "P03422",
+      "P03593"
+    ],
+    "transaction_ids": [
+      "TXN004048",
+      "TXN004113",
+      "TXN004187",
+      "TXN004287"
+    ],
+    "total_amount": "9000"
+  },
+  {
+    "typology_id": "LAY017",
+    "typology": "layering",
+    "subject_party_id": "P01182",
+    "party_ids": [
+      "P00822",
+      "P01182",
+      "P01744",
+      "P03186",
+      "P03593"
+    ],
+    "transaction_ids": [
+      "TXN005528",
+      "TXN005596",
+      "TXN005640",
+      "TXN005746"
+    ],
+    "total_amount": "60000"
+  },
+  {
+    "typology_id": "LAY018",
+    "typology": "layering",
+    "subject_party_id": "P01573",
+    "party_ids": [
+      "P00061",
+      "P01546",
+      "P01573",
+      "P01779",
+      "P03568",
+      "P03918"
+    ],
+    "transaction_ids": [
+      "TXN000971",
+      "TXN000989",
+      "TXN001014",
+      "TXN001064",
+      "TXN001155"
+    ],
+    "total_amount": "171000"
+  },
+  {
+    "typology_id": "LAY019",
+    "typology": "layering",
+    "subject_party_id": "P02447",
+    "party_ids": [
+      "P00572",
+      "P00813",
+      "P00969",
+      "P01472",
+      "P02447"
+    ],
+    "transaction_ids": [
+      "TXN001650",
+      "TXN001768",
+      "TXN001839",
+      "TXN001975"
+    ],
+    "total_amount": "27500"
+  },
+  {
+    "typology_id": "LAY020",
+    "typology": "layering",
+    "subject_party_id": "P03477",
+    "party_ids": [
+      "P00265",
+      "P01014",
+      "P01222",
+      "P02895",
+      "P03477"
+    ],
+    "transaction_ids": [
+      "TXN001065",
+      "TXN001196",
+      "TXN001236",
+      "TXN001282"
+    ],
+    "total_amount": "115000"
+  },
+  {
+    "typology_id": "LAY021",
+    "typology": "layering",
+    "subject_party_id": "P01836",
+    "party_ids": [
+      "P01836",
+      "P02863",
+      "P03772",
+      "P03791"
+    ],
+    "transaction_ids": [
+      "TXN004188",
+      "TXN004343",
+      "TXN004361"
+    ],
+    "total_amount": "167000"
+  },
+  {
+    "typology_id": "LAY022",
+    "typology": "layering",
+    "subject_party_id": "P03842",
+    "party_ids": [
+      "P00386",
+      "P00713",
+      "P01793",
+      "P03582",
+      "P03842"
+    ],
+    "transaction_ids": [
+      "TXN005447",
+      "TXN005573",
+      "TXN005659",
+      "TXN005719"
+    ],
+    "total_amount": "33000"
+  },
+  {
+    "typology_id": "LAY023",
+    "typology": "layering",
+    "subject_party_id": "P03583",
+    "party_ids": [
+      "P01990",
+      "P02631",
+      "P03583",
+      "P03584"
+    ],
+    "transaction_ids": [
+      "TXN003871",
+      "TXN003967",
+      "TXN004049"
+    ],
+    "total_amount": "42000"
+  },
+  {
+    "typology_id": "LAY024",
+    "typology": "layering",
+    "subject_party_id": "P02749",
+    "party_ids": [
+      "P01217",
+      "P01546",
+      "P01842",
+      "P02295",
+      "P02749",
+      "P03925"
+    ],
+    "transaction_ids": [
+      "TXN004933",
+      "TXN005071",
+      "TXN005151",
+      "TXN005281",
+      "TXN005300"
+    ],
+    "total_amount": "35500"
+  },
+  {
+    "typology_id": "LAY025",
+    "typology": "layering",
+    "subject_party_id": "P02937",
+    "party_ids": [
+      "P00834",
+      "P02908",
+      "P02937",
+      "P03849"
+    ],
+    "transaction_ids": [
+      "TXN004837",
+      "TXN004934",
+      "TXN005042"
+    ],
+    "total_amount": "111000"
+  },
+  {
+    "typology_id": "RTP000",
+    "typology": "round_tripping",
+    "subject_party_id": "P01746",
+    "party_ids": [
+      "P01656",
+      "P01746",
+      "P02385",
+      "P02707"
+    ],
+    "transaction_ids": [
+      "TXN002870",
+      "TXN003026",
+      "TXN003182",
+      "TXN003232"
+    ],
+    "total_amount": "169000"
+  },
+  {
+    "typology_id": "RTP001",
+    "typology": "round_tripping",
+    "subject_party_id": "P03477",
+    "party_ids": [
+      "P01141",
+      "P01624",
+      "P03477"
+    ],
+    "transaction_ids": [
+      "TXN000895",
+      "TXN001113",
+      "TXN001346"
+    ],
+    "total_amount": "119000"
+  },
+  {
+    "typology_id": "RTP002",
+    "typology": "round_tripping",
+    "subject_party_id": "P01617",
+    "party_ids": [
+      "P00795",
+      "P01419",
+      "P01617"
+    ],
+    "transaction_ids": [
+      "TXN004999",
+      "TXN005177",
+      "TXN005354"
+    ],
+    "total_amount": "106000"
+  },
+  {
+    "typology_id": "RTP003",
+    "typology": "round_tripping",
+    "subject_party_id": "P03824",
+    "party_ids": [
+      "P00652",
+      "P01601",
+      "P03472",
+      "P03824",
+      "P03936"
+    ],
+    "transaction_ids": [
+      "TXN004576",
+      "TXN004792",
+      "TXN005043",
+      "TXN005259",
+      "TXN005424"
+    ],
+    "total_amount": "10000"
+  },
+  {
+    "typology_id": "RTP004",
+    "typology": "round_tripping",
+    "subject_party_id": "P01237",
+    "party_ids": [
+      "P01237",
+      "P01969",
+      "P02347",
+      "P03296"
+    ],
+    "transaction_ids": [
+      "TXN002048",
+      "TXN002190",
+      "TXN002432",
+      "TXN002581"
+    ],
+    "total_amount": "119000"
+  },
+  {
+    "typology_id": "RTP005",
+    "typology": "round_tripping",
+    "subject_party_id": "P00170",
+    "party_ids": [
+      "P00170",
+      "P01892",
+      "P02415"
+    ],
+    "transaction_ids": [
+      "TXN000564",
+      "TXN000719",
+      "TXN000762"
+    ],
+    "total_amount": "48000"
+  },
+  {
+    "typology_id": "RTP006",
+    "typology": "round_tripping",
+    "subject_party_id": "P03526",
+    "party_ids": [
+      "P00042",
+      "P00572",
+      "P02225",
+      "P03423",
+      "P03526"
+    ],
+    "transaction_ids": [
+      "TXN003941",
+      "TXN004221",
+      "TXN004316",
+      "TXN004469",
+      "TXN004535"
+    ],
+    "total_amount": "149000"
+  },
+  {
+    "typology_id": "RTP007",
+    "typology": "round_tripping",
+    "subject_party_id": "P03472",
+    "party_ids": [
+      "P00016",
+      "P01633",
+      "P01775",
+      "P01872",
+      "P03472"
+    ],
+    "transaction_ids": [
+      "TXN000447",
+      "TXN000638",
+      "TXN000850",
+      "TXN001066",
+      "TXN001114"
+    ],
+    "total_amount": "162000"
+  },
+  {
+    "typology_id": "RTP008",
+    "typology": "round_tripping",
+    "subject_party_id": "P03587",
+    "party_ids": [
+      "P00026",
+      "P01149",
+      "P02413",
+      "P02834",
+      "P03587"
+    ],
+    "transaction_ids": [
+      "TXN005330",
+      "TXN005425",
+      "TXN005574",
+      "TXN005720",
+      "TXN005818"
+    ],
+    "total_amount": "98000"
+  },
+  {
+    "typology_id": "RTP009",
+    "typology": "round_tripping",
+    "subject_party_id": "P02403",
+    "party_ids": [
+      "P00190",
+      "P01590",
+      "P02403",
+      "P02585",
+      "P02986"
+    ],
+    "transaction_ids": [
+      "TXN002409",
+      "TXN002686",
+      "TXN002925",
+      "TXN003118",
+      "TXN003198"
+    ],
+    "total_amount": "127000"
+  },
+  {
+    "typology_id": "RTP010",
+    "typology": "round_tripping",
+    "subject_party_id": "P02668",
+    "party_ids": [
+      "P01624",
+      "P02466",
+      "P02668",
+      "P03473"
+    ],
+    "transaction_ids": [
+      "TXN005487",
+      "TXN005597",
+      "TXN005660",
+      "TXN005766"
+    ],
+    "total_amount": "171000"
+  },
+  {
+    "typology_id": "RTP011",
+    "typology": "round_tripping",
+    "subject_party_id": "P03256",
+    "party_ids": [
+      "P01746",
+      "P03193",
+      "P03256",
+      "P03919"
+    ],
+    "transaction_ids": [
+      "TXN002582",
+      "TXN002737",
+      "TXN002871",
+      "TXN003091"
+    ],
+    "total_amount": "128000"
+  },
+  {
+    "typology_id": "RTP012",
+    "typology": "round_tripping",
+    "subject_party_id": "P01764",
+    "party_ids": [
+      "P01764",
+      "P02091",
+      "P02707"
+    ],
+    "transaction_ids": [
+      "TXN000740",
+      "TXN000823",
+      "TXN001086"
+    ],
+    "total_amount": "104000"
+  },
+  {
+    "typology_id": "RTP013",
+    "typology": "round_tripping",
+    "subject_party_id": "P01843",
+    "party_ids": [
+      "P01191",
+      "P01335",
+      "P01843",
+      "P02096",
+      "P03218"
+    ],
+    "transaction_ids": [
+      "TXN004616",
+      "TXN004891",
+      "TXN005000",
+      "TXN005072",
+      "TXN005331"
+    ],
+    "total_amount": "153000"
+  },
+  {
+    "typology_id": "RTP014",
+    "typology": "round_tripping",
+    "subject_party_id": "P01870",
+    "party_ids": [
+      "P01870",
+      "P01939",
+      "P02937",
+      "P03670"
+    ],
+    "transaction_ids": [
+      "TXN000300",
+      "TXN000357",
+      "TXN000565",
+      "TXN000639"
+    ],
+    "total_amount": "31500"
+  },
+  {
+    "typology_id": "RTP015",
+    "typology": "round_tripping",
+    "subject_party_id": "P03686",
+    "party_ids": [
+      "P01758",
+      "P02879",
+      "P03686"
+    ],
+    "transaction_ids": [
+      "TXN005529",
+      "TXN005678",
+      "TXN005936"
+    ],
+    "total_amount": "162000"
+  },
+  {
+    "typology_id": "RTP016",
+    "typology": "round_tripping",
+    "subject_party_id": "P01397",
+    "party_ids": [
+      "P00006",
+      "P01397",
+      "P02563",
+      "P03287",
+      "P03665"
+    ],
+    "transaction_ids": [
+      "TXN003617",
+      "TXN003759",
+      "TXN003848",
+      "TXN003968",
+      "TXN004078"
+    ],
+    "total_amount": "40500"
+  },
+  {
+    "typology_id": "RTP017",
+    "typology": "round_tripping",
+    "subject_party_id": "P01238",
+    "party_ids": [
+      "P01161",
+      "P01238",
+      "P02910"
+    ],
+    "transaction_ids": [
+      "TXN001545",
+      "TXN001811",
+      "TXN002017"
+    ],
+    "total_amount": "168000"
+  },
+  {
+    "typology_id": "RTP018",
+    "typology": "round_tripping",
+    "subject_party_id": "P00656",
+    "party_ids": [
+      "P00451",
+      "P00656",
+      "P01115",
+      "P01274",
+      "P03575"
+    ],
+    "transaction_ids": [
+      "TXN001137",
+      "TXN001213",
+      "TXN001462",
+      "TXN001522",
+      "TXN001725"
+    ],
+    "total_amount": "28500"
+  },
+  {
+    "typology_id": "RTP019",
+    "typology": "round_tripping",
+    "subject_party_id": "P00059",
+    "party_ids": [
+      "P00059",
+      "P00258",
+      "P02068",
+      "P02354"
+    ],
+    "transaction_ids": [
+      "TXN003892",
+      "TXN004139",
+      "TXN004189",
+      "TXN004413"
+    ],
+    "total_amount": "41000"
+  },
+  {
+    "typology_id": "RTP020",
+    "typology": "round_tripping",
+    "subject_party_id": "P01634",
+    "party_ids": [
+      "P00061",
+      "P01634",
+      "P02870",
+      "P03718"
+    ],
+    "transaction_ids": [
+      "TXN005575",
+      "TXN005679",
+      "TXN005767",
+      "TXN005867"
+    ],
+    "total_amount": "176000"
+  },
+  {
+    "typology_id": "RTP021",
+    "typology": "round_tripping",
+    "subject_party_id": "P03880",
+    "party_ids": [
+      "P00422",
+      "P00861",
+      "P01871",
+      "P02430",
+      "P03880"
+    ],
+    "transaction_ids": [
+      "TXN003445",
+      "TXN003639",
+      "TXN003849",
+      "TXN003969",
+      "TXN004114"
+    ],
+    "total_amount": "21500"
+  },
+  {
+    "typology_id": "FUN000",
+    "typology": "funnel_account",
+    "subject_party_id": "P00249",
+    "party_ids": [
+      "P00249",
+      "P00626",
+      "P00773",
+      "P01896",
+      "P02740",
+      "P02855",
+      "P03392"
+    ],
+    "transaction_ids": [
+      "TXN002387",
+      "TXN002429",
+      "TXN002492",
+      "TXN002493",
+      "TXN002532",
+      "TXN002555",
+      "TXN002556",
+      "TXN002557",
+      "TXN002608"
+    ],
+    "total_amount": "69643"
+  },
+  {
+    "typology_id": "FUN001",
+    "typology": "funnel_account",
+    "subject_party_id": "P03015",
+    "party_ids": [
+      "P00646",
+      "P00710",
+      "P00717",
+      "P01862",
+      "P02445",
+      "P03015",
+      "P03131",
+      "P03890"
+    ],
+    "transaction_ids": [
+      "TXN001749",
+      "TXN001793",
+      "TXN001809",
+      "TXN001810",
+      "TXN001837",
+      "TXN001856",
+      "TXN001921",
+      "TXN001922",
+      "TXN001923",
+      "TXN001970"
+    ],
+    "total_amount": "78105"
+  },
+  {
+    "typology_id": "FUN002",
+    "typology": "funnel_account",
+    "subject_party_id": "P01789",
+    "party_ids": [
+      "P00052",
+      "P00649",
+      "P01002",
+      "P01789",
+      "P03264",
+      "P03517",
+      "P03717"
+    ],
+    "transaction_ids": [
+      "TXN005526",
+      "TXN005527",
+      "TXN005553",
+      "TXN005595",
+      "TXN005617",
+      "TXN005655",
+      "TXN005656",
+      "TXN005657",
+      "TXN005658",
+      "TXN005743"
+    ],
+    "total_amount": "80624"
+  },
+  {
+    "typology_id": "FUN003",
+    "typology": "funnel_account",
+    "subject_party_id": "P02438",
+    "party_ids": [
+      "P01593",
+      "P02085",
+      "P02438",
+      "P02520",
+      "P02585",
+      "P02979",
+      "P03520",
+      "P03958"
+    ],
+    "transaction_ids": [
+      "TXN004647",
+      "TXN004673",
+      "TXN004696",
+      "TXN004697",
+      "TXN004698",
+      "TXN004699",
+      "TXN004740",
+      "TXN004791",
+      "TXN004864",
+      "TXN004908"
+    ],
+    "total_amount": "77278"
+  },
+  {
+    "typology_id": "FUN004",
+    "typology": "funnel_account",
+    "subject_party_id": "P01660",
+    "party_ids": [
+      "P00628",
+      "P00764",
+      "P01660",
+      "P01814",
+      "P02740",
+      "P02928",
+      "P03377",
+      "P03900"
+    ],
+    "transaction_ids": [
+      "TXN001344",
+      "TXN001345",
+      "TXN001391",
+      "TXN001405",
+      "TXN001427",
+      "TXN001459",
+      "TXN001460",
+      "TXN001501"
+    ],
+    "total_amount": "61125"
+  },
+  {
+    "typology_id": "FUN005",
+    "typology": "funnel_account",
+    "subject_party_id": "P01939",
+    "party_ids": [
+      "P00062",
+      "P00802",
+      "P00856",
+      "P01023",
+      "P01034",
+      "P01939",
+      "P02663",
+      "P02946"
+    ],
+    "transaction_ids": [
+      "TXN000821",
+      "TXN000849",
+      "TXN000874",
+      "TXN000894",
+      "TXN000939",
+      "TXN000940",
+      "TXN000987",
+      "TXN001031"
+    ],
+    "total_amount": "58870"
+  },
+  {
+    "typology_id": "FUN006",
+    "typology": "funnel_account",
+    "subject_party_id": "P03045",
+    "party_ids": [
+      "P00084",
+      "P01341",
+      "P01761",
+      "P01992",
+      "P03045"
+    ],
+    "transaction_ids": [
+      "TXN005070",
+      "TXN005210",
+      "TXN005211",
+      "TXN005258",
+      "TXN005328"
+    ],
+    "total_amount": "35337"
+  },
+  {
+    "typology_id": "FUN007",
+    "typology": "funnel_account",
+    "subject_party_id": "P03886",
+    "party_ids": [
+      "P00678",
+      "P01204",
+      "P01866",
+      "P02905",
+      "P02965",
+      "P03085",
+      "P03728",
+      "P03886"
+    ],
+    "transaction_ids": [
+      "TXN005717",
+      "TXN005718",
+      "TXN005744",
+      "TXN005745",
+      "TXN005765",
+      "TXN005791",
+      "TXN005792",
+      "TXN005817",
+      "TXN005842",
+      "TXN005866",
+      "TXN005892"
+    ],
+    "total_amount": "84424"
+  },
+  {
+    "typology_id": "FUN008",
+    "typology": "funnel_account",
+    "subject_party_id": "P01222",
+    "party_ids": [
+      "P00916",
+      "P01222",
+      "P01261",
+      "P01331",
+      "P01395",
+      "P02018",
+      "P02601",
+      "P03380"
+    ],
+    "transaction_ids": [
+      "TXN001948",
+      "TXN001971",
+      "TXN001972",
+      "TXN001996",
+      "TXN002014",
+      "TXN002045",
+      "TXN002046",
+      "TXN002062",
+      "TXN002103",
+      "TXN002145"
+    ],
+    "total_amount": "78498"
+  },
+  {
+    "typology_id": "FUN009",
+    "typology": "funnel_account",
+    "subject_party_id": "P03686",
+    "party_ids": [
+      "P00447",
+      "P00802",
+      "P02600",
+      "P02879",
+      "P03071",
+      "P03686"
+    ],
+    "transaction_ids": [
+      "TXN003638",
+      "TXN003659",
+      "TXN003688",
+      "TXN003706",
+      "TXN003758",
+      "TXN003823",
+      "TXN003844"
+    ],
+    "total_amount": "50991"
+  },
+  {
+    "typology_id": "FUN010",
+    "typology": "funnel_account",
+    "subject_party_id": "P03919",
+    "party_ids": [
+      "P02061",
+      "P02140",
+      "P02632",
+      "P03900",
+      "P03919"
+    ],
+    "transaction_ids": [
+      "TXN001900",
+      "TXN001924",
+      "TXN001973",
+      "TXN002015",
+      "TXN002079",
+      "TXN002146"
+    ],
+    "total_amount": "43231"
+  },
+  {
+    "typology_id": "FUN011",
+    "typology": "funnel_account",
+    "subject_party_id": "P00041",
+    "party_ids": [
+      "P00041",
+      "P00987",
+      "P01699",
+      "P02672",
+      "P03033"
+    ],
+    "transaction_ids": [
+      "TXN002016",
+      "TXN002047",
+      "TXN002063",
+      "TXN002080",
+      "TXN002104"
+    ],
+    "total_amount": "34849"
+  },
+  {
+    "typology_id": "FUN012",
+    "typology": "funnel_account",
+    "subject_party_id": "P01454",
+    "party_ids": [
+      "P00302",
+      "P00730",
+      "P00855",
+      "P00966",
+      "P01454",
+      "P02263",
+      "P02600"
+    ],
+    "transaction_ids": [
+      "TXN005176",
+      "TXN005193",
+      "TXN005194",
+      "TXN005212",
+      "TXN005213",
+      "TXN005329",
+      "TXN005398"
+    ],
+    "total_amount": "52254"
+  },
+  {
+    "typology_id": "FUN013",
+    "typology": "funnel_account",
+    "subject_party_id": "P00349",
+    "party_ids": [
+      "P00349",
+      "P01052",
+      "P01841",
+      "P02047",
+      "P03392"
+    ],
+    "transaction_ids": [
+      "TXN001406",
+      "TXN001407",
+      "TXN001428",
+      "TXN001586",
+      "TXN001614"
+    ],
+    "total_amount": "35647"
+  },
+  {
+    "typology_id": "FUN014",
+    "typology": "funnel_account",
+    "subject_party_id": "P03494",
+    "party_ids": [
+      "P00263",
+      "P00401",
+      "P03081",
+      "P03264",
+      "P03282",
+      "P03494",
+      "P03874",
+      "P03886"
+    ],
+    "transaction_ids": [
+      "TXN001429",
+      "TXN001430",
+      "TXN001461",
+      "TXN001518",
+      "TXN001519",
+      "TXN001520",
+      "TXN001564",
+      "TXN001587",
+      "TXN001685"
+    ],
+    "total_amount": "68756"
+  },
+  {
+    "typology_id": "FUN015",
+    "typology": "funnel_account",
+    "subject_party_id": "P01948",
+    "party_ids": [
+      "P01021",
+      "P01262",
+      "P01514",
+      "P01528",
+      "P01948",
+      "P02499",
+      "P03388",
+      "P03529"
+    ],
+    "transaction_ids": [
+      "TXN003707",
+      "TXN003708",
+      "TXN003728",
+      "TXN003801",
+      "TXN003845",
+      "TXN003846",
+      "TXN003847",
+      "TXN003920",
+      "TXN003921",
+      "TXN003922",
+      "TXN004014"
+    ],
+    "total_amount": "87973"
+  },
+  {
+    "typology_id": "FUN016",
+    "typology": "funnel_account",
+    "subject_party_id": "P03234",
+    "party_ids": [
+      "P01262",
+      "P01606",
+      "P02742",
+      "P03072",
+      "P03234",
+      "P03428",
+      "P03799"
+    ],
+    "transaction_ids": [
+      "TXN002268",
+      "TXN002269",
+      "TXN002314",
+      "TXN002331",
+      "TXN002332",
+      "TXN002361",
+      "TXN002362",
+      "TXN002363",
+      "TXN002430"
+    ],
+    "total_amount": "71182"
+  },
+  {
+    "typology_id": "FUN017",
+    "typology": "funnel_account",
+    "subject_party_id": "P02069",
+    "party_ids": [
+      "P00589",
+      "P01485",
+      "P02069",
+      "P02281",
+      "P03713"
+    ],
+    "transaction_ids": [
+      "TXN002333",
+      "TXN002388",
+      "TXN002407",
+      "TXN002408",
+      "TXN002431",
+      "TXN002494"
+    ],
+    "total_amount": "44537"
+  },
+  {
+    "typology_id": "FUN018",
+    "typology": "funnel_account",
+    "subject_party_id": "P02234",
+    "party_ids": [
+      "P00626",
+      "P01138",
+      "P01491",
+      "P01635",
+      "P02234",
+      "P02286",
+      "P03674"
+    ],
+    "transaction_ids": [
+      "TXN002558",
+      "TXN002559",
+      "TXN002609",
+      "TXN002635",
+      "TXN002657",
+      "TXN002756",
+      "TXN002811"
+    ],
+    "total_amount": "50938"
+  },
+  {
+    "typology_id": "FUN019",
+    "typology": "funnel_account",
+    "subject_party_id": "P01866",
+    "party_ids": [
+      "P00052",
+      "P01672",
+      "P01866",
+      "P01946",
+      "P02459",
+      "P03799"
+    ],
+    "transaction_ids": [
+      "TXN006159",
+      "TXN006179",
+      "TXN006180",
+      "TXN006208",
+      "TXN006229",
+      "TXN006249",
+      "TXN006276",
+      "TXN006318"
+    ],
+    "total_amount": "60366"
+  },
+  {
+    "typology_id": "FUN020",
+    "typology": "funnel_account",
+    "subject_party_id": "P03428",
+    "party_ids": [
+      "P00024",
+      "P00115",
+      "P00498",
+      "P01672",
+      "P02518",
+      "P02608",
+      "P03428"
+    ],
+    "transaction_ids": [
+      "TXN002812",
+      "TXN002840",
+      "TXN002867",
+      "TXN002923",
+      "TXN002924",
+      "TXN002951",
+      "TXN002976",
+      "TXN002999"
+    ],
+    "total_amount": "63166"
+  },
+  {
+    "typology_id": "FUN021",
+    "typology": "funnel_account",
+    "subject_party_id": "P01058",
+    "party_ids": [
+      "P00093",
+      "P00537",
+      "P00657",
+      "P01058",
+      "P03043",
+      "P03717",
+      "P03868"
+    ],
+    "transaction_ids": [
+      "TXN004998",
+      "TXN005024",
+      "TXN005025",
+      "TXN005096",
+      "TXN005097",
+      "TXN005149",
+      "TXN005150",
+      "TXN005195",
+      "TXN005280"
+    ],
+    "total_amount": "71197"
+  },
+  {
+    "typology_id": "TBM000",
+    "typology": "trade_based",
+    "subject_party_id": "P00754",
+    "party_ids": [
+      "P00017",
+      "P00404",
+      "P00754",
+      "P03454",
+      "P03940"
+    ],
+    "transaction_ids": [
+      "TXN004265",
+      "TXN004398",
+      "TXN004871",
+      "TXN005077"
+    ],
+    "total_amount": "261000"
+  },
+  {
+    "typology_id": "TBM001",
+    "typology": "trade_based",
+    "subject_party_id": "P00330",
+    "party_ids": [
+      "P00330",
+      "P01635",
+      "P02093",
+      "P03817"
+    ],
+    "transaction_ids": [
+      "TXN000826",
+      "TXN000942",
+      "TXN001324",
+      "TXN001686",
+      "TXN001770"
+    ],
+    "total_amount": "344000"
+  },
+  {
+    "typology_id": "TBM002",
+    "typology": "trade_based",
+    "subject_party_id": "P01726",
+    "party_ids": [
+      "P01180",
+      "P01542",
+      "P01726",
+      "P03100",
+      "P03735"
+    ],
+    "transaction_ids": [
+      "TXN003092",
+      "TXN003233",
+      "TXN003542",
+      "TXN003942"
+    ],
+    "total_amount": "279000"
+  },
+  {
+    "typology_id": "TBM003",
+    "typology": "trade_based",
+    "subject_party_id": "P01876",
+    "party_ids": [
+      "P00387",
+      "P01215",
+      "P01876",
+      "P02225",
+      "P03158"
+    ],
+    "transaction_ids": [
+      "TXN004051",
+      "TXN004223",
+      "TXN004650",
+      "TXN005026",
+      "TXN005454"
+    ],
+    "total_amount": "528000"
+  },
+  {
+    "typology_id": "TBM004",
+    "typology": "trade_based",
+    "subject_party_id": "P00077",
+    "party_ids": [
+      "P00077",
+      "P00691",
+      "P01411",
+      "P02428"
+    ],
+    "transaction_ids": [
+      "TXN003487",
+      "TXN003970",
+      "TXN004318",
+      "TXN004798"
+    ],
+    "total_amount": "511000"
+  },
+  {
+    "typology_id": "TBM005",
+    "typology": "trade_based",
+    "subject_party_id": "P02947",
+    "party_ids": [
+      "P00430",
+      "P01625",
+      "P01930",
+      "P02530",
+      "P02947"
+    ],
+    "transaction_ids": [
+      "TXN003851",
+      "TXN004191",
+      "TXN004538"
+    ],
+    "total_amount": "142000"
+  },
+  {
+    "typology_id": "TBM006",
+    "typology": "trade_based",
+    "subject_party_id": "P02347",
+    "party_ids": [
+      "P00309",
+      "P00439",
+      "P01940",
+      "P02347",
+      "P02429"
+    ],
+    "transaction_ids": [
+      "TXN001301",
+      "TXN001652",
+      "TXN002083",
+      "TXN002231"
+    ],
+    "total_amount": "299000"
+  },
+  {
+    "typology_id": "TBM007",
+    "typology": "trade_based",
+    "subject_party_id": "P01073",
+    "party_ids": [
+      "P00818",
+      "P01073",
+      "P02289",
+      "P03406",
+      "P03726"
+    ],
+    "transaction_ids": [
+      "TXN000684",
+      "TXN000991",
+      "TXN001215"
+    ],
+    "total_amount": "315000"
+  },
+  {
+    "typology_id": "TBM008",
+    "typology": "trade_based",
+    "subject_party_id": "P03813",
+    "party_ids": [
+      "P00971",
+      "P02628",
+      "P02864",
+      "P03813"
+    ],
+    "transaction_ids": [
+      "TXN004563",
+      "TXN004872",
+      "TXN004980",
+      "TXN005283"
+    ],
+    "total_amount": "336000"
+  },
+  {
+    "typology_id": "TBM009",
+    "typology": "trade_based",
+    "subject_party_id": "P03222",
+    "party_ids": [
+      "P00488",
+      "P01184",
+      "P01758",
+      "P02415",
+      "P03222"
+    ],
+    "transaction_ids": [
+      "TXN001408",
+      "TXN001771",
+      "TXN001949",
+      "TXN002147",
+      "TXN002471"
+    ],
+    "total_amount": "276000"
+  },
+  {
+    "typology_id": "TBM010",
+    "typology": "trade_based",
+    "subject_party_id": "P03852",
+    "party_ids": [
+      "P01468",
+      "P01836",
+      "P02322",
+      "P03702",
+      "P03852"
+    ],
+    "transaction_ids": [
+      "TXN002129",
+      "TXN002336",
+      "TXN002875"
+    ],
+    "total_amount": "158000"
+  },
+  {
+    "typology_id": "TBM011",
+    "typology": "trade_based",
+    "subject_party_id": "P02870",
+    "party_ids": [
+      "P00193",
+      "P01424",
+      "P02013",
+      "P02870",
+      "P03780"
+    ],
+    "transaction_ids": [
+      "TXN001795",
+      "TXN001925",
+      "TXN002192"
+    ],
+    "total_amount": "270000"
+  },
+  {
+    "typology_id": "TBM012",
+    "typology": "trade_based",
+    "subject_party_id": "P03232",
+    "party_ids": [
+      "P00697",
+      "P01072",
+      "P03052",
+      "P03232"
+    ],
+    "transaction_ids": [
+      "TXN002392",
+      "TXN002662",
+      "TXN003027",
+      "TXN003156",
+      "TXN003254"
+    ],
+    "total_amount": "477000"
+  },
+  {
+    "typology_id": "TBM013",
+    "typology": "trade_based",
+    "subject_party_id": "P03859",
+    "party_ids": [
+      "P00973",
+      "P03646",
+      "P03838",
+      "P03859"
+    ],
+    "transaction_ids": [
+      "TXN004345",
+      "TXN004770",
+      "TXN004981"
+    ],
+    "total_amount": "274000"
+  },
+  {
+    "typology_id": "TBM014",
+    "typology": "trade_based",
+    "subject_party_id": "P01191",
+    "party_ids": [
+      "P01191",
+      "P02138",
+      "P02278",
+      "P03308",
+      "P03838"
+    ],
+    "transaction_ids": [
+      "TXN002271",
+      "TXN002663",
+      "TXN003028"
+    ],
+    "total_amount": "358000"
+  },
+  {
+    "typology_id": "TBM015",
+    "typology": "trade_based",
+    "subject_party_id": "P00269",
+    "party_ids": [
+      "P00269",
+      "P01848",
+      "P02317",
+      "P03170"
+    ],
+    "transaction_ids": [
+      "TXN002783",
+      "TXN003280",
+      "TXN003462",
+      "TXN003873",
+      "TXN004192"
+    ],
+    "total_amount": "325000"
+  },
+  {
+    "typology_id": "TBM016",
+    "typology": "trade_based",
+    "subject_party_id": "P02467",
+    "party_ids": [
+      "P02467",
+      "P02619",
+      "P03656",
+      "P03758"
+    ],
+    "transaction_ids": [
+      "TXN002903",
+      "TXN003052",
+      "TXN003234",
+      "TXN003597",
+      "TXN003924"
+    ],
+    "total_amount": "299000"
+  },
+  {
+    "typology_id": "TBM017",
+    "typology": "trade_based",
+    "subject_party_id": "P00581",
+    "party_ids": [
+      "P00139",
+      "P00581",
+      "P01410",
+      "P02927"
+    ],
+    "transaction_ids": [
+      "TXN003053",
+      "TXN003217",
+      "TXN003689"
+    ],
+    "total_amount": "71000"
+  }
+]

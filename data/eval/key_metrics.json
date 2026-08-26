@@ -1,0 +1,44 @@
+{
+  "corpus_fingerprint": "36e2bee325e4",
+  "training": {
+    "none_ap": 0.473,
+    "monetary_ap": 0.451,
+    "monetary_retained_pct": 95,
+    "all_ap": 0.47
+  },
+  "hybrid": {
+    "none": {
+      "p_at_50": 0.48,
+      "queue": 675,
+      "distinct": 18,
+      "cost_usd": 0.17
+    },
+    "quasi": {
+      "p_at_50": 0.48,
+      "queue": 675,
+      "distinct": 19,
+      "cost_usd": 0.17
+    }
+  },
+  "attack": {
+    "neighbourhood_pct": 52.0,
+    "control_pct": 0.04
+  },
+  "erasure": {
+    "identity_none": "26/40",
+    "identity_direct": "1/40",
+    "behavioural_none": "4/5",
+    "behavioural_direct": "5/5",
+    "fisher_p": 1.2231524035370547e-09
+  },
+  "eval_cost_usd": 2.71,
+  "frontier": {
+    "marketer_risk": 0.0067,
+    "kanon_ap": 0.4855,
+    "tstr_retained": 0.799,
+    "tstr_reference_above_chance": false,
+    "tstr_trtr": 0.1055,
+    "tstr_chance": 0.0909,
+    "dp_available": null
+  }
+}

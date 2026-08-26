@@ -1,0 +1,73 @@
+{
+  "domain": "customer-support",
+  "use_case": "dual_gate",
+  "inbound": "My name is Sarah Chen, order ORD-99213, card ending 4532, email sarah@example.com.",
+  "protected_inbound": "My name is [PERSON]STx001[/PERSON], order [ACCOUNT_NUMBER]NUx002[/ACCOUNT_NUMBER], card ending [CREDIT_CARD]CCx003[/CREDIT_CARD], email [EMAIL_ADDRESS]STx004[/EMAIL_ADDRESS].",
+  "entities_protected": 4,
+  "reply_over_tokens": "Hello [PERSON]STx001[/PERSON], I found order [ACCOUNT_NUMBER]NUx002[/ACCOUNT_NUMBER]. A refund to the card ending [CREDIT_CARD]CCx003[/CREDIT_CARD] has been started.",
+  "roles": [
+    {
+      "name": "support_agent",
+      "label": "Support Agent",
+      "may_unprotect": [
+        "LOCATION",
+        "ORGANIZATION"
+      ],
+      "sees": "Hello [PERSON: masked], I found order [ACCOUNT_NUMBER: masked]. A refund to the card ending [CREDIT_CARD: masked] has been started.",
+      "revealed": 0,
+      "withheld": 3
+    },
+    {
+      "name": "supervisor",
+      "label": "Support Supervisor",
+      "may_unprotect": [
+        "ACCOUNT_NAME",
+        "ACCOUNT_NUMBER",
+        "ADDRESS",
+        "AGE",
+        "AMOUNT",
+        "BANK_ACCOUNT",
+        "CITY",
+        "CREDIT_CARD",
+        "CRYPTO_ADDRESS",
+        "CURRENCY",
+        "CURRENCY_CODE",
+        "CURRENCY_NAME",
+        "CURRENCY_SYMBOL",
+        "DATETIME",
+        "DATE_OF_BIRTH",
+        "DOB",
+        "DRIVER_LICENSE",
+        "EMAIL_ADDRESS",
+        "GENDER",
+        "HEALTH_CARE_ID",
+        "IN_GSTIN",
+        "IN_VEHICLE_REGISTRATION",
+        "IN_VOTER",
+        "IP_ADDRESS",
+        "KR_RRN",
+        "LOCATION",
+        "MAC_ADDRESS",
+        "NATIONAL_ID",
+        "NRP",
+        "ORGANIZATION",
+        "ORGANIZATION_NAME",
+        "PASSPORT",
+        "PASSWORD",
+        "PERSON",
+        "PHONE_NUMBER",
+        "SOCIAL_SECURITY_ID",
+        "TAX_ID",
+        "TH_TNIN",
+        "TITLE",
+        "URL",
+        "USERNAME",
+        "USER_NAME"
+      ],
+      "sees": "Hello Sarah Chen, I found order ORD-99213. A refund to the card ending 4532 has been started.",
+      "revealed": 3,
+      "withheld": 0
+    }
+  ],
+  "caveat": "Which identifiers each role can reveal is enforced by policy: the same gate that governs access here can be centrally managed in Protegrity."
+}

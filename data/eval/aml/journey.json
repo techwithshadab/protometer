@@ -1,0 +1,149 @@
+{
+  "domain": "aml",
+  "subtitle": "The same synthetic case, stage by stage: cleartext identifiers in, tokens through, plaintext only at the gated end.",
+  "note": "Fully synthetic record. No real person is depicted. This is the only place a clear is the only place a clear value is shown, paired with its protected form, to illustrate the transformation.",
+  "role_views": [
+    {
+      "name": "auditor",
+      "label": "Auditor",
+      "may_unprotect": [],
+      "sees": "Case note: [PERSON: masked], SSN [SOCIAL_SECURITY_ID: masked], flagged by transaction monitoring. Subject is domiciled in LB with an internal risk rating of high. Reachable at [EMAIL_ADDRESS: masked] / [PHONE_NUMBER: masked]. Monitoring identified 9 cash deposits totalling $83,472.00, each below the $10,000 reporting threshold, within a three-week window. Activity was first reported on August 2, 2025, with exposure assessed at 83472.00. Counterparties involved: [ORGANIZATION: masked]. No adverse media identified at this stage; monitoring continues.",
+      "revealed": 0,
+      "withheld": 5,
+      "fully": false
+    },
+    {
+      "name": "analyst",
+      "label": "Junior Analyst",
+      "may_unprotect": [
+        "ADDRESS",
+        "LOCATION",
+        "ORGANIZATION"
+      ],
+      "sees": "Case note: [PERSON: masked], SSN [SOCIAL_SECURITY_ID: masked], flagged by transaction monitoring. Subject is domiciled in LB with an internal risk rating of high. Reachable at [EMAIL_ADDRESS: masked] / [PHONE_NUMBER: masked]. Monitoring identified 9 cash deposits totalling $83,472.00, each below the $10,000 reporting threshold, within a three-week window. Activity was first reported on August 2, 2025, with exposure assessed at 83472.00. Counterparties involved: Blue Harbor Property Group. No adverse media identified at this stage; monitoring continues.",
+      "revealed": 1,
+      "withheld": 4,
+      "fully": false
+    },
+    {
+      "name": "investigator",
+      "label": "Senior Investigator",
+      "may_unprotect": [
+        "ACCOUNT_NAME",
+        "ACCOUNT_NUMBER",
+        "ADDRESS",
+        "AGE",
+        "AMOUNT",
+        "BANK_ACCOUNT",
+        "CITY",
+        "CREDIT_CARD",
+        "CRYPTO_ADDRESS",
+        "CURRENCY",
+        "CURRENCY_CODE",
+        "CURRENCY_NAME",
+        "CURRENCY_SYMBOL",
+        "DATETIME",
+        "DATE_OF_BIRTH",
+        "DOB",
+        "DRIVER_LICENSE",
+        "EMAIL_ADDRESS",
+        "GENDER",
+        "HEALTH_CARE_ID",
+        "IN_GSTIN",
+        "IN_VEHICLE_REGISTRATION",
+        "IN_VOTER",
+        "IP_ADDRESS",
+        "KR_RRN",
+        "LOCATION",
+        "MAC_ADDRESS",
+        "NATIONAL_ID",
+        "NRP",
+        "ORGANIZATION",
+        "ORGANIZATION_NAME",
+        "PASSPORT",
+        "PASSWORD",
+        "PERSON",
+        "PHONE_NUMBER",
+        "SOCIAL_SECURITY_ID",
+        "TAX_ID",
+        "TH_TNIN",
+        "TITLE",
+        "URL",
+        "USERNAME",
+        "USER_NAME"
+      ],
+      "sees": "Case note: Sana Choudhury, SSN 965-85-7958, flagged by transaction monitoring. Subject is domiciled in LB with an internal risk rating of high. Reachable at sana.choudhury@quickpost.org / 415-555-6731. Monitoring identified 9 cash deposits totalling $83,472.00, each below the $10,000 reporting threshold, within a three-week window. Activity was first reported on August 2, 2025, with exposure assessed at 83472.00. Counterparties involved: Blue Harbor Property Group. No adverse media identified at this stage; monitoring continues.",
+      "revealed": 5,
+      "withheld": 0,
+      "fully": true
+    }
+  ],
+  "subject_name_clear": "Sana Choudhury",
+  "subject_party_id": "P02463",
+  "token_counts": {
+    "PERSON": 1,
+    "SOCIAL_SECURITY_ID": 1,
+    "EMAIL_ADDRESS": 1,
+    "PHONE_NUMBER": 1,
+    "ORGANIZATION": 1
+  },
+  "identity_tokens": 4,
+  "clear_narrative": "Case note: Sana Choudhury, SSN 965-85-7958, flagged by transaction monitoring. Subject is domiciled in LB with an internal risk rating of high. Reachable at sana.choudhury@quickpost.org / 415-555-6731. Monitoring identified 9 cash deposits totalling $83,472.00, each below the $10,000 reporting threshold, within a three-week window. Activity was first reported on August 2, 2025, with exposure assessed at 83472.00. Counterparties involved: Blue Harbor Property Group. No adverse media identified at this stage; monitoring continues.",
+  "protected_narrative": "Case note: [PERSON]2S3y A47Vmilfi[/PERSON], SSN [SOCIAL_SECURITY_ID]997-02-4771[/SOCIAL_SECURITY_ID], flagged by transaction monitoring. Subject is domiciled in LB with an internal risk rating of high. Reachable at [EMAIL_ADDRESS]dhSd.9HMRbALmn@YLS0Irra6.crn[/EMAIL_ADDRESS] / [PHONE_NUMBER]965-238-2672[/PHONE_NUMBER]. Monitoring identified 9 cash deposits totalling $83,472.00, each below the $10,000 reporting threshold, within a three-week window. Activity was first reported on August 2, 2025, with exposure assessed at 83472.00. Counterparties involved: [ORGANIZATION]l01M z6SGSt yWao6Hre CTrhV[/ORGANIZATION]. No adverse media identified at this stage; monitoring continues.",
+  "stages": [
+    {
+      "id": "ingest",
+      "title": "Ingest",
+      "in_label": "Clear case note (as received)",
+      "in": "Case note: Sana Choudhury, SSN 965-85-7958, flagged by transaction monitoring. Subject is domiciled in LB with an internal risk rating of high. Reachable at sana.choudhury@quickpost.org / 415-555-6731. Monitoring identified 9 cash deposits totalling $83,472.00, each below the $10,000 reporting threshold, within a three-week window. Activity was first reported on August 2, 2025, with exposure assessed at 83472.00. Counterparties involved: Blue Harbor Property Group. No adverse media identified at this stage; monitoring continues.",
+      "out_label": "Protected case note (tokenized in place)",
+      "out": "Case note: [PERSON]2S3y A47Vmilfi[/PERSON], SSN [SOCIAL_SECURITY_ID]997-02-4771[/SOCIAL_SECURITY_ID], flagged by transaction monitoring. Subject is domiciled in LB with an internal risk rating of high. Reachable at [EMAIL_ADDRESS]dhSd.9HMRbALmn@YLS0Irra6.crn[/EMAIL_ADDRESS] / [PHONE_NUMBER]965-238-2672[/PHONE_NUMBER]. Monitoring identified 9 cash deposits totalling $83,472.00, each below the $10,000 reporting threshold, within a three-week window. Activity was first reported on August 2, 2025, with exposure assessed at 83472.00. Counterparties involved: [ORGANIZATION]l01M z6SGSt yWao6Hre CTrhV[/ORGANIZATION]. No adverse media identified at this stage; monitoring continues.",
+      "caption": "4 identity spans tokenized. Amounts, dates and the pattern stay intact."
+    },
+    {
+      "id": "train",
+      "title": "Train",
+      "in_label": "Protected ledger row (features over tokens)",
+      "in": "amount=$83,472 \u00b7 9 sub-threshold deposits \u00b7 counterparty graph \u00b7 temporal window",
+      "out_label": "Classifier score (no plaintext identifier)",
+      "out": "Risk score from graph-walk + temporal features; identity fields are tokens and contribute nothing.",
+      "caption": "The model trains on the protected ledger: identity is a token, the signal is behaviour."
+    },
+    {
+      "id": "retrieve",
+      "title": "Retrieve",
+      "in_label": "Query over the protected index",
+      "in": "behavioural: 'structuring, sub-threshold cash deposits'   |   identity: 'find records for this person'",
+      "out_label": "What survives protection",
+      "out": "A behavioural query still finds the record (the pattern lives in the tokens). An identity query collapses (a token has no link to the name).",
+      "caption": "Retrieval survives or dies by what the query asks for."
+    },
+    {
+      "id": "infer",
+      "title": "Infer",
+      "in_label": "Prompt the model actually received (tokens only)",
+      "in": "Case note: [PERSON]2S3y A47Vmilfi[/PERSON], SSN [SOCIAL_SECURITY_ID]997-02-4771[/SOCIAL_SECURITY_ID], flagged by transaction monitoring. Subject is domiciled in LB with an internal risk rating of high. Reachable at [EMAIL_ADDRESS]dhSd.9HMRbALmn@YLS0Irra6.crn[/EMAIL_ADDRESS] / [PHONE_NUMBER]965-238-2672[/PHONE_NUMBER]. Monitoring identified 9 cash deposits totalling $83,472.00, each below the $10,000 reporting threshold, within a three-week window. Activity was first reported on August 2, 2025, with exposure assessed at 83472.00. Counterparties involved: [ORGANIZATION]l01M z6SGSt yWao6Hre CTrhV[/ORGANIZATION]. No adverse media identified at this stage; monitoring continues.",
+      "out_label": "Model's reply, written over tokens",
+      "out": "Summarises the case citing the token subject and the deposit pattern; never emits a real identifier, because it never saw one.",
+      "caption": "The language model reasons entirely over pseudonymous tokens."
+    },
+    {
+      "id": "egress",
+      "title": "Egress",
+      "in_label": "Model reply, pre-release",
+      "in": "reply over tokens (e.g. [PERSON]\u2026[/PERSON], [SOCIAL_SECURITY_ID]\u2026)",
+      "out_label": "Guardrail verdict",
+      "out": "Scanned before a human sees it. A real identifier that slipped through is blocked; a reply written only over protection tokens is released, because a token carries no real identity.",
+      "caption": "Every response is scanned at the boundary."
+    },
+    {
+      "id": "present",
+      "title": "Present",
+      "in_label": "Protected reply",
+      "in": "[PERSON]2S3y A47Vmilfi[/PERSON] \u2026 flagged for structuring \u2026",
+      "out_label": "Role-gated view",
+      "out": "Auditor: nothing \u00b7 Analyst: structure only \u00b7 Investigator: full re-identification (the entitled role).",
+      "caption": "Plaintext only for the role entitled to it: the single presentation boundary."
+    }
+  ]
+}

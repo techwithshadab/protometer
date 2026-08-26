@@ -1,0 +1,97 @@
+{
+  "domain": "customer-support",
+  "subtitle": "One customer message, protected at the door, then re-identified differently for a front-line agent and a supervisor.",
+  "note": "Fully synthetic record. No real person is depicted. This is the only place a clear is the only place a clear value is shown, paired with its protected form, to illustrate the transformation.",
+  "role_views": [
+    {
+      "name": "support_agent",
+      "label": "Support Agent",
+      "may_unprotect": [
+        "LOCATION",
+        "ORGANIZATION"
+      ],
+      "sees": "My name is [PERSON: masked], order [ACCOUNT_NUMBER: masked], card ending [CREDIT_CARD: masked], email [EMAIL_ADDRESS: masked].",
+      "revealed": 0,
+      "withheld": 4,
+      "fully": false
+    },
+    {
+      "name": "supervisor",
+      "label": "Support Supervisor",
+      "may_unprotect": [
+        "ACCOUNT_NAME",
+        "ACCOUNT_NUMBER",
+        "ADDRESS",
+        "AGE",
+        "AMOUNT",
+        "BANK_ACCOUNT",
+        "CITY",
+        "CREDIT_CARD",
+        "CRYPTO_ADDRESS",
+        "CURRENCY",
+        "CURRENCY_CODE",
+        "CURRENCY_NAME",
+        "CURRENCY_SYMBOL",
+        "DATETIME",
+        "DATE_OF_BIRTH",
+        "DOB",
+        "DRIVER_LICENSE",
+        "EMAIL_ADDRESS",
+        "GENDER",
+        "HEALTH_CARE_ID",
+        "IN_GSTIN",
+        "IN_VEHICLE_REGISTRATION",
+        "IN_VOTER",
+        "IP_ADDRESS",
+        "KR_RRN",
+        "LOCATION",
+        "MAC_ADDRESS",
+        "NATIONAL_ID",
+        "NRP",
+        "ORGANIZATION",
+        "ORGANIZATION_NAME",
+        "PASSPORT",
+        "PASSWORD",
+        "PERSON",
+        "PHONE_NUMBER",
+        "SOCIAL_SECURITY_ID",
+        "TAX_ID",
+        "TH_TNIN",
+        "TITLE",
+        "URL",
+        "USERNAME",
+        "USER_NAME"
+      ],
+      "sees": "My name is Sarah Chen, order ORD-99213, card ending 4532, email sarah@example.com.",
+      "revealed": 4,
+      "withheld": 0,
+      "fully": true
+    }
+  ],
+  "subject_name_clear": "Sarah Chen",
+  "subject_party_id": "(support sample)",
+  "token_counts": {},
+  "identity_tokens": 4,
+  "clear_narrative": "My name is Sarah Chen, order ORD-99213, card ending 4532, email sarah@example.com.",
+  "protected_narrative": "My name is [PERSON]STx001[/PERSON], order [ACCOUNT_NUMBER]NUx002[/ACCOUNT_NUMBER], card ending [CREDIT_CARD]CCx003[/CREDIT_CARD], email [EMAIL_ADDRESS]STx004[/EMAIL_ADDRESS].",
+  "stages": [
+    {
+      "id": "gate1",
+      "title": "Gate 1 \u00b7 Protect",
+      "in_label": "Customer message (as received)",
+      "in": "My name is Sarah Chen, order ORD-99213, card ending 4532, email sarah@example.com.",
+      "out_label": "Tokenized before anything downstream",
+      "out": "My name is [PERSON]STx001[/PERSON], order [ACCOUNT_NUMBER]NUx002[/ACCOUNT_NUMBER], card ending [CREDIT_CARD]CCx003[/CREDIT_CARD], email [EMAIL_ADDRESS]STx004[/EMAIL_ADDRESS].",
+      "caption": "4 PII entities protected at the door."
+    },
+    {
+      "id": "gate2",
+      "title": "Gate 2 \u00b7 Role Dual-Gate",
+      "in_label": "Support Agent view (least privilege)",
+      "in": "Hello [PERSON: masked], I found order [ACCOUNT_NUMBER: masked]. A refund to the card ending [CREDIT_CARD: masked] has been started.",
+      "out_label": "Supervisor view (entitled to re-identify)",
+      "out": "Hello Sarah Chen, I found order ORD-99213. A refund to the card ending 4532 has been started.",
+      "caption": "The same protected reply, re-identified differently per role, enforced at the presentation boundary."
+    }
+  ]
+}

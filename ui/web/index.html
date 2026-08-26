@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Aegis: Protected-Pipeline Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root{
+    /* Editorial light palette — warm paper, ink, restrained accents from the deck's category hues */
+    --paper:#f7f5f0; --card:#ffffff; --ink:#1c2230; --ink-soft:#54607a; --hair:#e4e0d6;
+    --line:#d9d5c9; --accent:#3a5a97; --accent-soft:#e6ecf7;
+    --cat-app:#3a5a97; --cat-app-bg:#e6ecf7; --cat-gov:#9b4a57; --cat-gov-bg:#f6e5e8;
+    --cat-state:#2f7a69; --cat-state-bg:#d9eee9; --cat-input:#6e6353; --cat-input-bg:#efe9dc;
+    --good:#2f7a69; --good-bg:#e2f0eb; --warn:#9a6a12; --warn-bg:#f6ecd6; --bad:#9b3b3b; --bad-bg:#f4e2e0;
+    --serif:'Fraunces',Georgia,'Times New Roman',serif;
+    --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    --mono:'IBM Plex Mono','SF Mono',ui-monospace,Menlo,monospace;
+    --shadow:0 1px 2px rgba(28,34,48,.04),0 6px 20px rgba(28,34,48,.06);
+    --shadow-lg:0 2px 8px rgba(28,34,48,.06),0 16px 48px rgba(28,34,48,.10);
+  }
+  *{box-sizing:border-box}
+  html{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font:16px/1.6 var(--sans);letter-spacing:-.006em}
+  h1,h2,h3{font-family:var(--serif);font-weight:600;letter-spacing:-.01em;margin:0}
+
+  /* ── Masthead ─────────────────────────────────────────────────────────── */
+  header{background:var(--card);border-bottom:1px solid var(--hair);
+    padding:0 clamp(20px,5vw,56px)}
+  .masthead{max-width:1200px;margin:0 auto;display:flex;align-items:center;
+    justify-content:space-between;gap:24px;padding:20px 0;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:14px}
+  .mark{width:40px;height:40px;flex:none;display:block}
+  .mark svg{display:block;width:100%;height:100%}
+  .brand .name{font-family:var(--serif);font-size:23px;font-weight:600;line-height:1}
+  .brand .sub{font-size:12px;color:var(--ink-soft);letter-spacing:.02em;margin-top:3px}
+  .brand .sub .pty{color:var(--accent);font-weight:500}
+  .controls{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+  .field{display:flex;flex-direction:column;gap:5px}
+  .field label{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;
+    color:var(--ink-soft);font-weight:600}
+  select{appearance:none;background:var(--card);border:1px solid var(--line);border-radius:9px;
+    padding:9px 34px 9px 13px;font:inherit;font-size:14px;color:var(--ink);cursor:pointer;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%2354607a' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 12px center}
+  select:hover{border-color:var(--accent)}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--card)}
+  .seg button{border:0;background:transparent;padding:9px 15px;font:inherit;font-size:13.5px;
+    font-weight:500;color:var(--ink-soft);cursor:pointer;transition:.12s}
+  .seg button.on{background:var(--ink);color:#fff}
+  .seg button:not(.on):hover{background:var(--paper)}
+  .seg .cost{font-size:10px;background:var(--warn-bg);color:var(--warn);border-radius:4px;
+    padding:1px 5px;margin-left:6px;font-weight:600;vertical-align:1px}
+  .seg button.on .cost{background:rgba(255,255,255,.2);color:#fff}
+
+  /* ── Layout ───────────────────────────────────────────────────────────── */
+  main{max-width:1200px;margin:0 auto;padding:clamp(24px,4vw,44px) clamp(20px,5vw,56px) 72px}
+  .lede{max-width:760px;margin-bottom:30px}
+  .lede h2{font-size:clamp(24px,3.4vw,34px);line-height:1.12;margin-bottom:12px}
+  .lede p{color:var(--ink-soft);font-size:16.5px;margin:0}
+  .prov{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;
+    font-family:var(--mono);font-size:12px;color:var(--ink-soft);
+    padding:13px 18px;background:var(--card);border:1px solid var(--hair);border-radius:11px;
+    margin-bottom:26px;box-shadow:var(--shadow)}
+  .prov .kv b{color:var(--ink);font-weight:500}
+  .prov .dot{width:4px;height:4px;border-radius:50%;background:var(--line)}
+  /* Live-chat model status: which model answers live turns, and whether it is ready. */
+  .livenote{font-size:12.5px;line-height:1.5;padding:10px 14px;border-radius:10px;
+    margin:-14px 0 26px;border:1px solid var(--hair)}
+  .livenote.ok{background:var(--card);color:var(--ink-soft)}
+  .livenote.warn{background:#fdf6ec;border-color:#e8d9b8;color:#7a5b16}
+  .livenote b{color:var(--ink);font-weight:600}
+  .livenote code{background:var(--accent-soft);border-radius:4px;padding:0 4px;font-family:var(--mono);font-size:.92em}
+
+  /* ── Stepper: equal-width chips, all in ONE row (no wrap, no horizontal scroll). The subtitle
+        drops off the chip — it reads on the panel's eyebrow when a stage is selected. ── */
+  .flow{display:flex;flex-wrap:nowrap;gap:8px;padding:2px 0 4px}
+  .node{flex:1 1 0;min-width:0;max-width:280px;display:flex;align-items:center;gap:9px;
+    background:var(--card);border:1px solid var(--hair);border-radius:10px;
+    padding:11px 12px;cursor:pointer;position:relative;transition:.14s;box-shadow:var(--shadow)}
+  .node .num{width:24px;height:24px;flex:none;border-radius:7px;background:var(--paper);
+    border:1px solid var(--hair);color:var(--ink-soft);font-family:var(--mono);font-size:12px;
+    font-weight:500;display:grid;place-items:center}
+  .node .label{min-width:0;line-height:1.2}
+  .node .t{font-family:var(--serif);font-weight:600;font-size:14px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+  .node .s{display:none}
+  .node:hover{border-color:var(--accent);transform:translateY(-1px);box-shadow:var(--shadow-lg)}
+  .node.active{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft),var(--shadow)}
+  .node.active .num{background:var(--ink);border-color:var(--ink);color:#fff}
+  .node.done .num{background:var(--good-bg);border-color:var(--good);color:var(--good)}
+  /* very narrow screens: allow horizontal scroll as a last resort rather than squashing to nothing */
+  @media(max-width:640px){.flow{overflow-x:auto}.node{flex:0 0 auto}.node .t{white-space:nowrap}}
+
+  /* ── Panel ────────────────────────────────────────────────────────────── */
+  .panel{margin-top:24px;background:var(--card);border:1px solid var(--hair);
+    border-radius:16px;padding:clamp(20px,3vw,32px);min-height:240px;box-shadow:var(--shadow-lg)}
+  .panel .eyebrow{font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--accent);font-weight:600;margin-bottom:7px}
+  .panel h2{font-size:24px;margin-bottom:6px}
+  .panel .measures{color:var(--ink-soft);font-size:15px;margin-bottom:22px;max-width:640px}
+  .placeholder{color:var(--ink-soft);font-size:15px;display:flex;align-items:center;gap:10px}
+  .placeholder:before{content:'';width:20px;height:20px;border-radius:50%;
+    border:2px solid var(--line);border-top-color:var(--accent)}
+  .running{display:inline-flex;align-items:center;gap:9px;color:var(--warn);
+    font-family:var(--mono);font-size:13px;margin-bottom:14px}
+  .running:before{content:'';width:13px;height:13px;border-radius:50%;
+    border:2px solid var(--warn-bg);border-top-color:var(--warn);animation:spin .7s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .bar{height:5px;background:var(--paper);border-radius:3px;overflow:hidden;margin:6px 0 20px;max-width:420px}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,#3a5a97,#2f7a69);width:0;transition:width .1s}
+  /* subtle loading shimmer shown only while the committed artifact actually fetches */
+  .loading-shimmer{height:80px;border-radius:12px;margin-top:6px;
+    background:linear-gradient(100deg,var(--paper) 30%,var(--card) 50%,var(--paper) 70%);
+    background-size:200% 100%;animation:shimmer 1.1s ease-in-out infinite}
+  @keyframes shimmer{to{background-position:-200% 0}}
+  /* revealed stage content fades in so an instant reveal doesn't feel abrupt */
+  .stage-reveal{animation:fadein .28s ease}
+  @keyframes fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+  /* metrics */
+  .metrics{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:8px}
+  .metric{flex:1;min-width:150px;background:var(--paper);border:1px solid var(--hair);
+    border-radius:12px;padding:16px 18px}
+  .metric .v{font-family:var(--serif);font-size:30px;font-weight:600;line-height:1;letter-spacing:-.02em}
+  .metric .l{font-size:12.5px;color:var(--ink-soft);margin-top:8px;line-height:1.35}
+
+  /* tables */
+  table{width:100%;border-collapse:collapse;font-size:13.5px;margin:4px 0}
+  thead th{font-family:var(--sans);font-weight:600;font-size:11px;letter-spacing:.06em;
+    text-transform:uppercase;color:var(--ink-soft);text-align:right;padding:9px 14px;
+    border-bottom:1.5px solid var(--line)}
+  th:first-child,td:first-child{text-align:left}
+  tbody td{text-align:right;padding:10px 14px;border-bottom:1px solid var(--hair);font-family:var(--mono);font-size:13px}
+  tbody tr:hover{background:var(--paper)}
+  td.name{font-family:var(--sans)}
+  .retained{color:var(--good);font-weight:500}
+
+  /* plots */
+  /* scope selector over the SHAP/PR plots */
+  .plot-scope-bar{display:flex;align-items:center;gap:12px;margin-top:22px;flex-wrap:wrap}
+  .plot-scope-label{font-size:11px;letter-spacing:.07em;text-transform:uppercase;font-weight:600;color:var(--ink-soft)}
+  .scope-pills{display:flex;gap:6px;flex-wrap:wrap}
+  .scope-pill{border:1px solid var(--line);background:var(--card);border-radius:7px;
+    padding:5px 11px;font:inherit;font-family:var(--mono);font-size:11.5px;color:var(--ink-soft);
+    cursor:pointer;transition:.12s}
+  .scope-pill:hover{border-color:var(--accent);color:var(--accent)}
+  .scope-pill.on{background:var(--ink);border-color:var(--ink);color:#fff}
+  .plots{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px}
+  .plot{background:var(--card);border:1px solid var(--hair);border-radius:12px;overflow:hidden;box-shadow:var(--shadow)}
+  .plot .cap{font-size:12px;color:var(--ink-soft);padding:10px 14px;border-bottom:1px solid var(--hair);
+    font-weight:500}
+  .plot img{width:100%;display:block;background:#fff}
+  .plot.err{padding:22px;color:var(--ink-soft);font-size:13px;text-align:center}
+
+  .note{color:var(--ink-soft);font-size:13.5px;margin-top:16px;line-height:1.55;
+    padding-left:14px;border-left:2px solid var(--line)}
+  .verdict{display:inline-flex;align-items:center;gap:7px;font-weight:600;font-size:13.5px;
+    padding:5px 12px;border-radius:8px;margin:4px 0}
+  .verdict.good{background:var(--good-bg);color:var(--good)}
+  .verdict.warn{background:var(--warn-bg);color:var(--warn)}
+
+  /* two-column compare (healthcare/support) */
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}
+  .compare .k{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);
+    font-weight:600;margin-bottom:8px}
+  .cell{background:var(--paper);border:1px solid var(--hair);border-radius:12px;padding:16px 18px}
+  .cell.role-masked{border-color:#e8d9bd;background:var(--warn-bg)}
+  .cell.role-full{border-color:#c3e0d6;background:var(--good-bg)}
+  .txt-clear{font-family:var(--mono);font-size:12.5px;line-height:1.55;color:var(--ink)}
+  .txt-masked{font-family:var(--mono);font-size:12.5px;line-height:1.55;color:var(--warn)}
+  .txt-tok{font-family:var(--mono);font-size:12px;line-height:1.6;color:var(--accent);word-break:break-word}
+  .tag{background:var(--accent-soft);color:var(--accent);border-radius:5px;padding:1px 5px}
+
+  /* confirm (live) */
+  .confirm{background:var(--warn-bg);border:1px solid #e8d9bd;border-radius:13px;padding:20px;margin-top:18px}
+  .confirm .cost{font-family:var(--serif);font-size:19px;font-weight:600;margin-bottom:8px}
+  .btn{background:var(--ink);color:#fff;border:0;border-radius:10px;padding:11px 20px;
+    font:inherit;font-weight:600;font-size:14px;cursor:pointer;transition:.12s;box-shadow:var(--shadow)}
+  .btn:hover{background:var(--accent);transform:translateY(-1px)}
+  .live-badge{font-family:var(--mono);font-size:10.5px;color:var(--warn);background:var(--warn-bg);
+    border-radius:6px;padding:2px 9px;margin-left:10px;vertical-align:2px;font-weight:600}
+
+  /* ── Chatbot ──────────────────────────────────────────────────────────── */
+  .tabs{display:inline-flex;gap:4px;background:var(--paper);border:1px solid var(--hair);
+    border-radius:10px;padding:4px;margin-bottom:20px}
+  .tabs button{border:0;background:transparent;border-radius:7px;padding:8px 16px;font:inherit;
+    font-size:13.5px;font-weight:500;color:var(--ink-soft);cursor:pointer}
+  .tabs button.on{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
+  .chat{display:grid;grid-template-columns:1.1fr 1fr;gap:22px}
+  @media(max-width:860px){.chat,.plots,.compare,.metrics{grid-template-columns:1fr}}
+  .col h3{font-size:15px;margin-bottom:12px;display:flex;align-items:center;gap:9px}
+  .col h3 .role{font-family:var(--mono);font-size:11px;color:var(--ink-soft);background:var(--paper);
+    border:1px solid var(--hair);border-radius:5px;padding:2px 7px;font-weight:400}
+  .msgs{background:var(--paper);border:1px solid var(--hair);border-radius:13px;
+    padding:16px;min-height:320px;max-height:460px;overflow:auto}
+  .msg{margin-bottom:14px}
+  .msg .who{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);
+    font-weight:600;margin-bottom:4px}
+  .msg.user .b{background:var(--accent-soft);color:var(--ink);border-radius:10px 10px 10px 3px;
+    padding:10px 13px;display:inline-block}
+  .msg.bot .b{background:var(--card);border:1px solid var(--hair);border-radius:10px 10px 3px 10px;
+    padding:10px 13px;display:inline-block;box-shadow:var(--shadow)}
+  /* A turn that could not complete (e.g. live chat unavailable for this domain): a calm, legible
+     notice, not an alarming red — the reason text is explanatory, not a crash. */
+  .msg.bot.err .b{background:#fdf6ec;border-color:#e8d9b8;color:#7a5b16;box-shadow:none}
+  /* Rendered Markdown inside a reply bubble (headings, paragraphs, bullets, rules). */
+  .msg .b .md-h{font-weight:650;margin:8px 0 3px;line-height:1.35}
+  .msg .b .md-h:first-child{margin-top:0}
+  .msg .b .md-p{margin:3px 0;line-height:1.5}
+  .msg .b ul{margin:4px 0 4px 2px;padding-left:18px}
+  .msg .b li{margin:2px 0;line-height:1.45}
+  .msg .b hr{border:0;border-top:1px solid var(--hair);margin:9px 0}
+  .msg .b code{background:var(--accent-soft);border-radius:4px;padding:0 4px;font-size:.92em}
+  .steps .row{background:var(--card);border:1px solid var(--hair);border-radius:11px;
+    padding:12px 14px;margin-bottom:11px}
+  .steps .row .k{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft);
+    font-weight:600;margin-bottom:7px;display:flex;align-items:center;gap:8px}
+  .steps .row .k .n{width:19px;height:19px;border-radius:50%;background:var(--ink);color:#fff;
+    font-family:var(--mono);font-size:11px;display:grid;place-items:center;flex:none}
+  .steps .body{font-family:var(--mono);font-size:12px;line-height:1.55;word-break:break-word}
+  .pill{border-radius:6px;padding:2px 8px;font-size:11px;font-weight:600;font-family:var(--sans)}
+  .pill.pass{background:var(--good-bg);color:var(--good)}
+  .pill.hold{background:var(--bad-bg);color:var(--bad)}
+  .pill.disc{background:var(--warn-bg);color:var(--warn)}
+  .chatin{display:flex;gap:9px;margin-top:14px}
+  .chatin input{flex:1;background:var(--card);border:1px solid var(--line);border-radius:10px;
+    padding:12px 15px;color:var(--ink);font:inherit;font-size:14px}
+  .chatin input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  .replay-controls{display:flex;align-items:center;gap:12px;margin-top:14px;flex-wrap:wrap}
+  .btn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line);box-shadow:none}
+  .btn.ghost:hover{background:var(--paper);color:var(--accent)}
+  .btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+  .turn-dots{display:flex;gap:6px;align-items:center}
+  .turn-dots .dot{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--line);
+    background:var(--card);cursor:pointer;padding:0;transition:.12s}
+  .turn-dots .dot:hover{border-color:var(--accent)}
+  .turn-dots .dot.on{background:var(--accent);border-color:var(--accent);transform:scale(1.25)}
+  .turn-dots .dot.held{border-color:var(--bad)}
+  .turn-dots .dot.on.held{background:var(--bad);border-color:var(--bad)}
+  .auto-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-soft);cursor:pointer;user-select:none}
+  .auto-toggle input{accent-color:var(--accent)}
+  .msg.cur .b{box-shadow:0 0 0 2px var(--accent-soft)}
+  /* collapsed run of consecutive held turns (one line instead of N identical "held" bubbles) */
+  .msg.held-run{text-align:center;margin:10px 0}
+  .msg.held-run .who{display:none}
+  .msg.held-run .b{display:inline-block;background:var(--bad-bg);color:var(--bad);
+    border:1px dashed #d8b4b0;border-radius:8px;padding:7px 14px;font-size:12px;font-style:italic}
+  .footnote{font-size:12.5px;color:var(--ink-soft);margin-top:12px;line-height:1.5}
+
+  /* ── Journey context strip (names the record + colour legend; the per-stage transformation
+        now lives INSIDE each stage panel, so there is no separate rail) ────────────────────── */
+  .jcontext{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;
+    background:var(--card);border:1px solid var(--hair);border-radius:12px;
+    padding:13px 18px;margin-bottom:18px;box-shadow:var(--shadow)}
+  .jctext{font-size:13.5px;color:var(--ink-soft)}
+  .jctext b{color:var(--ink);font-weight:600}
+  .jctext .syn{font-size:11px;font-family:var(--mono);color:var(--ink-soft)}
+  .jlegend{display:flex;gap:16px;flex-wrap:wrap}
+  .jlegend .lg{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink-soft)}
+  .jlegend .sw{width:11px;height:11px;border-radius:3px;display:inline-block}
+  .jlegend .sw.clear{background:var(--bad-bg);border:1px solid var(--bad)}
+  .jlegend .sw.tok{background:var(--accent-soft);border:1px solid var(--accent)}
+  .jlegend .sw.mask{background:var(--warn-bg);border:1px dashed var(--warn)}
+
+  /* ── In-panel: section labels + the transformation cards ─────── */
+  .sec-label{font-size:11px;letter-spacing:.09em;text-transform:uppercase;font-weight:600;
+    color:var(--accent);margin:2px 0 12px}
+  .io-divider{height:1px;background:var(--hair);margin:24px 0}
+
+  /* the transformation: input card → arrow → output card */
+  .xform{display:grid;grid-template-columns:1fr auto 1fr;gap:0;align-items:stretch}
+  @media(max-width:720px){.xform{grid-template-columns:1fr}.xform .xarrow{transform:rotate(90deg);padding:6px 0}}
+  .xcard{background:var(--paper);border:1px solid var(--hair);border-radius:12px;overflow:hidden}
+  .xcard.in-clear{border-color:#e6c9c4}
+  .xcard.out-prot{border-color:#bcd0ec}
+  .xlab{font-size:10px;letter-spacing:.07em;text-transform:uppercase;font-weight:600;
+    color:var(--ink-soft);padding:9px 13px;border-bottom:1px solid var(--hair);background:var(--card)}
+  .xval{font-family:var(--mono);font-size:12px;line-height:1.6;padding:13px;
+    overflow-wrap:anywhere;color:var(--ink)}
+  .xarrow{display:flex;align-items:center;justify-content:center;padding:0 14px}
+  .xarrow span{width:26px;height:26px;border-radius:50%;background:var(--card);border:1px solid var(--line);
+    position:relative;box-shadow:var(--shadow)}
+  .xarrow span:after{content:'';position:absolute;top:50%;left:50%;width:7px;height:7px;
+    border-top:1.5px solid var(--accent);border-right:1.5px solid var(--accent);
+    transform:translate(-60%,-50%) rotate(45deg)}
+  .xcaption{font-size:12.5px;color:var(--ink-soft);margin-top:12px;line-height:1.5}
+  .xval .tag{background:var(--accent-soft);color:var(--accent);border-radius:4px;padding:0 3px}
+  .xval .clearpii{background:var(--bad-bg);color:var(--bad);border-radius:4px;padding:0 3px}
+  .xval .masked-chip{background:var(--warn-bg);color:var(--warn);border:1px dashed #d8c08a;
+    border-radius:4px;padding:0 4px}
+
+  /* ── Role-differentiated views (same record, different eyes) ───────────── */
+  .role-grid{display:grid;gap:14px;margin-top:16px}
+  .role-grid.cols-2{grid-template-columns:1fr 1fr}
+  .role-grid.cols-3{grid-template-columns:1fr 1fr 1fr}
+  @media(max-width:860px){.role-grid.cols-2,.role-grid.cols-3{grid-template-columns:1fr}}
+  .rolecard{padding:0;overflow:hidden}
+  .role-head{padding:13px 15px;border-bottom:1px solid var(--hair)}
+  .role-name{font-family:var(--serif);font-size:15px;font-weight:600;display:block}
+  .role-meta{font-size:11px;color:var(--ink-soft);font-family:var(--mono);margin-top:3px;display:block}
+  .role-sees{font-family:var(--mono);font-size:12px;line-height:1.65;padding:14px 15px;
+    overflow-wrap:anywhere}
+  .rolecard.role-masked{background:var(--warn-bg);border-color:#e8d9bd}
+  .rolecard.role-masked .role-name{color:var(--warn)}
+  .rolecard.role-part{background:var(--paper)}
+  .rolecard.role-full{background:var(--good-bg);border-color:#c3e0d6}
+  .rolecard.role-full .role-name{color:var(--good)}
+  .masked-chip{background:var(--warn-bg);color:var(--warn);border:1px dashed #d8c08a;
+    border-radius:4px;padding:0 5px;font-size:11px}
+  /* Who-Sees-What finale (chatbot: the single strong role moment, below the conversation) */
+  .finale{margin-top:26px;background:var(--card);border:1px solid var(--hair);border-radius:16px;
+    padding:clamp(18px,3vw,28px);box-shadow:var(--shadow)}
+  /* chatbot panels (replacing the fake tabs) */
+  .panel-label{font-size:11px;letter-spacing:.09em;text-transform:uppercase;font-weight:600;
+    color:var(--accent);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .panel-label .hint{color:var(--ink-soft);font-weight:400;letter-spacing:0;text-transform:none;font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <div class="masthead">
+    <div class="brand">
+      <div class="mark" aria-hidden="true">
+        <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="ag" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#3a5a97"/><stop offset="1" stop-color="#2f7a69"/>
+            </linearGradient>
+          </defs>
+          <!-- shield (aegis = shield) -->
+          <path d="M20 2.5 34.5 7.2V19c0 9.4-6.2 15.6-14.5 18.8C11.7 34.6 5.5 28.4 5.5 19V7.2L20 2.5Z" fill="url(#ag)"/>
+          <!-- keyhole: identity locked -->
+          <circle cx="20" cy="16.4" r="3.7" fill="#fff"/>
+          <path d="M18.2 18.6h3.6l1 7.2h-5.6l1-7.2Z" fill="#fff"/>
+          <circle cx="20" cy="16.4" r="1.5" fill="url(#ag)"/>
+        </svg>
+      </div>
+      <div>
+        <div class="name">Aegis</div>
+        <div class="sub">Investigation copilot on <span class="pty">Protegrity Developer Edition</span></div>
+      </div>
+    </div>
+    <div class="controls">
+      <div class="field"><label for="usecase">View</label>
+        <select id="usecase"><option value="batch">Batch Analysis</option><option value="chatbot">Live Assistant</option></select>
+      </div>
+      <div class="field"><label for="domain">Domain</label>
+        <select id="domain"></select>
+      </div>
+      <div class="field"><label>Mode</label>
+        <div class="seg"><button id="replay" class="on">Replay</button><button id="live">Live<span class="cost">$</span></button></div>
+      </div>
+    </div>
+  </div>
+</header>
+<main>
+  <div class="lede">
+    <h2 id="lede-h">Run A Real Investigation On Protected Data</h2>
+    <p id="lede-p">Every identifier is tokenized at ingestion and re-identified only for the role entitled to see it. This console shows what that protection costs the pipeline, stage by stage, measured on a live run.</p>
+  </div>
+  <div class="prov" id="prov">Loading…</div>
+  <div class="livenote" id="livenote" hidden></div>
+  <div id="batch">
+    <div id="journey"></div>
+    <div class="flow" id="flow"></div>
+    <div class="panel" id="panel"><div class="placeholder">Select a stage above to reveal its measured result.</div></div>
+  </div>
+  <div id="chatbot" style="display:none"></div>
+</main>
+<script>
+  // Cache-bust app.js so a frontend edit is never served stale (paired with the API's no-cache
+  // headers). The token changes whenever the file does.
+  document.write('<scr'+'ipt src="app.js?v=' + Date.now() + '"></scr'+'ipt>');
+</script>
+</body>
+</html>

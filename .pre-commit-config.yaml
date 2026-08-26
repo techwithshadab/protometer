@@ -1,0 +1,32 @@
+# Pre-commit hooks. Install once with:  pip install pre-commit && pre-commit install
+# Then `make docs` runs automatically before each commit, so derived docs never go stale
+# locally, and ruff/tests gate the commit.
+repos:
+  - repo: local
+    hooks:
+      - id: ruff
+        name: ruff
+        entry: ruff check src scripts tests ui
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: docs-in-sync
+        name: regenerate derived docs from artifacts (make docs)
+        # Regenerates results-aml.md + the README cross-domain summary + key_metrics.json from
+        # the committed artifacts and runs the consistency check. If it changes a file, it
+        # re-stages it so the commit includes the fresh docs; the check fails the commit only on
+        # a genuine inconsistency the checker can't auto-fix.
+        entry: bash -c 'make docs && git add README.md docs/results-aml.md data/eval/key_metrics.json'
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: docs-consistency-test
+        name: docs consistency + invariant tests
+        # pre-commit local hooks don't take an `env:` key; set the telemetry kill-switches
+        # inline in the command instead.
+        entry: bash -c 'AMLGUARD_NO_TRACKING=1 AMLGUARD_NO_TRACING=1 python -m pytest tests/test_docs_consistency.py -q'
+        language: system
+        pass_filenames: false
+        always_run: true

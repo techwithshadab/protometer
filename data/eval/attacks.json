@@ -1,0 +1,344 @@
+{
+  "direct": [
+    {
+      "attack": "frequency_analysis[PERSON]",
+      "description": "Match token frequency rank to plaintext frequency rank",
+      "attempted": 30,
+      "correct": 1,
+      "accuracy": 0.0333,
+      "baseline_accuracy": 0.0333,
+      "lift_over_chance": 1.0,
+      "control_accuracy": null,
+      "notes": "289 distinct tokens; 117 appear more than once"
+    },
+    {
+      "attack": "frequency_analysis[ORGANIZATION]",
+      "description": "Match token frequency rank to plaintext frequency rank",
+      "attempted": 145,
+      "correct": 1,
+      "accuracy": 0.0069,
+      "baseline_accuracy": 0.0069,
+      "lift_over_chance": 1.0,
+      "control_accuracy": null,
+      "notes": "157 distinct tokens; 140 appear more than once"
+    },
+    {
+      "attack": "structural_linkage",
+      "description": "Match parties to an auxiliary graph by degree signature",
+      "attempted": 2463,
+      "correct": 97,
+      "accuracy": 0.0394,
+      "baseline_accuracy": 0.0004,
+      "lift_over_chance": 97.0,
+      "control_accuracy": 0.0,
+      "notes": "97/2463 parties carry a degree signature unique against the auxiliary graph; this is a structural-uniqueness disclosure rate, read against the relabeled-graph control, not an accuracy-over-random-guessing"
+    },
+    {
+      "attack": "neighbourhood_linkage",
+      "description": "Match parties by their neighbours' degree profile (1-hop topology)",
+      "attempted": 2463,
+      "correct": 1281,
+      "accuracy": 0.5201,
+      "baseline_accuracy": 0.0004,
+      "lift_over_chance": 1281.0,
+      "control_accuracy": 0.0004,
+      "notes": "1281/2463 parties are structurally unique at 1-hop against the auxiliary graph, a disclosure rate read against the relabeled control, not a lift over random guessing; published range for this attack class is 75.6-89.2%"
+    },
+    {
+      "attack": "format_leakage",
+      "description": "Infer entity type from the token's preserved format",
+      "attempted": 1213,
+      "correct": 732,
+      "accuracy": 0.6035,
+      "baseline_accuracy": 0.25,
+      "lift_over_chance": 2.41,
+      "control_accuracy": null,
+      "notes": "format preservation is a deliberate feature; this quantifies its disclosure"
+    }
+  ],
+  "direct-plus-context": [
+    {
+      "attack": "frequency_analysis[PERSON]",
+      "description": "Match token frequency rank to plaintext frequency rank",
+      "attempted": 30,
+      "correct": 1,
+      "accuracy": 0.0333,
+      "baseline_accuracy": 0.0333,
+      "lift_over_chance": 1.0,
+      "control_accuracy": null,
+      "notes": "289 distinct tokens; 117 appear more than once"
+    },
+    {
+      "attack": "frequency_analysis[ORGANIZATION]",
+      "description": "Match token frequency rank to plaintext frequency rank",
+      "attempted": 145,
+      "correct": 1,
+      "accuracy": 0.0069,
+      "baseline_accuracy": 0.0069,
+      "lift_over_chance": 1.0,
+      "control_accuracy": null,
+      "notes": "157 distinct tokens; 140 appear more than once"
+    },
+    {
+      "attack": "structural_linkage",
+      "description": "Match parties to an auxiliary graph by degree signature",
+      "attempted": 2463,
+      "correct": 97,
+      "accuracy": 0.0394,
+      "baseline_accuracy": 0.0004,
+      "lift_over_chance": 97.0,
+      "control_accuracy": 0.0,
+      "notes": "97/2463 parties carry a degree signature unique against the auxiliary graph; this is a structural-uniqueness disclosure rate, read against the relabeled-graph control, not an accuracy-over-random-guessing"
+    },
+    {
+      "attack": "neighbourhood_linkage",
+      "description": "Match parties by their neighbours' degree profile (1-hop topology)",
+      "attempted": 2463,
+      "correct": 1281,
+      "accuracy": 0.5201,
+      "baseline_accuracy": 0.0004,
+      "lift_over_chance": 1281.0,
+      "control_accuracy": 0.0004,
+      "notes": "1281/2463 parties are structurally unique at 1-hop against the auxiliary graph, a disclosure rate read against the relabeled control, not a lift over random guessing; published range for this attack class is 75.6-89.2%"
+    },
+    {
+      "attack": "format_leakage",
+      "description": "Infer entity type from the token's preserved format",
+      "attempted": 1151,
+      "correct": 670,
+      "accuracy": 0.5821,
+      "baseline_accuracy": 0.25,
+      "lift_over_chance": 2.33,
+      "control_accuracy": null,
+      "notes": "format preservation is a deliberate feature; this quantifies its disclosure"
+    }
+  ],
+  "direct-plus-temporal": [
+    {
+      "attack": "frequency_analysis[PERSON]",
+      "description": "Match token frequency rank to plaintext frequency rank",
+      "attempted": 30,
+      "correct": 1,
+      "accuracy": 0.0333,
+      "baseline_accuracy": 0.0333,
+      "lift_over_chance": 1.0,
+      "control_accuracy": null,
+      "notes": "289 distinct tokens; 117 appear more than once"
+    },
+    {
+      "attack": "frequency_analysis[ORGANIZATION]",
+      "description": "Match token frequency rank to plaintext frequency rank",
+      "attempted": 145,
+      "correct": 1,
+      "accuracy": 0.0069,
+      "baseline_accuracy": 0.0069,
+      "lift_over_chance": 1.0,
+      "control_accuracy": null,
+      "notes": "157 distinct tokens; 140 appear more than once"
+    },
+    {
+      "attack": "structural_linkage",
+      "description": "Match parties to an auxiliary graph by degree signature",
+      "attempted": 2463,
+      "correct": 97,
+      "accuracy": 0.0394,
+      "baseline_accuracy": 0.0004,
+      "lift_over_chance": 97.0,
+      "control_accuracy": 0.0,
+      "notes": "97/2463 parties carry a degree signature unique against the auxiliary graph; this is a structural-uniqueness disclosure rate, read against the relabeled-graph control, not an accuracy-over-random-guessing"
+    },
+    {
+      "attack": "neighbourhood_linkage",
+      "description": "Match parties by their neighbours' degree profile (1-hop topology)",
+      "attempted": 2463,
+      "correct": 1281,
+      "accuracy": 0.5201,
+      "baseline_accuracy": 0.0004,
+      "lift_over_chance": 1281.0,
+      "control_accuracy": 0.0004,
+      "notes": "1281/2463 parties are structurally unique at 1-hop against the auxiliary graph, a disclosure rate read against the relabeled control, not a lift over random guessing; published range for this attack class is 75.6-89.2%"
+    },
+    {
+      "attack": "format_leakage",
+      "description": "Infer entity type from the token's preserved format",
+      "attempted": 1151,
+      "correct": 670,
+      "accuracy": 0.5821,
+      "baseline_accuracy": 0.25,
+      "lift_over_chance": 2.33,
+      "control_accuracy": null,
+      "notes": "format preservation is a deliberate feature; this quantifies its disclosure"
+    }
+  ],
+  "direct-plus-monetary": [
+    {
+      "attack": "frequency_analysis[PERSON]",
+      "description": "Match token frequency rank to plaintext frequency rank",
+      "attempted": 30,
+      "correct": 1,
+      "accuracy": 0.0333,
+      "baseline_accuracy": 0.0333,
+      "lift_over_chance": 1.0,
+      "control_accuracy": null,
+      "notes": "289 distinct tokens; 117 appear more than once"
+    },
+    {
+      "attack": "frequency_analysis[ORGANIZATION]",
+      "description": "Match token frequency rank to plaintext frequency rank",
+      "attempted": 145,
+      "correct": 1,
+      "accuracy": 0.0069,
+      "baseline_accuracy": 0.0069,
+      "lift_over_chance": 1.0,
+      "control_accuracy": null,
+      "notes": "157 distinct tokens; 140 appear more than once"
+    },
+    {
+      "attack": "structural_linkage",
+      "description": "Match parties to an auxiliary graph by degree signature",
+      "attempted": 2463,
+      "correct": 97,
+      "accuracy": 0.0394,
+      "baseline_accuracy": 0.0004,
+      "lift_over_chance": 97.0,
+      "control_accuracy": 0.0,
+      "notes": "97/2463 parties carry a degree signature unique against the auxiliary graph; this is a structural-uniqueness disclosure rate, read against the relabeled-graph control, not an accuracy-over-random-guessing"
+    },
+    {
+      "attack": "neighbourhood_linkage",
+      "description": "Match parties by their neighbours' degree profile (1-hop topology)",
+      "attempted": 2463,
+      "correct": 1281,
+      "accuracy": 0.5201,
+      "baseline_accuracy": 0.0004,
+      "lift_over_chance": 1281.0,
+      "control_accuracy": 0.0004,
+      "notes": "1281/2463 parties are structurally unique at 1-hop against the auxiliary graph, a disclosure rate read against the relabeled control, not a lift over random guessing; published range for this attack class is 75.6-89.2%"
+    },
+    {
+      "attack": "format_leakage",
+      "description": "Infer entity type from the token's preserved format",
+      "attempted": 1151,
+      "correct": 670,
+      "accuracy": 0.5821,
+      "baseline_accuracy": 0.25,
+      "lift_over_chance": 2.33,
+      "control_accuracy": null,
+      "notes": "format preservation is a deliberate feature; this quantifies its disclosure"
+    }
+  ],
+  "quasi": [
+    {
+      "attack": "frequency_analysis[PERSON]",
+      "description": "Match token frequency rank to plaintext frequency rank",
+      "attempted": 30,
+      "correct": 1,
+      "accuracy": 0.0333,
+      "baseline_accuracy": 0.0333,
+      "lift_over_chance": 1.0,
+      "control_accuracy": null,
+      "notes": "289 distinct tokens; 117 appear more than once"
+    },
+    {
+      "attack": "frequency_analysis[ORGANIZATION]",
+      "description": "Match token frequency rank to plaintext frequency rank",
+      "attempted": 145,
+      "correct": 1,
+      "accuracy": 0.0069,
+      "baseline_accuracy": 0.0069,
+      "lift_over_chance": 1.0,
+      "control_accuracy": null,
+      "notes": "157 distinct tokens; 140 appear more than once"
+    },
+    {
+      "attack": "structural_linkage",
+      "description": "Match parties to an auxiliary graph by degree signature",
+      "attempted": 2463,
+      "correct": 97,
+      "accuracy": 0.0394,
+      "baseline_accuracy": 0.0004,
+      "lift_over_chance": 97.0,
+      "control_accuracy": 0.0,
+      "notes": "97/2463 parties carry a degree signature unique against the auxiliary graph; this is a structural-uniqueness disclosure rate, read against the relabeled-graph control, not an accuracy-over-random-guessing"
+    },
+    {
+      "attack": "neighbourhood_linkage",
+      "description": "Match parties by their neighbours' degree profile (1-hop topology)",
+      "attempted": 2463,
+      "correct": 1281,
+      "accuracy": 0.5201,
+      "baseline_accuracy": 0.0004,
+      "lift_over_chance": 1281.0,
+      "control_accuracy": 0.0004,
+      "notes": "1281/2463 parties are structurally unique at 1-hop against the auxiliary graph, a disclosure rate read against the relabeled control, not a lift over random guessing; published range for this attack class is 75.6-89.2%"
+    },
+    {
+      "attack": "format_leakage",
+      "description": "Infer entity type from the token's preserved format",
+      "attempted": 1151,
+      "correct": 670,
+      "accuracy": 0.5821,
+      "baseline_accuracy": 0.25,
+      "lift_over_chance": 2.33,
+      "control_accuracy": null,
+      "notes": "format preservation is a deliberate feature; this quantifies its disclosure"
+    }
+  ],
+  "all": [
+    {
+      "attack": "frequency_analysis[PERSON]",
+      "description": "Match token frequency rank to plaintext frequency rank",
+      "attempted": 30,
+      "correct": 1,
+      "accuracy": 0.0333,
+      "baseline_accuracy": 0.0333,
+      "lift_over_chance": 1.0,
+      "control_accuracy": null,
+      "notes": "289 distinct tokens; 117 appear more than once"
+    },
+    {
+      "attack": "frequency_analysis[ORGANIZATION]",
+      "description": "Match token frequency rank to plaintext frequency rank",
+      "attempted": 145,
+      "correct": 1,
+      "accuracy": 0.0069,
+      "baseline_accuracy": 0.0069,
+      "lift_over_chance": 1.0,
+      "control_accuracy": null,
+      "notes": "157 distinct tokens; 140 appear more than once"
+    },
+    {
+      "attack": "structural_linkage",
+      "description": "Match parties to an auxiliary graph by degree signature",
+      "attempted": 2463,
+      "correct": 97,
+      "accuracy": 0.0394,
+      "baseline_accuracy": 0.0004,
+      "lift_over_chance": 97.0,
+      "control_accuracy": 0.0,
+      "notes": "97/2463 parties carry a degree signature unique against the auxiliary graph; this is a structural-uniqueness disclosure rate, read against the relabeled-graph control, not an accuracy-over-random-guessing"
+    },
+    {
+      "attack": "neighbourhood_linkage",
+      "description": "Match parties by their neighbours' degree profile (1-hop topology)",
+      "attempted": 2463,
+      "correct": 1281,
+      "accuracy": 0.5201,
+      "baseline_accuracy": 0.0004,
+      "lift_over_chance": 1281.0,
+      "control_accuracy": 0.0004,
+      "notes": "1281/2463 parties are structurally unique at 1-hop against the auxiliary graph, a disclosure rate read against the relabeled control, not a lift over random guessing; published range for this attack class is 75.6-89.2%"
+    },
+    {
+      "attack": "format_leakage",
+      "description": "Infer entity type from the token's preserved format",
+      "attempted": 1151,
+      "correct": 670,
+      "accuracy": 0.5821,
+      "baseline_accuracy": 0.25,
+      "lift_over_chance": 2.33,
+      "control_accuracy": null,
+      "notes": "format preservation is a deliberate feature; this quantifies its disclosure"
+    }
+  ]
+}

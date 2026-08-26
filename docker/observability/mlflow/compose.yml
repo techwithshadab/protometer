@@ -1,0 +1,26 @@
+# MLflow: the experiment ledger + model registry (the "what did each run measure" plane).
+# Replaces the copy-pasted `docker run` the README used to carry, so bring-up is one file like
+# the other two observability planes. Backed by a single portable SQLite db a reviewer can open;
+# the store lives beside this file under ./store (gitignored — it holds run artifacts and, at
+# scope `none`, model reasoning over clear narratives, so it must never enter the repository).
+#
+#   cd docker/mlflow && docker compose up -d      # UI at http://localhost:5001
+#
+# Host port 5001 on purpose: macOS AirPlay answers HTTP on 5000, which would make a dead server
+# look alive. Loopback-bound like every other sidecar in this project.
+services:
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:latest
+    container_name: amlguard_mlflow
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5001:5000"
+    volumes:
+      # The store dir the code reads/writes (amlguard.tracking.DEFAULT_TRACKING_DIR). Keep this
+      # mount path in sync with that default (or AMLGUARD_MLFLOW_STORE_DIR).
+      - ./store:/mlruns
+    command: >
+      mlflow server
+      --backend-store-uri sqlite:////mlruns/mlflow.db
+      --artifacts-destination /mlruns/artifacts
+      --host 0.0.0.0 --port 5000

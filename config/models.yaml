@@ -1,0 +1,170 @@
+# Model configuration, every LLM the pipeline can use, and how it is priced.
+#
+# Providers are selected by name at runtime (`AMLGUARD_MODEL`, `--model`, or the evaluation
+# config). Nothing about the pipeline depends on which entry is chosen, so an open-source
+# model on a workstation and a frontier hosted model are interchangeable.
+#
+# `cost_per_1m_input` / `cost_per_1m_output` are USD per million tokens and drive the cost
+# accounting in `amlguard.llm`. Local models are zero-cost by definition; their real cost is
+# wall-clock, which is measured separately. Hosted prices are list prices at time of writing
+# and are declared here rather than hardcoded, so they can be corrected without touching code.
+
+default: qwen2.5-14b
+
+# Fallback chain used when a model is unreachable. Tried in order; the pipeline records which
+# entry actually served each call so results are never silently attributed to the wrong model.
+fallback_order:
+  - qwen2.5-14b
+  - llama3.2
+  - claude-sonnet-5
+
+models:
+  # -- Local (Ollama), no API key, no network egress -------------------------------
+  qwen2.5-14b:
+    provider: ollama
+    model_id: qwen2.5:14b
+    context_window: 32768
+    max_output_tokens: 4096
+    cost_per_1m_input: 0.0
+    cost_per_1m_output: 0.0
+    notes: >-
+      Default. Strong instruction-following at 14B, fits comfortably in 32GB RAM alongside
+      the discovery containers. Reasons reliably over tokenized values.
+
+  qwen2.5-32b:
+    provider: ollama
+    model_id: qwen2.5:32b
+    context_window: 32768
+    max_output_tokens: 4096
+    cost_per_1m_input: 0.0
+    cost_per_1m_output: 0.0
+    notes: Higher quality, ~2.5x slower. Use when local quality is the bottleneck.
+
+  llama3.2:
+    provider: ollama
+    model_id: llama3.2:latest
+    context_window: 8192
+    max_output_tokens: 2048
+    cost_per_1m_input: 0.0
+    cost_per_1m_output: 0.0
+    notes: Small and fast. Useful as a cheap smoke-test target, not for final numbers.
+
+  gemma3-27b:
+    provider: ollama
+    model_id: gemma3:27b
+    context_window: 131072
+    max_output_tokens: 8192
+    cost_per_1m_input: 0.0
+    cost_per_1m_output: 0.0
+    notes: >-
+      Alternative local family. Cross-checking findings on a second architecture is what
+      distinguishes "protection degrades reasoning" from "this model degrades on tokenized
+      text", a distinction a sceptical reviewer will look for.
+
+  # -- Hosted (Anthropic), requires ANTHROPIC_API_KEY ------------------------------
+  claude-opus-5:
+    provider: anthropic
+    model_id: claude-opus-5
+    context_window: 200000
+    max_output_tokens: 8192
+    cost_per_1m_input: 5.0
+    cost_per_1m_output: 25.0
+    supports_prompt_caching: true
+    notes: >-
+      Strongest reasoning. The protected corpus is a stable prefix across evaluation runs,
+      so prompt caching applies directly and cuts repeat-run input cost substantially.
+
+  claude-sonnet-5:
+    provider: anthropic
+    model_id: claude-sonnet-5
+    context_window: 200000
+    max_output_tokens: 8192
+    cost_per_1m_input: 3.0
+    cost_per_1m_output: 15.0
+    supports_prompt_caching: true
+    notes: Best hosted cost/quality balance for bulk evaluation runs.
+
+  claude-haiku-4-5:
+    provider: anthropic
+    model_id: claude-haiku-4-5-20251001
+    context_window: 200000
+    max_output_tokens: 8192
+    cost_per_1m_input: 1.0
+    cost_per_1m_output: 5.0
+    supports_prompt_caching: true
+    notes: Cheapest hosted option; suitable for LLM-as-judge scoring of narrative checkpoints.
+
+  # -- AWS Bedrock, uses the account's existing AWS credentials, no separate API key --
+  #
+  # Model IDs are **inference profile** IDs (`us.` prefix), not bare model IDs. Bedrock
+  # rejects the bare form for these models with "Invocation of model ID ... with on-demand
+  # throughput isn't supported", and because the client has a fallback chain, that rejection
+  # silently routed every call to the local model, producing results attributed to Sonnet
+  # that a local 14B model actually generated.
+  #
+  # Verified available in us-east-1 on this account. Bedrock bills the same per-token rates
+  # as the direct API; the difference is that spend lands on the AWS bill and inherits IAM
+  # controls, which is the deployment a bank would actually use.
+  bedrock-haiku-4-5:
+    provider: bedrock
+    model_id: us.anthropic.claude-haiku-4-5-20251001-v1:0
+    context_window: 200000
+    max_output_tokens: 8192
+    cost_per_1m_input: 1.0
+    cost_per_1m_output: 5.0
+    notes: Cheapest Bedrock option. Suitable for judge grading and bulk runs.
+
+  bedrock-sonnet-5:
+    provider: bedrock
+    model_id: us.anthropic.claude-sonnet-5
+    context_window: 200000
+    max_output_tokens: 8192
+    cost_per_1m_input: 3.0
+    cost_per_1m_output: 15.0
+    # Verified against the live API, not assumed: `system=[{text}, {cachePoint:{type:default}}]`
+    # is accepted and the response reports `cacheReadInputTokens`. The system prompt is
+    # byte-identical across every call in a run, so caching removes it from repeat input cost.
+    supports_prompt_caching: true
+    # Claude 5 models reason ADAPTIVELY by default on Bedrock: a hard prompt can spend the
+    # whole maxTokens budget inside a reasoningContent block and return zero text (measured:
+    # 19 eval tasks failed with stopReason=max_tokens and no text). The evaluation's fixed
+    # 900-token decode budget is meant for the answer, so reasoning is disabled explicitly -
+    # a measurement condition declared in config, not an accident of defaults.
+    additional_request_fields:
+      thinking:
+        type: disabled
+    notes: Best cost/quality balance for the full curve. Reasoning disabled for fixed-budget comparability.
+
+  bedrock-opus-5:
+    provider: bedrock
+    model_id: us.anthropic.claude-opus-5
+    context_window: 200000
+    max_output_tokens: 8192
+    cost_per_1m_input: 5.0
+    cost_per_1m_output: 25.0
+    # Same adaptive-reasoning default as bedrock-sonnet-5; same fixed-budget rationale.
+    additional_request_fields:
+      thinking:
+        type: disabled
+    notes: >-
+      Strongest reasoning available. Use for the headline curve where answer quality is the
+      measurement rather than the variable. Reasoning disabled for fixed-budget comparability.
+
+  # -- Hosted (OpenAI), requires OPENAI_API_KEY ------------------------------------
+  gpt-4o:
+    provider: openai
+    model_id: gpt-4o
+    context_window: 128000
+    max_output_tokens: 4096
+    cost_per_1m_input: 2.5
+    cost_per_1m_output: 10.0
+    notes: Included so findings can be shown to hold across vendors, not just one.
+
+  gpt-4o-mini:
+    provider: openai
+    model_id: gpt-4o-mini
+    context_window: 128000
+    max_output_tokens: 4096
+    cost_per_1m_input: 0.15
+    cost_per_1m_output: 0.6
+    notes: Low-cost cross-vendor check.
