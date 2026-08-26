@@ -19,8 +19,7 @@ repo; nothing is hand-entered.
 
 **New here?** Start with **[docs/SETUP.md](docs/SETUP.md)** (clone → running demo, no cloud account
 needed). Then: **[docs/product-and-use-cases.md](docs/product-and-use-cases.md)** (what it does, for
-whom) · **[docs/architecture.md](docs/architecture.md)** (how it's built) ·
-**[docs/demo-video-flow.md](docs/demo-video-flow.md)** (the 15-20 minute demo script).
+whom) · **[docs/architecture.md](docs/architecture.md)** (how it's built).
 
 Full design: [docs/architecture.md](docs/architecture.md) · Generated results:
 [docs/results-aml.md](docs/results-aml.md)
