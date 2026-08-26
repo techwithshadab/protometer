@@ -48,9 +48,11 @@ jobs:
             exit 0
           fi
           make docs
-          if ! git diff --quiet -- README.md docs/results-aml.md data/eval/key_metrics.json; then
+          # -I: the Generated date stamp is the run date by design; a push regenerated just
+          # before UTC midnight must not fail the freshness check the morning after.
+          if ! git diff --quiet -I '^- \*\*Generated:' -- README.md docs/results-aml.md data/eval/key_metrics.json; then
             echo "::error::Derived docs are stale. Run 'make docs' and commit the result."
-            git --no-pager diff -- README.md docs/results-aml.md data/eval/key_metrics.json
+            git --no-pager diff -I '^- \*\*Generated:' -- README.md docs/results-aml.md data/eval/key_metrics.json
             exit 1
           fi
           echo "docs are in sync with the artifacts"
