@@ -46,13 +46,29 @@ which model is active. Selection is env-driven (`AMLGUARD_UI_MODEL` forces a mod
 
 ## Contents
 
-| | |
-|---|---|
-| **Results** | [The headline result](#the-headline-result) · [Capabilities across domains](#capabilities-measured-across-domains) |
-| **The system** | [Seven protected stages](#protection-across-seven-pipeline-stages) · [Domains & live serving](#beyond-aml-domains-and-live-serving) · [Demo UI](#demo-ui) |
-| **Measurements** | [The retrieval asymmetry](#the-retrieval-asymmetry) · [Hybrid triage](#hybrid-triage-the-classifier-ranks-the-model-reasons) · [The LLM utility curve](#on-the-llm-utility-curve) · [What it protects, and what it does not](#what-this-protects-and-what-it-does-not) · [The technique frontier](#the-protection-technique-frontier) |
-| **Engineering** | [Platform findings beyond the docs](#findings-not-documented-anywhere-in-the-protegrity-ecosystem) · [Design decisions](#design-decisions-and-why-this-shape) · [Verification culture](#verification-culture) · [Guardrails on ourselves](#guardrails-on-ourselves) · [Honest limitations](#honest-limitations) |
-| **Use it** | [Running it](#running-it) · [How this maps to the challenge](#how-this-maps-to-the-challenge) · [Repository layout](#repository-layout) |
+- **Results**
+  - [The headline result](#the-headline-result)
+  - [Capabilities, measured across domains](#capabilities-measured-across-domains)
+- **The system**
+  - [Protection across seven pipeline stages](#protection-across-seven-pipeline-stages)
+  - [Beyond AML: domains and live serving](#beyond-aml-domains-and-live-serving)
+  - [Demo UI](#demo-ui)
+- **Measurements**
+  - [The retrieval asymmetry](#the-retrieval-asymmetry)
+  - [Hybrid triage: the classifier ranks, the model reasons](#hybrid-triage-the-classifier-ranks-the-model-reasons)
+  - [On the LLM utility curve](#on-the-llm-utility-curve)
+  - [What this protects, and what it does not](#what-this-protects-and-what-it-does-not)
+  - [The protection-technique frontier](#the-protection-technique-frontier)
+- **Engineering**
+  - [Findings not documented anywhere in the Protegrity ecosystem](#findings-not-documented-anywhere-in-the-protegrity-ecosystem)
+  - [Design decisions, and why this shape](#design-decisions-and-why-this-shape)
+  - [Verification culture](#verification-culture)
+  - [Guardrails on ourselves](#guardrails-on-ourselves)
+  - [Honest limitations](#honest-limitations)
+- **Use it**
+  - [Running it](#running-it)
+  - [How this maps to the challenge](#how-this-maps-to-the-challenge)
+  - [Repository layout](#repository-layout)
 
 ## The headline result
 
