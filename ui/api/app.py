@@ -151,19 +151,12 @@ def _load_parties(domain: str = "aml") -> list:
         )
     rows = db.read_parties(domain)
     if not rows:
-        # Only AML ships a party corpus in this edition; healthcare/support demos run on their own
-        # inline fixtures (de-id CSV, dual-gate message), not a party roster. Say so precisely so a
-        # healthcare/support chat turn fails with an accurate message instead of pointing at a
-        # loader command that has nothing to load.
-        if domain == "aml":
-            raise DataUnavailable(
-                "The 'aml' corpus is not loaded in Postgres. "
-                "Run: python scripts/load_corpus_db.py --domain aml"
-            )
+        # Every domain ships a party corpus (AML's full corpus; support/healthcare party masters
+        # from scripts/build_domain_corpus.py), and the container entrypoint loads them all. An
+        # empty read therefore means the mirror is unloaded, so point at the loader.
         raise DataUnavailable(
-            f"Live chat is AML-only in this edition: the {domain!r} domain ships no party corpus "
-            f"(its de-id / dual-gate demos run on their own fixtures). Use the AML domain for the "
-            f"live chatbot, or the {domain!r} batch stepper for that domain's protection demo."
+            f"The {domain!r} corpus is not loaded in Postgres. "
+            f"Run: python scripts/load_corpus_db.py --domain {domain}"
         )
     return rows
 
@@ -194,9 +187,9 @@ def health() -> dict:
         # (which can carry paths and stack context) leaves the process.
         logging.getLogger("amlguard.ui").warning("live-chat health probe failed: %s", exc)
         live = {"ready": False, "error": "live-chat status unavailable"}
-    # Which domains actually support a live chatbot turn (AML only in this edition). The UI reads
-    # this to offer Live only where it works, instead of promising it for every domain and then
-    # 503-ing. Single source of truth: Domain.supports_live_chat.
+    # Which domains support a live chatbot turn (all three, each backed by its own party corpus).
+    # The UI reads this to offer Live only where it works. Single source of truth:
+    # Domain.supports_live_chat, which a fork can flip off for a domain without a corpus.
     live_domains = [n for n in domain_names() if get_domain(n).supports_live_chat]
     return {
         "ok": True,
@@ -417,9 +410,11 @@ _TURN_COUNT = 0
 
 
 def _check_auth(token: str | None) -> None:
+    import secrets as _secrets
+
     from amlguard import settings
     expected = settings.ui_api_token()
-    if expected and token != expected:
+    if expected and not (token and _secrets.compare_digest(token, expected)):
         raise HTTPException(401, "missing or invalid X-AMLGuard-Token")
 
 
@@ -590,15 +585,14 @@ def chat_turn(
 
     _check_auth(x_amlguard_token)
     domain = get_domain(req.domain)
-    # Fail fast, and BEFORE charging a turn, on a domain that structurally has no live chatbot in
-    # this edition (only AML ships a live party corpus; see Domain.supports_live_chat). This is the
-    # same limitation _load_parties would hit deeper in, surfaced here as a clean 503 the UI can show
-    # verbatim — not a generic 502 from re-wrapping an exception thrown mid-turn.
+    # Fail fast, and BEFORE charging a turn, if a domain has live chat switched off
+    # (Domain.supports_live_chat; all shipped domains support it, but a fork adding a domain
+    # without a party corpus can flip it off). Surfaced as a clean 503 the UI shows verbatim,
+    # not a generic 502 from re-wrapping an exception thrown mid-turn.
     if not domain.supports_live_chat:
         raise DataUnavailable(
-            f"Live chat is AML-only in this edition: the {domain.name!r} domain ships no party "
-            f"corpus for a live turn (its protection is demonstrated by the Batch Analysis stepper "
-            f"instead). Switch to the AML domain for the live assistant, or use Batch Analysis here."
+            f"Live chat is not enabled for the {domain.name!r} domain (no party corpus to protect "
+            f"against). Use this domain's Batch Analysis stepper, or a domain with live chat enabled."
         )
     _charge_turn()
     role = ROLES.get(req.role)
@@ -619,8 +613,8 @@ def chat_turn(
         )
         result = session.turn(req.message)
     except HTTPException:
-        # An intentional, already-shaped HTTP error (e.g. DataUnavailable's 503 "live chat is
-        # AML-only in this edition") must reach the UI with ITS OWN status and message, not be
+        # An intentional, already-shaped HTTP error (e.g. DataUnavailable's 503 with its precise
+        # corpus/loader message) must reach the UI with ITS OWN status and message, not be
         # re-wrapped as a generic 502 Bad Gateway. Only genuinely unexpected exceptions below
         # become a 502.
         raise

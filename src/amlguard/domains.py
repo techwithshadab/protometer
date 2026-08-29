@@ -49,11 +49,11 @@ class Domain:
     # occurrence by the egress guard (SSN/account/card shapes). Domain-specific: a healthcare MRN
     # is high-sensitivity, a support-ticket order number may not be.
     high_sensitivity_fields: tuple[str, ...] = ()
-    # Whether this domain supports a LIVE chatbot turn. Live chat re-identifies against a party
-    # roster loaded from Postgres, and only AML ships that corpus in this edition; healthcare /
-    # support demonstrate protection through their own batch fixtures (de-id CSV, dual-gate
-    # message), not a live roster. This is the single source of truth the UI reads to offer Live
-    # only where it works, and the /chat/turn path reads to fail with a precise 503 otherwise.
+    # Whether this domain supports a LIVE chatbot turn. Live chat protects each turn against the
+    # domain's own party corpus (AML's full corpus; support/healthcare party masters built by
+    # scripts/build_domain_corpus.py and loaded by the container entrypoint). All shipped domains
+    # support it; a fork adding a domain without a corpus flips this off. Single source of truth:
+    # the UI offers Live from it, and /chat/turn fails with a precise 503 when it is off.
     supports_live_chat: bool = False
 
     def high_sensitivity_values(self, records: list[dict]) -> frozenset[str]:
@@ -95,7 +95,7 @@ _AML = Domain(
     rationale_prompt="amlguard-rationale-system",
     judge_prompt="amlguard-judge-system",
     high_sensitivity_fields=("ssn", "account_number", "bank_account", "credit_card", "tax_id"),
-    supports_live_chat=True,  # AML is the only domain with a live party corpus in this edition
+    supports_live_chat=True,  # full party corpus under data/corpus/
 )
 
 _HEALTHCARE = Domain(

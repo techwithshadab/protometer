@@ -39,3 +39,7 @@ SQLAlchemy==2.0.36
 # single-page frontend; the Docker image installs these too. CLI-only pipeline runs don't need them.
 fastapi==0.141.1
 uvicorn==0.52.1
+
+# Protegrity Developer-Edition anonymization SDK (PyPI): powers the healthcare
+# de-identification stage (Safe Harbor + Expert Determination risk engine client).
+protegrity-anonymization-sdk==2.0.0

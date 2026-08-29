@@ -127,8 +127,8 @@ it — but the local model is for *running the demo*, not for reproducing the he
 
 **Roles, in this edition.** Re-identification is role-gated and enforced in the application; the same
 gate can be centrally managed in Protegrity policy in a Team-Edition deployment. Live chat ships for
-AML in this edition (the domain with a full party corpus); the other domains fail closed with an
-accurate message rather than protecting against the wrong entity set.
+all three domains, each protected against its own party corpus; a domain whose corpus is not
+loaded fails closed with a precise message rather than protecting against the wrong entity set.
 
 **Not fine-tuning.** The training stage is a supervised classifier over the protected ledger, which is
 what the protected-pipeline claim needs. It is not LLM fine-tuning, and we do not present it as such.

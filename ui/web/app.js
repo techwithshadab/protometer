@@ -66,7 +66,7 @@ async function boot() {
     currentDomain = $("#domain").value;
     setLede(currentDomain);
     await loadPipeline(currentDomain);
-    renderLiveNote();   // the live-availability note is domain-specific (AML-only in this edition)
+    renderLiveNote();   // the live-availability note is domain-specific
     if ($("#usecase").value === "chatbot") renderChat();
   };
   setLede(currentDomain);
@@ -210,7 +210,7 @@ function setMode(m) {
 // who forked the repo without credentials that live turns will run locally and free — or what to do
 // if the local model is not set up yet. Fetched once and cached.
 let liveHealth = null;      // the /health .live_chat block (model + readiness)
-let liveDomains = null;     // which domains support a live turn (AML only in this edition)
+let liveDomains = null;     // which domains the server reports as live-capable
 async function loadLiveHealth() {
   if (liveHealth) return liveHealth;
   try {
@@ -227,12 +227,12 @@ async function renderLiveNote() {
   const n = $("#livenote"); if (!n) return;
   if (mode !== "live") { n.hidden = true; return; }
   const h = await loadLiveHealth();
-  // Domain gate first: only AML ships a live party corpus in this edition. For the others, say so
-  // plainly and point at Replay/Batch, rather than letting the turn 503 with a raw error.
+  // Domain gate first: if the server reports this domain as not live-capable, say so plainly
+  // and point at Replay/Batch, rather than letting the turn 503 with a raw error.
   if (!domainSupportsLive(currentDomain)) {
     n.hidden = false;
     n.className = "livenote warn";
-    n.innerHTML = `Live chat is available for the <b>anti-money-laundering</b> domain in this edition. This domain demonstrates the same protection through <b>Replay</b> (a recorded conversation) and the <b>Batch Analysis</b> stepper. Switch the use case above, or select the AML domain to run a live turn.`;
+    n.innerHTML = `Live chat is not enabled for this domain. It demonstrates the same protection through <b>Replay</b> (a recorded conversation) and the <b>Batch Analysis</b> stepper.`;
     return;
   }
   // The "$" badge on the Live button means "a real billed call"; a local model is free, so hide it.
@@ -641,7 +641,7 @@ function renderChat() {
       <div class="col">
         <div class="panel-label">Conversation <span class="hint">protected reply, written over tokens</span></div>
         <div class="msgs" id="msgs"><div class="footnote">${liveBlocked
-          ? "Live chat is available for the anti-money-laundering domain in this edition. Use Replay here to step through a recorded protected conversation, or switch to the AML domain to run a live turn."
+          ? "Live chat is not enabled for this domain. Use Replay here to step through a recorded protected conversation, or switch to a domain with live chat enabled."
           : isLive
           ? "Live mode: each turn protects your PII, reasons over tokens, scans egress, and re-identifies by role (~$0.01/turn)."
           : "Replay mode: a committed multi-turn run over the tokenized corpus. Step through it below."}</div></div>
@@ -856,7 +856,7 @@ async function sendTurn() {
     const r = await resp.json().catch(() => ({}));
     if (!resp.ok) {
       // The API sends a clean, human-readable reason in `detail` (e.g. a 503 "live chat is
-      // AML-only in this edition", or a 429 turn-cap). Show THAT, not a broken empty reply.
+      // corpus-not-loaded message, or a 429 turn-cap). Show THAT, not a broken empty reply.
       wait.className = "msg bot err";
       wait.querySelector(".b").textContent = r.detail || `Request failed (${resp.status}).`;
       m.scrollTop = m.scrollHeight;

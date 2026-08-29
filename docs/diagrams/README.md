@@ -1,30 +1,32 @@
 # Diagrams
 
-Reference-style architecture diagrams, generated as SVG so they render on GitHub and in any browser,
-scale without blur, and stay diffable. All of them share one palette — see [PALETTE.md](PALETTE.md).
+Every figure the docs embed, rendered from a committed source so a diagram can never drift
+from something regenerable.
 
-| File | Diagram | Source |
+| Figure | Embedded in | Shows |
 |---|---|---|
-| `pipeline-strip.svg` | compact horizontal pipeline (README header) | `diagram_strip.py` |
-| `architecture-pipeline.svg` | end-to-end 7-stage pipeline + observability | `diagram_pipeline.py` |
-| `architecture-concerns.svg` | grouped by concern (deck view) | `diagram_concerns.py` |
-| `model-selection.svg` | live-chat model selection | `diagram_model_selection.py` |
+| `architecture-overview.png` | README, architecture.md | The full system: plaintext sources, ingest-time protection, the trust boundary, the tokens-only protected zone, the egress guard chain, the role gate, and the assurance plane. |
+| `pipeline-strip.png` | README (top) | The same story as a compact strip: sources → ingest → tokens-only band → role-gated presentation. |
+| `architecture-concerns.png` | architecture.md | The identical system regrouped by concern: enterprise data, the protected pipeline, governance, state & observability. |
+| `model-selection.png` | architecture.md | Live-chat model precedence: explicit override → hosted when AWS credentials exist → local Ollama at $0. |
 
-## Regenerate
+## How they are built
+
+Each figure is a small HTML page under [`src/`](src/) sharing one design system
+([`src/_design.css`](src/_design.css): the palette, column/card/step components, trust-boundary
+and plane styles). Rendering is a headless-Chrome screenshot at 2x:
 
 ```bash
-cd docs/diagrams
-for d in diagram_*.py; do python3 "$d"; done
+sh docs/diagrams/src/render.sh     # regenerates every PNG in this directory
 ```
 
-Each `diagram_*.py` writes its `.svg` next to it. No dependencies — `_svglib.py` emits plain SVG 1.1.
+Conventions the design system enforces:
 
-## Editing
+- One palette everywhere (cream ground, ink text, purple accents, red for trust boundaries).
+- Straight orthogonal connectors only; arrowheads are explicit polygons.
+- Trust boundaries are red dashed lines; plaintext zones are grey dashed containers.
+- Columns fill their full height (content is distributed, not top-packed).
+- No footers, logos, or slide chrome inside a figure; the embedding doc provides context.
 
-- The palette (colors, fonts) lives once in `_tokens.json`; change it there and regenerate.
-- `_svglib.py` has the shared primitives: `band`, `card`, `badge`, `arrow`, `elbow`, `icon`, and a
-  `wrap()` that fits text to a box so nothing overflows. Add icons to the `_ICONS` dict.
-- Keep the color scheme consistent with `_tokens.json` for any new diagram, flowchart, or table image
-  so the whole doc set reads as one system.
-
-The palette is deliberately the single source of truth: define a value once, use it everywhere.
+To change a figure, edit its `src/*.html`, re-run `render.sh`, and commit both the source and
+the PNG together.

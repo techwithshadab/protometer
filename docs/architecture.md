@@ -18,10 +18,8 @@ independently checks that no in-scope identifier survives anywhere in the protec
 
 ![System architecture overview: plaintext sources, ingest-time protection, the trust boundary, the protected zone, the egress guard chain, the role gate, and the assurance plane](diagrams/architecture-overview.png)
 
-![AMLGuard end-to-end pipeline: seven protected stages between the trust boundaries, with observability and cross-cutting concerns](diagrams/architecture-pipeline.svg)
-
-<sub>Diagrams share one palette and a sync (solid) / async (dashed) arrow legend — see
-[diagrams/PALETTE.md](diagrams/PALETTE.md). Sources regenerate the SVGs from that single palette.</sub>
+<sub>Every figure shares one design system and regenerates from a committed source — see
+[diagrams/README.md](diagrams/README.md).</sub>
 
 **Eight protection scopes** are the experiment's independent variable, from `none` (clear
 baseline) through `direct` (names, addresses, emails, IDs), `direct-plus-context/-temporal/
@@ -29,15 +27,14 @@ baseline) through `direct` (names, addresses, emails, IDs), `direct-plus-context
 measurement below runs the identical pipeline over each scope, so any difference is
 attributable to protection and nothing else.
 
-### The same picture, grouped by concern (deck view)
+### The same picture, grouped by concern
 
-The pitch deck's architecture slide (`deck/AMLGuard_Deck.*`, "Protected Pipeline Architecture")
-renders the identical system as four concern-columns feeding left to right — Enterprise Data →
-the dashed **Protected Pipeline (tokens only)** → Governance → State & Observability. It is the
+A second view renders the identical system as four concern-columns feeding left to right — Enterprise
+Data → the dashed **Protected Pipeline (tokens only)** → Governance → State & Observability. It is the
 same seven stages above, regrouped so the *protected zone* (the dashed container) is visually one
 thing, with governance and durable state as its neighbours rather than an afterthought:
 
-![AMLGuard grouped by concern: enterprise data, the protected pipeline (tokens only), governance, and state and observability](diagrams/architecture-concerns.svg)
+![AMLGuard grouped by concern: enterprise data, the protected pipeline (tokens only), governance, and state and observability](diagrams/architecture-concerns.png)
 
 Two things this grouping makes explicit that the linear diagram does not: **durable state is now
 Postgres** (the app's queryable source of truth; see below), and the **observability plane carries
@@ -84,12 +81,13 @@ The batch stepper is **per-domain**: AML shows the 7-stage curve; healthcare sho
 Expert Determination (HIPAA residual-risk before/after k-anonymization); customer-support shows the
 role dual-gate. The parties preview returns only a safe column allow-list — clear
 ssn/credit-card/DOB/account fields are dropped at the seam regardless of auth, because the pipeline
-exists to protect exactly those. Live chat is AML-only in this edition (only AML ships a party
-corpus); other domains fail closed with an accurate message rather than mis-seeding protection.
+exists to protect exactly those. Live chat runs in all three domains, each protected against its
+own party corpus; a domain whose corpus is not loaded fails closed with a precise loader message
+rather than mis-seeding protection from another domain's entities.
 
 ### Live-chat model selection: runs with or without a cloud account
 
-![Live-chat model selection: an explicit override wins, else a hosted model when AWS credentials are present, else a local open-source model](diagrams/model-selection.svg)
+![Live-chat model selection: an explicit override wins, else a hosted model when AWS credentials are present, else a local open-source model](diagrams/model-selection.png)
 
 The live chat picks its model at request time (`resolve_ui_model()` in `ui/api/app.py`), so a fork
 runs whether or not the operator has cloud credentials, without changing the `allow_fallback=False`

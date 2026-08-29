@@ -31,7 +31,7 @@ immediately; live chat works too, on a local model, once you do the one Ollama s
 
 ```bash
 # 1. Clone, and fetch the Protegrity Developer-Edition images repo (gitignored here)
-git clone <this-repo> && cd protegrity
+git clone https://github.com/techwithshadab/amlguard.git && cd amlguard
 git clone https://github.com/Protegrity-AI-Developer-Edition/protegrity-ai-developer-edition.git vendor-de
 
 # 2. Credentials — copy the template and fill in DEV_EDITION_* (see .env.example for every option)
@@ -135,7 +135,7 @@ Run the test suite anytime: `make test` (or `python -m pytest tests/ -q`).
 | UI loads but **live chat fails** with "Ollama not reachable" | Ollama isn't running → install from [ollama.com](https://ollama.com/download), start it, then `make setup-local-model`. |
 | Live banner says **model "not downloaded yet"** | run `make setup-local-model` once, or set `AMLGUARD_AUTO_PULL_MODEL=true` in `.env`. |
 | Vendor services **fail to pull** | `docker login ghcr.io` with a GitHub token (read:packages). The app + Postgres + observability still come up and Replay mode works without them. |
-| Parties view / chat returns **503** | the Postgres corpus mirror isn't loaded → `make docker-full` loads it automatically; for local dev run `python scripts/load_corpus_db.py --domain aml`. |
+| Parties view / chat returns **503** | the Postgres corpus mirror isn't loaded → `make docker-full` loads it automatically; for local dev run `python scripts/load_corpus_db.py --all`. |
 | `make docker-full` **out of memory** (guardrail 500s) | the full stack is memory-heavy (Langfuse's ClickHouse alone caps at 3g). Use `make docker-up` (app + Postgres only) or start observability selectively. |
 | Credentials in `.env` **not reaching the container** | the make targets pass `--env-file .env`; if you run raw `docker compose`, add `--env-file .env` yourself. |
 

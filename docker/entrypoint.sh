@@ -22,10 +22,11 @@ until python -c "import sys; sys.path.insert(0,'src'); from amlguard import db; 
 done
 echo "[entrypoint] Postgres is up."
 
-# Load the corpus mirror. Only AML ships a party corpus in this edition; --domain aml is the one
-# that has data (the loader skips domains with no corpus dir). Idempotent.
-echo "[entrypoint] loading corpus into Postgres (idempotent)..."
-python scripts/load_corpus_db.py --domain aml || {
+# Load every domain's corpus mirror (AML's full corpus plus the customer-support and
+# healthcare party masters), so live chat works in all three domains on first boot. The loader
+# skips domains with no corpus dir and is idempotent.
+echo "[entrypoint] loading corpora into Postgres (idempotent)..."
+python scripts/load_corpus_db.py --all || {
     echo "[entrypoint] corpus load failed; the parties view / chatbot will 503 until it succeeds." >&2
 }
 

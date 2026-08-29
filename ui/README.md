@@ -122,8 +122,9 @@ its model cache persists in the `ollama-models` volume.
   header names the domain, corpus fingerprint, and model.
 - **Chatbot:** two tabs — *Conversation* (a live protected turn via `ConversationSession`) and
   *Pipeline internals* (that turn's boundary: inbound tokenized → what the model saw → egress
-  scan → role-gated re-identification). Live chat is AML-only in this edition (only AML ships a
-  party corpus); the healthcare/support demos run in the batch stepper.
+  scan → role-gated re-identification). Live chat runs in all three domains, each protected
+  against its own party corpus (loaded by the container entrypoint); the healthcare/support
+  batch demos additionally run in the stepper.
 
 ## Slices
 

@@ -12,8 +12,8 @@ A short map. Each doc has one audience and one job.
 
 ## Subfolders
 
-- **[diagrams/](diagrams/README.md)** — the architecture diagrams (SVG) and the one shared palette
-  every generated figure uses.
+- **[diagrams/](diagrams/README.md)** — the rendered architecture figures (PNG) and the committed
+  HTML sources + render script that regenerate them, all on one shared design system.
 
 ## Where to start
 

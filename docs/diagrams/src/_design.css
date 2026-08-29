@@ -1,0 +1,74 @@
+/* AMLGuard diagram design system: one palette + component set for every rendered figure.
+   Render any src/*.html at 2x with scripts in render.sh; the PNGs land in docs/diagrams/. */
+:root{
+  --cream:#F5F3EF; --ink:#111C2D; --purple:#5E5AD1; --peri:#A0AFEE; --sky:#8DBFE0;
+  --indigo:#14194D; --red:#A71000; --soft:rgba(17,28,45,.56); --soft2:rgba(17,28,45,.72);
+  --line:rgba(17,28,45,.18);
+  --font:"Geist",system-ui,sans-serif; --mono:"Geist Mono",Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--cream);font-family:var(--font);color:var(--ink);position:relative;overflow:hidden}
+.abs{position:absolute}
+.title{font-family:var(--mono);font-weight:600;letter-spacing:3.4px;color:var(--ink);text-transform:uppercase;text-align:center}
+.acol{background:#FBFAF8;border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;
+  box-shadow:0 8px 22px rgba(17,28,45,.08)}
+.acolhead{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;color:#fff;flex:none}
+.acolhead .ht{font-size:15.5px;font-weight:700}
+.acolhead .hn{font-family:var(--mono);font-size:26px;font-weight:600;opacity:.38}
+.g-ink{background:linear-gradient(120deg,#111C2D,#31456E)}
+.g-purple{background:linear-gradient(120deg,#4038A8,#5E5AD1)}
+.g-indigo{background:linear-gradient(120deg,#14194D,#4A3FA0)}
+.g-slate{background:linear-gradient(120deg,#1B2A4A,#2A6A96)}
+.abody{padding:13px;display:flex;flex-direction:column;justify-content:space-between;flex:1;gap:10px}
+.aitem{display:flex;gap:10px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.aic{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex:none;color:#fff}
+.aic svg{width:19px;height:19px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.aitem .at{font-size:13px;font-weight:600;color:var(--ink);line-height:1.2}
+.aitem .ac{font-size:10.5px;color:var(--soft);margin-top:2px;line-height:1.35}
+.ic1{background:linear-gradient(135deg,#5E5AD1,#8B87E8)}
+.ic2{background:linear-gradient(135deg,#3EA2F9,#8DBFE0)}
+.ic3{background:linear-gradient(135deg,#14194D,#5E5AD1)}
+.ic4{background:linear-gradient(135deg,#7A76DD,#A0AFEE)}
+.ic5{background:linear-gradient(135deg,#2A6A96,#8DBFE0)}
+.afeat{background:linear-gradient(120deg,#111C2D,#3B3591);border-radius:11px;padding:12px 14px;color:#fff}
+.afeat .fk{font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:1.6px;color:var(--peri);text-transform:uppercase}
+.afeat .ft{font-size:15px;font-weight:700;margin-top:3px}
+.afeat .fc{font-size:10.8px;color:rgba(245,243,239,.75);margin-top:4px;line-height:1.4}
+.acard{background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 11px}
+.acard .cb{height:3px;width:26px;border-radius:2px;margin-bottom:6px}
+.acard .at{font-size:12.5px;font-weight:600;color:var(--ink);line-height:1.2}
+.acard .ac{font-size:10.5px;color:var(--soft);margin-top:3px;line-height:1.3}
+.acheck{display:flex;align-items:center;gap:10px;background:#F6EFF7;border:1px solid #E3D5EC;border-radius:10px;padding:9px 12px}
+.acheck .ck{width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,#8E44AD,#B06AD4);
+  color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;flex:none}
+.acheck .at{font-size:12px;font-weight:600;color:var(--ink)}
+.acheck .ac{font-size:10.3px;color:var(--soft);line-height:1.3}
+.stepwrap{background:linear-gradient(120deg,#151F38,#3B3591);border-radius:11px;padding:11px 12px}
+.stepwrap .sk{font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:1.5px;color:var(--peri);text-transform:uppercase}
+.steps{display:flex;gap:5px;margin-top:9px;align-items:stretch}
+.step{flex:1;background:rgba(245,243,239,.07);border:1px solid rgba(160,175,238,.35);border-radius:8px;padding:8px 8px}
+.step .sn{font-family:var(--mono);font-size:9.5px;color:var(--peri)}
+.step .st{font-size:11.5px;font-weight:600;color:#fff;margin-top:2px;line-height:1.15}
+.step .sc{font-size:9.5px;color:rgba(245,243,239,.62);margin-top:2px;line-height:1.25}
+.schev{display:flex;align-items:center;color:var(--peri);font-size:13px}
+.estrip{background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 12px}
+.estrip .ek{font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:1.3px;color:#2A6A96;text-transform:uppercase}
+.echips{display:flex;gap:6px;margin-top:7px;flex-wrap:wrap}
+.echip{background:var(--cream);border:1px solid var(--line);border-radius:16px;padding:4px 10px;font-size:10.5px;font-weight:600;color:var(--ink);white-space:nowrap}
+.ctrlplane{background:linear-gradient(120deg,#0E1725,#1B2A4A);border-radius:14px;display:flex;align-items:stretch;color:#fff;overflow:hidden}
+.ctrlplane .cpl{flex:none;display:flex;align-items:center;padding:0 20px;font-family:var(--mono);font-size:11px;
+  font-weight:600;letter-spacing:1.4px;border-right:1px solid rgba(245,243,239,.14);text-transform:uppercase;line-height:1.5}
+.ctrlplane .cpi{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;font-size:11.5px;font-weight:500;
+  color:rgba(245,243,239,.85);border-right:1px solid rgba(245,243,239,.14);padding:11px 10px;text-align:center;line-height:1.3}
+.ctrlplane .cpi:last-child{border-right:none}
+.ctrlplane .cpi svg{width:15px;height:15px;stroke:var(--peri);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.bline{position:absolute;border-left:2px dashed var(--red);opacity:.7}
+.vpill{position:absolute;background:#fff;border:1.5px dashed var(--red);border-radius:20px;padding:12px 7px;
+  font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:1.6px;color:var(--red);
+  writing-mode:vertical-rl;transform:rotate(180deg);text-transform:uppercase}
+.tag{display:inline-block;font-family:var(--mono);font-size:8.5px;font-weight:600;background:rgba(94,90,209,.12);color:var(--purple);border-radius:8px;padding:2px 7px;letter-spacing:.4px}
+.szone{border:1.5px dashed rgba(17,28,45,.45);border-radius:14px;background:rgba(17,28,45,.025);
+  display:flex;flex-direction:column;justify-content:space-between;padding:13px;gap:10px}
+.szone .zlab{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--soft2)}
+.flowarr{position:absolute}
+.colnote{font-size:9.5px;color:var(--soft);line-height:1.35}

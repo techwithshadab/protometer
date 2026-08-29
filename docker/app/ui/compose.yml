@@ -102,6 +102,10 @@ services:
       # Host path is relative to this file (docker/app/ui/ → ../../observability/mlflow/store); the
       # container target matches DEFAULT_TRACKING_DIR (docker/observability/mlflow/store).
       - ../../observability/mlflow/store:/app/docker/observability/mlflow/store:ro
+      # The healthcare de-identification stage reads the vendor anonymization sample's patient
+      # dataset; vendor-de/ is the operator's local clone (SETUP step 1), never baked into the
+      # image. Read-only: the app must not be able to modify vendor code.
+      - ../../../vendor-de:/app/vendor-de:ro
     # Loopback-only on the host: this API bills LLM calls and re-identifies PII, no LAN exposure.
     ports:
       - "127.0.0.1:8600:8600"

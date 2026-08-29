@@ -15,7 +15,7 @@ pipeline actually costs it**, stage by stage, with statistics a model-validation
 sign off on. Every number below is generated from committed artifacts by a script in this
 repo; nothing is hand-entered.
 
-![AMLGuard pipeline: corpus through seven protected stages to the analyst, tokens only in between](docs/diagrams/pipeline-strip.svg)
+![AMLGuard pipeline: plaintext sources, ingest-time protection, a tokens-only pipeline band, and role-gated presentation](docs/diagrams/pipeline-strip.png)
 
 **New here?** Start with **[docs/SETUP.md](docs/SETUP.md)** (clone → running demo, no cloud account
 needed). Then: **[docs/product-and-use-cases.md](docs/product-and-use-cases.md)** (what it does, for

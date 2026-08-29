@@ -1,0 +1,67 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_design.css">
+<style>
+  body{width:1440px;height:430px}
+  .cond{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.6px;background:#fff;
+    border:1px solid var(--line);border-radius:16px;padding:4px 11px;color:var(--soft2)}
+</style>
+</head>
+<body>
+
+<div class="title abs" style="left:0;right:0;top:16px;font-size:15px">Live-Chat Model Selection</div>
+<div class="abs" style="left:0;right:0;top:40px;text-align:center;font-size:11px;color:var(--soft)">chosen at request time · never fallback-chained · tokenization stays on Protegrity either way</div>
+
+<!-- precedence columns -->
+<div class="acol abs" style="left:30px;top:72px;width:432px;height:250px">
+  <div class="acolhead g-ink"><span class="ht">Explicit override</span><span class="hn">1</span></div>
+  <div class="abody">
+    <div style="display:flex;gap:8px;align-items:center"><span class="cond">AMLGUARD_UI_MODEL is set?</span></div>
+    <div class="afeat" style="padding:10px 13px">
+      <div class="fk">then</div>
+      <div class="ft" style="font-size:14px">Use exactly that model</div>
+      <div class="fc">the operator's word wins, hosted or local · misconfiguration is logged, never echoed to callers</div>
+    </div>
+  </div>
+</div>
+
+<div class="acol abs" style="left:504px;top:72px;width:432px;height:250px">
+  <div class="acolhead g-purple"><span class="ht">Hosted model</span><span class="hn">2</span></div>
+  <div class="abody">
+    <div style="display:flex;gap:8px;align-items:center"><span class="cond">else · AWS credentials present?</span></div>
+    <div class="afeat" style="padding:10px 13px">
+      <div class="fk">then</div>
+      <div class="ft" style="font-size:14px">bedrock-sonnet-5</div>
+      <div class="fc">AMLGUARD_HOSTED_MODEL · a real billed call, gated by the turn ceiling and spend cap</div>
+    </div>
+  </div>
+</div>
+
+<div class="acol abs" style="left:978px;top:72px;width:432px;height:250px">
+  <div class="acolhead g-indigo"><span class="ht">Local open-source</span><span class="hn">3</span></div>
+  <div class="abody">
+    <div style="display:flex;gap:8px;align-items:center"><span class="cond">else · no cloud account needed</span></div>
+    <div class="afeat" style="padding:10px 13px;background:linear-gradient(120deg,#151F38,#2A6A96)">
+      <div class="fk">then</div>
+      <div class="ft" style="font-size:14px">llama3.2 via Ollama · $0 per turn</div>
+      <div class="fc">AMLGUARD_LOCAL_MODEL · ~2GB, laptop-friendly · one-time pull: make setup-local-model</div>
+    </div>
+  </div>
+</div>
+
+<!-- precedence arrows between columns -->
+<svg class="flowarr" style="left:462px;top:189px" width="42" height="16"><line x1="0" y1="8" x2="32" y2="8" stroke="#5E5AD1" stroke-width="2.2"/><polygon points="32,3 41,8 32,13" fill="#5E5AD1"/></svg>
+<svg class="flowarr" style="left:936px;top:189px" width="42" height="16"><line x1="0" y1="8" x2="32" y2="8" stroke="#5E5AD1" stroke-width="2.2"/><polygon points="32,3 41,8 32,13" fill="#5E5AD1"/></svg>
+
+<!-- resolved-model plane -->
+<div class="ctrlplane abs" style="left:30px;top:348px;width:1380px;height:56px">
+  <div class="cpl">RESOLVED<br>MODEL</div>
+  <div class="cpi">GET /api/health reports model, provider, and readiness</div>
+  <div class="cpi">The Live-mode banner shows the same, with its cost</div>
+  <div class="cpi">Client still built with allow_fallback=False · attribution stays honest</div>
+  <div class="cpi">Same protected pipeline either way · only the reasoning model changes</div>
+</div>
+
+</body></html>
