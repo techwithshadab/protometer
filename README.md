@@ -17,35 +17,10 @@ repo; nothing is hand-entered.
 
 ![AMLGuard pipeline: plaintext sources, ingest-time protection, a tokens-only pipeline band, and role-gated presentation](docs/diagrams/pipeline-strip.png)
 
-**New here?** Start with **[docs/SETUP.md](docs/SETUP.md)** (clone → running demo, no cloud account
-needed). Then: **[docs/product-and-use-cases.md](docs/product-and-use-cases.md)** (what it does, for
-whom) · **[docs/architecture.md](docs/architecture.md)** (how it's built).
-
-Full design: [docs/architecture.md](docs/architecture.md) · Generated results:
-[docs/results-aml.md](docs/results-aml.md)
-
-![Live assistant with the protection boundary panel: the inbound message tokenized, the model seeing tokens only, and a reply held at the egress gate](docs/img/ui-live-egress.jpg)
-
-<sub>The live assistant, captured from the running app: the user's message is tokenized inbound, the
-model sees tokens only, and this reply was **held at the egress gate** — the analyst sees a withheld
-notice, never the leak.</sub>
-
-**Try the demo UI** (`make docker-up` → http://localhost:8600): the app + its Postgres come up in one
-command, corpus auto-loaded, and Replay mode plus the healthcare/support views work with no cloud
-dependency. Live chat and paid batch stages additionally need the vendor Developer-Edition services
-(`make docker-full`); see [ui/README.md](ui/README.md).
-
-**No AWS/Bedrock account? Live chat still works.** When no cloud credentials are present, the UI runs
-live turns on an open-source model served locally by [Ollama](https://ollama.com) (default
-`llama3.2`, ~2GB, laptop-friendly) instead of the hosted model — same protected pipeline, tokenization
-still via Protegrity, $0 per turn. One-time setup: install Ollama, then `make setup-local-model`
-(or set `AMLGUARD_AUTO_PULL_MODEL=true` to pull it on first use). The Live-mode banner in the UI shows
-which model is active. Selection is env-driven (`AMLGUARD_UI_MODEL` forces a model;
-`AMLGUARD_LOCAL_MODEL` picks the fallback; hosted wins automatically when credentials exist) — see
-[ui/README.md](ui/README.md#running-live-chat-without-cloud-credentials).
-
 ## Contents
 
+- **Start here**
+  - [Quick start](#quick-start)
 - **Results**
   - [The headline result](#the-headline-result)
   - [Capabilities, measured across domains](#capabilities-measured-across-domains)
@@ -69,6 +44,33 @@ which model is active. Selection is env-driven (`AMLGUARD_UI_MODEL` forces a mod
   - [Running it](#running-it)
   - [How this maps to the challenge](#how-this-maps-to-the-challenge)
   - [Repository layout](#repository-layout)
+
+## Quick start
+
+**Try the demo UI** (`make docker-up` → http://localhost:8600): the app + its Postgres come up in one
+command, corpus auto-loaded, and Replay mode plus the healthcare/support views work with no cloud
+dependency. Live chat and paid batch stages additionally need the vendor Developer-Edition services
+(`make docker-full`); see [ui/README.md](ui/README.md).
+
+![Live assistant with the protection boundary panel: the inbound message tokenized, the model seeing tokens only, and a reply held at the egress gate](docs/img/ui-live-egress.jpg)
+
+<sub>The live assistant, captured from the running app: the user's message is tokenized inbound, the
+model sees tokens only, and this reply was **held at the egress gate** — the analyst sees a withheld
+notice, never the leak.</sub>
+
+**No AWS/Bedrock account? Live chat still works.** When no cloud credentials are present, the UI runs
+live turns on an open-source model served locally by [Ollama](https://ollama.com) (default
+`llama3.2`, ~2GB, laptop-friendly) instead of the hosted model — same protected pipeline, tokenization
+still via Protegrity, $0 per turn. One-time setup: install Ollama, then `make setup-local-model`
+(or set `AMLGUARD_AUTO_PULL_MODEL=true` to pull it on first use). The Live-mode banner in the UI shows
+which model is active. Selection is env-driven (`AMLGUARD_UI_MODEL` forces a model;
+`AMLGUARD_LOCAL_MODEL` picks the fallback; hosted wins automatically when credentials exist) — see
+[ui/README.md](ui/README.md#running-live-chat-without-cloud-credentials).
+
+**Where to go next:** **[docs/SETUP.md](docs/SETUP.md)** (clone → running demo, step by step) ·
+**[docs/product-and-use-cases.md](docs/product-and-use-cases.md)** (what it does, for whom) ·
+**[docs/architecture.md](docs/architecture.md)** (how it's built) ·
+[docs/results-aml.md](docs/results-aml.md) (generated results).
 
 ## The headline result
 
