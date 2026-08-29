@@ -463,7 +463,9 @@ def resolve_ui_model() -> tuple[str, str]:
             ModelRegistry.load().get(override)
             return override, f"AMLGUARD_UI_MODEL={override}"
         except llm.LLMConfigError as exc:
-            return override, f"AMLGUARD_UI_MODEL={override} (invalid: {exc})"
+            # Health is unauthenticated: log the detail, keep exception text out of the response.
+            logging.getLogger("amlguard.ui").warning("AMLGUARD_UI_MODEL invalid: %s", exc)
+            return override, f"AMLGUARD_UI_MODEL={override} (invalid; see server log)"
 
     if settings.bedrock_available():
         return settings.hosted_ui_model(), "AWS credentials present"
