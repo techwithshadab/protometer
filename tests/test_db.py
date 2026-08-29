@@ -24,8 +24,18 @@ def test_schema_mapping_is_per_domain():
     assert db._schema_for("aml") == "aml"
     assert db._schema_for("healthcare") == "healthcare"
     assert db._schema_for("customer-support") == "support"
-    # an unknown domain still yields a safe identifier (no hyphens)
-    assert db._schema_for("new-domain") == "new_domain"
+    # Schema names are interpolated into SQL identifiers, so unknown domains are REFUSED,
+    # never normalized into an identifier (the old fallback was an injection path: any
+    # caller-supplied string became a quoted schema name).
+    with pytest.raises(KeyError):
+        db._schema_for("new-domain")
+
+
+def test_read_paths_refuse_unknown_identifiers():
+    """Read paths return None for unknown domains/tables instead of quoting caller strings."""
+    assert db.read_table("not-a-domain", "parties") is None
+    assert db.read_table("aml", "not_a_table; DROP SCHEMA aml") is None
+    assert db.corpus_fingerprint("not-a-domain") is None
 
 
 def test_fail_soft_when_postgres_absent(monkeypatch):
@@ -79,11 +89,14 @@ pg = pytest.mark.skipif(not _pg_up(), reason="Postgres not reachable")
 
 
 @pg
-def test_loader_is_idempotent_and_faithful(tmp_path):
+def test_loader_is_idempotent_and_faithful(tmp_path, monkeypatch):
     """Loading twice yields the same counts, and the rows match the source JSON."""
     corpus = ROOT / "data" / "corpus"
     if not (corpus / "parties.json").exists():
         pytest.skip("no corpus to load")
+    # The schema allowlist is strict now, so the throwaway domain must be registered for
+    # the duration of the test rather than relying on the removed normalize-anything fallback.
+    monkeypatch.setitem(db.DOMAIN_SCHEMA, "test_db_domain", "test_db_domain")
     # load into a throwaway schema so we never disturb the real aml schema. Drop it FIRST too, so a
     # previous crashed run that skipped teardown can't leave stale rows that break the idempotency
     # assertion (order-independence under the shared test Postgres).

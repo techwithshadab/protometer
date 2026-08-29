@@ -2,6 +2,9 @@ name: tests
 on:
   push:
   pull_request:
+# CI only reads the checkout; never grant the default write token.
+permissions:
+  contents: read
 jobs:
   invariants:
     runs-on: ubuntu-latest

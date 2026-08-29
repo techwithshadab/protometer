@@ -561,6 +561,13 @@ dramatic finding rather than an infrastructure failure.
 
 ## Honest limitations
 
+- **Known chromadb advisories do not apply to this deployment, and we say so rather than
+  hide the alert.** All four published chromadb advisories (two critical, two high, no
+  patched release available) are in Chroma's HTTP server mode: its `/api/v2` endpoints,
+  server RBAC, and server-side model loading. This project uses `chromadb.PersistentClient`
+  embedded in-process; no Chroma server runs, no Chroma HTTP API is exposed, and no
+  tenants or Chroma auth exist, so the vulnerable code paths are unreachable. Revisit if
+  the vector store is ever moved to client/server mode.
 - **The LLM utility curve is underpowered for small effects.** 57 checkpoints per scope
   detect only a difference on the order of the observed discordance at 80% power (the MDE is
   feasibility-capped); after Holm-Bonferroni correction across the six-comparison family,

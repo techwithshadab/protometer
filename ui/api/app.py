@@ -190,7 +190,10 @@ def health() -> dict:
             # Hosted: reachable in principle; the real check is the first live call.
             live["ready"] = True
     except Exception as exc:  # noqa: BLE001, health must never 500
-        live = {"ready": False, "error": f"{type(exc).__name__}: {exc}"}
+        # Log the detail server-side; the endpoint is unauthenticated, so no exception text
+        # (which can carry paths and stack context) leaves the process.
+        logging.getLogger("amlguard.ui").warning("live-chat health probe failed: %s", exc)
+        live = {"ready": False, "error": "live-chat status unavailable"}
     # Which domains actually support a live chatbot turn (AML only in this edition). The UI reads
     # this to offer Live only where it works, instead of promising it for every domain and then
     # 503-ing. Single source of truth: Domain.supports_live_chat.

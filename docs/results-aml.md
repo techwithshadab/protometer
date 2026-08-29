@@ -4,7 +4,7 @@
 - **Use case:** batch measurement pipeline
 - **Corpus fingerprint:** `36e2bee325e4`
 - **Model(s) measured:** bedrock-sonnet-5
-- **Generated:** 2026-08-26 (UTC) by `python scripts/generate_results.py --domain aml > docs/results-aml.md`
+- **Generated:** 2026-08-28 (UTC) by `python scripts/generate_results.py --domain aml > docs/results-aml.md`
 
 Every figure below is generated from the evaluation harness output; nothing here is
 hand-entered. This document covers the **aml** domain only; other domains

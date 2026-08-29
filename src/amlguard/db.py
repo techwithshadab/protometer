@@ -130,7 +130,9 @@ _engine_tried = False
 
 
 def _schema_for(domain: str) -> str:
-    return DOMAIN_SCHEMA.get(domain, domain.replace("-", "_"))
+    """The Postgres schema for a KNOWN domain. Strict allowlist: schema names are interpolated
+    into SQL identifiers, so an unknown domain must never produce one. Raises KeyError."""
+    return DOMAIN_SCHEMA[domain]
 
 
 def engine():
@@ -318,8 +320,15 @@ def read_table(domain: str, table: str) -> list[dict[str, Any]] | None:
         return None
     from sqlalchemy import text
 
-    schema = _schema_for(domain)
+    # Identifiers are interpolated into the query, so both come from constant allowlists:
+    # an unknown domain or table is refused here, never quoted.
+    schema = DOMAIN_SCHEMA.get(domain)
+    if schema is None:
+        return None
     spec = CORPUS_SCHEMA.get(table)
+    if spec is None:
+        return None
+    table = {name: name for name in CORPUS_SCHEMA}[table]
     # Reverse coercion map: the DB returns numeric columns as Decimal and date columns as
     # datetime.date, but the JSON corpus stored them as STRINGS (amount "67865.05", value_date
     # "2025-01-06"). Reconstruct that shape so a reconstructed record is json.dumps-able —
@@ -327,7 +336,7 @@ def read_table(domain: str, table: str) -> list[dict[str, Any]] | None:
     # of type Decimal/date is not JSON serializable". Values are numerically faithful; trailing-zero
     # scale on amounts is not preserved (the NUMERIC column carries no fixed scale), which is a
     # load-time property, not a serialisation concern.
-    col_types = dict(spec["columns"]) if spec else {}
+    col_types = dict(spec["columns"])
     try:
         with eng.connect() as conn:
             result = conn.execute(text(f'SELECT * FROM "{schema}"."{table}"'))
@@ -359,7 +368,9 @@ def corpus_fingerprint(domain: str = "aml") -> str | None:
         return None
     from sqlalchemy import text
 
-    schema = _schema_for(domain)
+    schema = DOMAIN_SCHEMA.get(domain)
+    if schema is None:
+        return None
     try:
         with eng.connect() as conn:
             row = conn.execute(text(
