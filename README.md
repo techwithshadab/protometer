@@ -579,9 +579,9 @@ plaintext is ever recovered:
 - **Scope-bound reveal.** Even the tokens a reply carries are re-identified only for the subject
   *this turn is about* (the entities the caller's own message produced). An injected "reveal ALL
   parties" re-identifies nothing extra: the other subjects stay tokenized and are counted as
-  `out_of_scope`. This is the competitor idea (aegis-rag's scope-binding) we found genuinely worth
-  adopting — a role check asks "are you an investigator?"; a scope check asks "are you entitled to
-  *this* subject?".
+  `out_of_scope`. This applies least-privilege to the reveal step itself — a role check asks "are
+  you an investigator?"; a scope check asks "are you entitled to *this* subject?" — which closes
+  the gap where an authorized-but-injected session dumps every subject in the retrieved context.
 - **Canary tripwire + tamper-evident ledger.** A few corpus records are canaries no legitimate
   task references; any detokenization of one is flagged as an intrusion. Every reveal appends a
   hash-chained record (who, role, entity-type counts — never a plaintext value) that
