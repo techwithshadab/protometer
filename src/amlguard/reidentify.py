@@ -36,7 +36,13 @@ from amlguard.protect import Protector, is_auth_limit
 # is optional so every existing untagged corpus still parses; the close tag carries only the
 # type (a back-reference), so the open/close still agree on type.
 TAG_PATTERN = re.compile(
-    r"\[([A-Z_]+)(?:\|([a-z0-9_]+))?\]((?:(?!\[/?[A-Z_]+\]).)*)\[/\1\]", re.DOTALL
+    # Inner content = runs of non-'[' chars, plus any '[' that does NOT start a tag. Each
+    # alternative is anchored and mutually exclusive, and the '[^\[]' run is possessive (*+), so
+    # there is no ambiguous overlap to backtrack over: matching is linear in the input length
+    # (avoids the polynomial ReDoS a tempered-dot `(?:(?!...).)*` invites, which matters because
+    # reidentify runs over attacker-influenceable model output).
+    r"\[([A-Z_]+)(?:\|([a-z0-9_]+))?\]((?:[^\[]*+|\[(?!/?[A-Z_]+\]))*)\[/\1\]",
+    re.DOTALL,
 )
 
 
