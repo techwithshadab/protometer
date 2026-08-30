@@ -308,6 +308,42 @@ def _extra_keys(rec: dict, col_names: list[str], table: str) -> set[str]:
     return {k for k in rec if k not in modelled}
 
 
+def append_parties(domain: str, records: list[dict]) -> int:
+    """Idempotently append (upsert by party_id) extra party rows into a domain's parties table.
+
+    Used to add canary parties from a side file WITHOUT rebuilding the corpus or touching its
+    fingerprint. Returns the number of rows written, or 0 when Postgres is unavailable. Identifiers
+    come from the constant allowlists (schema + the fixed 'parties' spec), never from the caller.
+    """
+    eng = engine()
+    if eng is None or not records:
+        return 0
+    schema = DOMAIN_SCHEMA.get(domain)
+    if schema is None:
+        return 0
+    from sqlalchemy import text
+
+    spec = CORPUS_SCHEMA["parties"]
+    col_names = [c for c, _ in spec["columns"]]
+    col_types = dict(spec["columns"])
+    rows = []
+    for rec in records:
+        row = {c: _coerce(rec.get(c), col_types[c]) for c in col_names}
+        extra = {k: v for k, v in rec.items() if k in _extra_keys(rec, col_names, "parties")}
+        row["extra"] = json.dumps(extra) if extra else None
+        rows.append(row)
+    placeholders = ", ".join(f":{c}" for c in col_names) + ", CAST(:extra AS jsonb)"
+    collist = ", ".join(f'"{c}"' for c in col_names) + ", extra"
+    updates = ", ".join(f'"{c}" = EXCLUDED."{c}"' for c in col_names if c != spec["pk"]) + ", extra = EXCLUDED.extra"
+    with eng.begin() as conn:
+        conn.execute(
+            text(f'INSERT INTO "{schema}"."parties" ({collist}) VALUES ({placeholders}) '
+                 f'ON CONFLICT ("{spec["pk"]}") DO UPDATE SET {updates}'),
+            rows,
+        )
+    return len(rows)
+
+
 def read_table(domain: str, table: str) -> list[dict[str, Any]] | None:
     """All records of a domain table as dicts, or None when Postgres is unavailable/absent.
 

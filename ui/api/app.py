@@ -400,6 +400,25 @@ _PROTECTOR = None
 _GUARDRAILS: dict = {}
 _LLM = None
 _ROSTERS: dict = {}  # per-domain hybrid roster (ORGANIZATION + identifiers discovery misses)
+_REVEAL_LEDGER = None
+_TRIPWIRES: dict = {}  # per-domain canary value set
+
+
+def _get_reveal_ledger():
+    """The process-wide hash-chained reveal ledger (one file, all domains)."""
+    global _REVEAL_LEDGER
+    if _REVEAL_LEDGER is None:
+        from amlguard.reveal_ledger import RevealLedger
+        _REVEAL_LEDGER = RevealLedger()
+    return _REVEAL_LEDGER
+
+
+def _get_tripwire(domain_name: str = "aml"):
+    """The canary tripwire for a domain, built once from its designated canary parties."""
+    if domain_name not in _TRIPWIRES:
+        from amlguard.reveal_ledger import CanaryTripwire, load_canaries
+        _TRIPWIRES[domain_name] = CanaryTripwire(values=load_canaries(domain_name))
+    return _TRIPWIRES[domain_name]
 
 # Two abuse rails on the PAID chat endpoint (a turn is a real billed LLM call):
 #  - an optional shared secret (AMLGUARD_UI_API_TOKEN): unset for the loopback demo, required
@@ -595,9 +614,15 @@ def chat_turn(
             f"against). Use this domain's Batch Analysis stepper, or a domain with live chat enabled."
         )
     _charge_turn()
-    role = ROLES.get(req.role)
+    # Role resolution: if the operator configured per-role tokens, the CALLER's token proves their
+    # role and overrides the request body (an injected client can't self-elevate). Otherwise the
+    # request's role is used, which is the frictionless local-demo default that lets a judge switch
+    # roles to see the contrast.
+    from amlguard import settings
+    role_name = settings.ui_role_tokens().get(x_amlguard_token or "", req.role)
+    role = ROLES.get(role_name)
     if role is None:
-        raise HTTPException(400, f"unknown role {req.role!r}; known: {sorted(ROLES)}")
+        raise HTTPException(400, f"unknown role {role_name!r}; known: {sorted(ROLES)}")
 
     try:
         session = ConversationSession(
@@ -610,6 +635,12 @@ def chat_turn(
             # Keyed on the turn's domain so a healthcare/support turn is protected against ITS own
             # entity set, never silently against the AML party names.
             roster=_get_roster(domain.name),
+            # Detokenization defenses (see reveal_ledger.py): scope-bound reveal shrinks an
+            # injected session's blast radius to the turn's own subject, the tripwire flags a
+            # canary reveal, and the hash-chained ledger records every reveal (metadata only).
+            scope_bound=True,
+            ledger=_get_reveal_ledger(),
+            tripwire=_get_tripwire(domain.name),
         )
         result = session.turn(req.message)
     except HTTPException:
@@ -628,6 +659,8 @@ def chat_turn(
             "raw_completion": result.raw_completion,
             "entities_protected": result.entities_protected,
             "revealed": result.revealed,
+            "out_of_scope": result.out_of_scope,     # tokens withheld by scope-bound reveal
+            "canary_hits": result.canary_hits,       # canary tripwire hits (should be 0)
             "egress_blocked": result.egress_blocked,
             "egress_detail": result.egress_detail,   # per-processor + conversation-level verdict
             "guardrail_model": domain.injection_processor,

@@ -128,3 +128,37 @@ def test_loader_is_idempotent_and_faithful(tmp_path, monkeypatch):
     from sqlalchemy import text
     with db.engine().begin() as conn:
         conn.execute(text(f'DROP SCHEMA IF EXISTS "{db._schema_for(domain)}" CASCADE'))
+
+
+# ── DB-FREE coverage of the record-reconstruction logic ───────────────────────────────────────
+# The idempotency/faithfulness integration test above is DB-gated (it exercises a real round-trip).
+# But the reconstruction that keeps rows JSON-serialisable — the exact property that test asserts —
+# is pure and must be verified even on a bare CI runner where Postgres is absent. These pin it.
+
+def test_json_shape_numeric_is_faithful_string():
+    from decimal import Decimal
+    # numeric -> plain decimal string, scale preserved, no scientific notation, no ".0" on ints
+    assert db._json_shape(Decimal("67865.05"), "numeric") == "67865.05"
+    assert db._json_shape(Decimal("2381.00"), "numeric") == "2381.00"   # trailing zeros kept
+    assert db._json_shape(Decimal("2381"), "numeric") == "2381"          # no spurious ".0"
+    assert json.dumps(db._json_shape(Decimal("42150.00"), "numeric"))    # serialisable
+
+
+def test_json_shape_date_is_iso_string():
+    import datetime
+    assert db._json_shape(datetime.date(2025, 1, 6), "date") == "2025-01-06"
+    assert json.dumps(db._json_shape(datetime.date(2025, 1, 6), "date"))
+
+
+def test_json_shape_passthrough_and_none():
+    assert db._json_shape(None, "numeric") is None
+    assert db._json_shape(7, "integer") == 7
+    assert db._json_shape(True, "boolean") is True
+    assert db._json_shape("Acme", "text") == "Acme"
+
+
+def test_append_parties_noop_without_engine(monkeypatch):
+    """append_parties fails soft (0 rows) when Postgres is absent, like every other write path."""
+    monkeypatch.setattr(db, "engine", lambda: None)
+    assert db.append_parties("aml", [{"party_id": "X", "full_name": "Y"}]) == 0
+    assert db.append_parties("aml", []) == 0  # empty is a no-op regardless

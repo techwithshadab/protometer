@@ -2217,7 +2217,8 @@
   "mrn": "MRN5200392",
   "insurance_id": "B219719873",
   "provider_name": "Dr. Rafael Almeida",
-  "insurer": "Northgate Assurance"
+  "insurer": "Northgate Assurance",
+  "is_canary": true
  },
  {
   "party_id": "HC00149",
@@ -2232,7 +2233,8 @@
   "mrn": "MRN8344796",
   "insurance_id": "C178388870",
   "provider_name": "Dr. Priya Nakamura",
-  "insurer": "Cobalt Care Network"
+  "insurer": "Cobalt Care Network",
+  "is_canary": true
  },
  {
   "party_id": "HC00150",
@@ -2247,6 +2249,7 @@
   "mrn": "MRN7370837",
   "insurance_id": "B402165479",
   "provider_name": "Dr. Rafael Almeida",
-  "insurer": "Blue Harbor Mutual"
+  "insurer": "Blue Harbor Mutual",
+  "is_canary": true
  }
 ]

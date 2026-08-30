@@ -106,3 +106,19 @@ def test_ollama_url_host_default(monkeypatch):
     monkeypatch.delenv("AMLGUARD_IN_CONTAINER", raising=False)
     monkeypatch.setattr(settings, "_in_container", lambda: False)
     assert settings.ollama_url() == "http://localhost:11434"
+
+
+def test_ui_role_tokens_parses_and_binds(monkeypatch):
+    monkeypatch.setenv("AMLGUARD_UI_ROLE_TOKENS", "auditor:tok-a, investigator:tok-i")
+    m = settings.ui_role_tokens()
+    assert m == {"tok-a": "auditor", "tok-i": "investigator"}
+
+
+def test_ui_role_tokens_empty_by_default(monkeypatch):
+    monkeypatch.delenv("AMLGUARD_UI_ROLE_TOKENS", raising=False)
+    assert settings.ui_role_tokens() == {}
+
+
+def test_ui_role_tokens_ignores_malformed(monkeypatch):
+    monkeypatch.setenv("AMLGUARD_UI_ROLE_TOKENS", "garbage,:notoken,role:,ok:tok")
+    assert settings.ui_role_tokens() == {"tok": "ok"}

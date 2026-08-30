@@ -116,6 +116,19 @@ DOMAIN_PARTY_GENERATORS = {
 
 
 def generate_domain_parties(domain: str, count: int, seed: int) -> list[dict]:
-    """Deterministic party corpus for a non-AML domain. Raises KeyError for an unknown domain."""
+    """Deterministic party corpus for a non-AML domain, with the last few flagged as canaries.
+
+    Canaries are ordinary-looking records that no legitimate task references; the reveal tripwire
+    (reveal_ledger.py) treats any detokenization of their identifiers as an intrusion. Marking a
+    small tail keeps them deterministic and easy to exclude from demo subjects. Raises KeyError
+    for an unknown domain.
+    """
     gen = DOMAIN_PARTY_GENERATORS[domain]
-    return gen(random.Random(seed), count)
+    parties = gen(random.Random(seed), count)
+    for p in parties[-CANARIES_PER_DOMAIN:]:
+        p["is_canary"] = True
+    return parties
+
+
+# How many trailing parties per domain are canaries (no legitimate task references them).
+CANARIES_PER_DOMAIN = 3

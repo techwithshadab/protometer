@@ -37,6 +37,7 @@ STALE_VALUES = [
     "5.4 × 10", "5.4e-10",              # old Fisher p
     "30/40", "3/40 (7.5%)",             # old erasure identity recall (as prose, not table)
     "25/40", "(63%)",                   # identity recall drifted to 25/40 once; truth is 26/40 (65%)
+    "96 invariant", "96 tests",         # old test-count prose (suite grew past it; now 163)
     "$2.77", "$2.72",                   # old eval costs (superseded by fresh-run values)
     "P@50 0.28", "0.28 vs 0.24",        # old hybrid precision
     "0.34 vs 0.36", "34 vs 34",         # older hybrid-queue prose (pre fresh-run 0.48/0.48, 18/19)

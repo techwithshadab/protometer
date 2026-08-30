@@ -109,6 +109,27 @@ def ui_api_token() -> str | None:
     return os.getenv("AMLGUARD_UI_API_TOKEN") or None
 
 
+def ui_role_tokens() -> dict[str, str]:
+    """Optional map of API token -> role name, so the CALLER's role is proven by their token
+    rather than chosen freely in the request body. Format: ``AMLGUARD_UI_ROLE_TOKENS`` =
+    ``role:token,role:token`` (e.g. ``auditor:tok-a,investigator:tok-i``).
+
+    Unset by default (the local judge demo lets you switch roles freely to see the contrast). When
+    set, a matching token pins that role and overrides the request's ``role`` field — the
+    application-enforced analogue of a Protegrity policy role bound to an authenticated principal.
+    Returns ``{token: role}`` for O(1) lookup.
+    """
+    raw = os.getenv("AMLGUARD_UI_ROLE_TOKENS") or ""
+    out: dict[str, str] = {}
+    for pair in raw.split(","):
+        pair = pair.strip()
+        if ":" in pair:
+            role, token = pair.split(":", 1)
+            if role.strip() and token.strip():
+                out[token.strip()] = role.strip()
+    return out
+
+
 def ui_max_turns() -> int:
     """Hard ceiling on live chat turns per API process, a second rail beside the spend cap.
 

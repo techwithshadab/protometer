@@ -113,6 +113,8 @@ class TurnResult:
     # can show WHY the egress guard passed/blocked, not just a boolean.
     egress_detail: dict = field(default_factory=dict)
     error: str = ""
+    out_of_scope: int = 0            # tokens the role could see but this turn's scope withheld
+    canary_hits: int = 0             # revealed values that tripped the canary tripwire
 
     @property
     def ok(self) -> bool:
@@ -163,6 +165,16 @@ class ConversationSession:
     # history only. The record is metadata (tokens protected, revealed, egress outcome, error),
     # never clear PII, the reply is already role-gated.
     audit_sink: Any = None
+    # Optional detokenization defenses (see reveal_ledger.py), all no-ops when None:
+    #  * ledger    — a RevealLedger; one hash-chained record per reveal (metadata only).
+    #  * tripwire  — a CanaryTripwire; revealed values scanned for canaries.
+    #  * scope_bound — when True, a turn may only re-identify the subject entities of THIS turn's
+    #    inbound message (the tokens the caller's own question produced), not every subject that
+    #    happened to surface in the model's reply. This shrinks an authorized-but-injected
+    #    session's blast radius: an injected instruction to "reveal all parties" yields tokens.
+    ledger: Any = None
+    tripwire: Any = None
+    scope_bound: bool = False
 
     def _audit(self, result: "TurnResult", turn_index: int) -> None:
         """Emit one turn's audit record: to the caller's sink, and to Langfuse as a score."""
@@ -315,8 +327,21 @@ class ConversationSession:
 
         # Re-identify last. A failure here must not surface the raw (possibly tag-bearing)
         # completion; withhold rather than leak.
+        #
+        # Scope-bound reveal: the authorized scope for this turn is the set of tokens the caller's
+        # OWN inbound message produced (the subject they asked about). Binding the reveal to those
+        # means a reply that surfaced other subjects' tokens, e.g. via an injected "list everyone"
+        # instruction, re-identifies only the intended subject; the rest stay protected.
+        scope_tokens = None
+        if self.scope_bound:
+            from amlguard.reidentify import find_tokens
+            scope_tokens = frozenset(tok for _e, _el, tok in find_tokens(protected_input))
         try:
-            reidentified = reidentify(completion, self.protector, role)
+            reidentified = reidentify(
+                completion, self.protector, role,
+                scope_tokens=scope_tokens, ledger=self.ledger, tripwire=self.tripwire,
+                actor=self.conversation_id, purpose="live-turn",
+            )
         except Exception as exc:  # noqa: BLE001
             _log.warning("re-identification failed: %s: %s", type(exc).__name__, exc)
             return TurnResult(
@@ -331,4 +356,5 @@ class ConversationSession:
             protected_input=protected_input, entities_protected=n_entities,
             revealed=reidentified.revealed, egress_blocked=False,
             egress_detail=egress_detail,
+            out_of_scope=reidentified.out_of_scope, canary_hits=reidentified.canary_hits,
         )

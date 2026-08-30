@@ -137,14 +137,17 @@ ROLES: dict[str, Role] = {
 class ReidentificationResult:
     text: str
     revealed: int = 0
-    withheld: int = 0
+    withheld: int = 0          # role not permitted to see this entity type
     failed: int = 0
+    out_of_scope: int = 0      # role permits the type, but the token is outside the reveal scope
+    canary_hits: int = 0       # revealed values that matched a registered canary (tripwire)
     # Token -> plaintext, for building the side-by-side view without a second API round.
     mapping: dict[str, str] = field(default_factory=dict)
 
     @property
     def summary(self) -> str:
-        return f"revealed={self.revealed} withheld={self.withheld} failed={self.failed}"
+        return (f"revealed={self.revealed} withheld={self.withheld} "
+                f"out_of_scope={self.out_of_scope} failed={self.failed}")
 
 
 def find_tokens(text: str) -> list[tuple[str, str, str]]:
@@ -161,12 +164,28 @@ def reidentify(
     protector: Protector,
     role: Role = AUDITOR,
     strip_tags: bool = True,
+    *,
+    scope_tokens: "frozenset[str] | None" = None,
+    ledger: "object | None" = None,
+    tripwire: "object | None" = None,
+    actor: str = "app",
+    purpose: str = "presentation",
 ) -> ReidentificationResult:
     """Replace tokens with plaintext for entity types this role may see.
 
     Tokens the role may not see are left protected. Unprotect calls are batched per data
     element, an analyst view over a long document would otherwise cost one round-trip per
     token, against an API with a measured burst limit.
+
+    Three optional defenses layer on the same boundary, all no-ops when unset:
+
+    * ``scope_tokens`` — SCOPE-bound reveal. When given, only these token strings may be
+      detokenized even if the role permits the entity type; every other token stays protected
+      and is counted as ``out_of_scope``. This shrinks an authorized-but-injected session's blast
+      radius from "every subject in the reply" to "the subject this turn is actually about".
+    * ``ledger`` — a RevealLedger; one hash-chained record is appended per reveal (metadata only).
+    * ``tripwire`` — a CanaryTripwire; revealed values are scanned for canaries and the count is
+      recorded on the result and the ledger.
     """
     result = ReidentificationResult(text=text)
     tagged = find_tokens(text)
@@ -180,6 +199,11 @@ def reidentify(
     for entity_type, tag_element, token in tagged:
         if not role.permits(entity_type):
             result.withheld += 1
+            continue
+        if scope_tokens is not None and token not in scope_tokens:
+            # Scope-bound reveal: the role could see this entity type, but this specific token is
+            # outside the caller's authorized scope (a different subject in the retrieved context).
+            result.out_of_scope += 1
             continue
         element = tag_element or ENTITY_TO_ELEMENT.get(entity_type)
         if element is None:
@@ -212,6 +236,8 @@ def reidentify(
         if not role.permits(entity_type):
             # Keep it tokenized, and keep the tag so the withholding stays visible.
             return match.group(0)
+        if scope_tokens is not None and token not in scope_tokens:
+            return match.group(0)  # out of scope: stays protected, already counted above
         element = tag_element or ENTITY_TO_ELEMENT.get(entity_type)
         value = recovered.get((element, token)) if element else None
         if value is None:
@@ -221,6 +247,28 @@ def reidentify(
         return value if strip_tags else f"[{entity_type}]{value}[/{entity_type}]"
 
     result.text = TAG_PATTERN.sub(replace, text)
+
+    # Tripwire + ledger on the values actually recovered this call. Both best-effort: a telemetry
+    # fault must never lose a legitimate reveal, but a tripped canary is surfaced on the result.
+    if tripwire is not None and result.mapping:
+        try:
+            result.canary_hits = len(tripwire.scan(result.mapping.values()))
+        except Exception:  # noqa: BLE001
+            pass
+    if ledger is not None and (result.revealed or result.canary_hits):
+        try:
+            counts: dict[str, int] = {}
+            for etype, _te, tok in tagged:
+                if tok in result.mapping:
+                    counts[etype] = counts.get(etype, 0) + 1
+            ledger.append(
+                actor=actor, role=role.name, purpose=purpose,
+                entity_counts=counts,
+                scope=("bound" if scope_tokens is not None else "role"),
+                canary_hits=result.canary_hits,
+            )
+        except Exception:  # noqa: BLE001, ledger write must not break a reveal
+            pass
     return result
 
 

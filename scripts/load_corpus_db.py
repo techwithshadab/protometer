@@ -16,6 +16,7 @@ traceback (the app still works from files regardless).
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -35,9 +36,19 @@ def _load_one(domain: str, corpus_dir: Path) -> bool:
     counts = db.load_domain_corpus(domain, corpus_dir, fingerprint=fp)
     if not counts:
         return False
+    # AML canaries live in a separate file so they never touch the MEASUREMENT corpus's
+    # fingerprint (the eval reproduces from data/corpus/*.json, not these). They are appended to
+    # the parties table with is_canary=True; the reveal tripwire flags any detokenization of them.
+    # Support/healthcare canaries are generated inline by build_domain_corpus.py, so only AML
+    # needs this side file.
+    n_canary = 0
+    canary_file = corpus_dir / "canaries.json"
+    if domain == "aml" and canary_file.exists():
+        n_canary = db.append_parties(domain, json.loads(canary_file.read_text()))
     total = sum(counts.values())
+    extra = f" + {n_canary} canaries" if n_canary else ""
     print(f"  {domain}: {total} rows across {len(counts)} tables "
-          f"({', '.join(f'{k}={v}' for k, v in counts.items())}); fingerprint {fp}")
+          f"({', '.join(f'{k}={v}' for k, v in counts.items())}){extra}; fingerprint {fp}")
     return True
 
 

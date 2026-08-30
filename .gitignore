@@ -53,3 +53,7 @@ docs/CONTEXT.md
 # OS and runtime junk.
 .DS_Store
 data/.amlguard.lock
+
+# Runtime reveal-audit ledgers (hash-chained detokenization records; regenerated at runtime).
+data/audit/
+data/eval/_attack_reveal_ledger.jsonl

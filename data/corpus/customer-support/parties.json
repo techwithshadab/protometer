@@ -2069,7 +2069,8 @@
   "date_of_birth": "1965-08-23",
   "account_number": "5711371420",
   "credit_card": "4111964746873843",
-  "order_id": "ORD-671890"
+  "order_id": "ORD-671890",
+  "is_canary": true
  },
  {
   "party_id": "CS00149",
@@ -2083,7 +2084,8 @@
   "date_of_birth": "2005-10-21",
   "account_number": "7989128491",
   "credit_card": "",
-  "order_id": "ORD-256699"
+  "order_id": "ORD-256699",
+  "is_canary": true
  },
  {
   "party_id": "CS00150",
@@ -2097,6 +2099,7 @@
   "date_of_birth": "1981-08-16",
   "account_number": "2174590072",
   "credit_card": "",
-  "order_id": "ORD-444629"
+  "order_id": "ORD-444629",
+  "is_canary": true
  }
 ]
