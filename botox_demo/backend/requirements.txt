@@ -3,7 +3,7 @@ fastapi==0.115.5
 uvicorn[standard]==0.32.1
 pydantic==2.10.3
 httpx==0.28.1
-requests==2.33.0
+requests==2.34.2
 selectolax==0.3.27
 # GraphRAG: graph store + embeddings
 neo4j==5.27.0
@@ -18,7 +18,7 @@ neo4j==5.27.0
 # via sentence-transformers `model.encode()` for embeddings, never torch.jit.script / lstm_cell /
 # unpack_sequence / quantized modules / pad_packed_sequence. Those Dependabot alerts are dismissed as
 # not-affected. Revisit if a lean CPU wheel + a version clearing them without CUDA bloat lines up.
-torch==2.6.0
+torch==2.13.0
 sentence-transformers==3.3.1
 numpy==2.2.0
 # Hosted-model clients are optional at runtime (local Ollama is the default and needs none of
