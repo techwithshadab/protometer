@@ -3,7 +3,7 @@ fastapi==0.115.5
 uvicorn[standard]==0.32.1
 pydantic==2.10.3
 httpx==0.28.1
-requests==2.32.4
+requests==2.33.0
 selectolax==0.3.27
 # GraphRAG: graph store + embeddings
 neo4j==5.27.0
@@ -12,7 +12,7 @@ neo4j==5.27.0
 # (2.2.x was NumPy-1-only, which crashed `model.encode` under our numpy==2.2.0 pin). 2.6.0 also
 # fixes CVE-2025-32434 (torch.load RCE with weights_only=True) — bumped from 2.4.1. sentence-
 # transformers 3.3.1 only requires torch>=1.11.0, so this is a safe bump.
-torch==2.6.0
+torch==2.13.0
 sentence-transformers==3.3.1
 numpy==2.2.0
 # Hosted-model clients are optional at runtime (local Ollama is the default and needs none of
