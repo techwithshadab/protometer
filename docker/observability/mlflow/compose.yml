@@ -8,6 +8,16 @@
 #
 # Host port 5001 on purpose: macOS AirPlay answers HTTP on 5000, which would make a dead server
 # look alive. Loopback-bound like every other sidecar in this project.
+#
+# SECURITY — CVE-2026-71211 (MLflow AI Gateway SSRF, GHSA-h7x2-h6g9-p789, affects 3.13.0–3.15.2 with
+# no fix released yet): NOT AFFECTED HERE. The vulnerable code path is the AI Gateway's gateway-secret
+# proxy (mlflow/server/gateway_api.py), an LLM-proxy feature this project never uses — we run a plain
+# tracking/registry server (see `command:` below: no `--gateway`, no gateway config) and the code only
+# calls tracking/registry APIs. The exploit needs an authenticated request to a running gateway proxy
+# to reach an internal address (e.g. a cloud IMDS); this server binds 127.0.0.1 only (no LAN/internet)
+# and this is a local dev stack with no cloud IAM to steal. INVARIANT: never publish this port to a
+# non-loopback interface — the loopback bind is the containment. Bump MLflow when a patched release
+# (> 3.15.2) ships.
 services:
   mlflow:
     image: ghcr.io/mlflow/mlflow:latest
