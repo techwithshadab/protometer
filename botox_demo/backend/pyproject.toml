@@ -1,0 +1,60 @@
+[project]
+name = "botox-backend"
+version = "1.0.0"
+description = "BOTOX Information Assistant backend: protected GraphRAG chatbot (Protegrity-only, fail-closed)"
+requires-python = ">=3.12"
+
+# Runtime dependencies. Managed with uv (uv.lock is the reproducible, hash-pinned install; see the
+# Dockerfile's `uv sync`). Lower bounds keep security-fixed floors; uv resolves the exact versions
+# into uv.lock. The Protegrity SDK (`appython`, import name) is licensed vendor software NOT on public
+# PyPI — it is vendored into backend/vendor/ and installed separately in the Dockerfile, so it is not
+# listed here.
+dependencies = [
+  "fastapi>=0.141.1",
+  "uvicorn[standard]>=0.52.4",
+  "pydantic>=2.13.5",
+  "httpx>=0.28.1",
+  "requests>=2.34.2",           # >= the .netrc / temp-file advisory fixes
+  "selectolax>=0.4.11",
+  # GraphRAG: graph store + embeddings
+  "neo4j>=5.27.0",
+  # CPU torch: sentence-transformers pulls torch; we run embeddings on CPU. torch>=2.6 clears the
+  # torch.load RCE (CVE-2025-32434). uv resolves the exact wheel; the Dockerfile targets the CPU
+  # build so linux/amd64 does not drag in the ~2GB CUDA wheels.
+  "torch>=2.6.0",
+  "sentence-transformers>=3.3.1",
+  "numpy>=2.2.0",
+  # Hosted-model clients (optional at runtime; local Ollama is the default and needs none of these).
+  "anthropic>=0.40.0",
+  "boto3>=1.35.71",
+  # Observability: agent tracing to Langfuse (optional; no-op when unconfigured).
+  "langfuse>=4.14.4",
+  "prometheus-client>=0.21.1",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=8.3.0",
+]
+
+[tool.uv]
+# The Protegrity SDK is vendored, not from an index; never let uv try to resolve it from PyPI.
+# (It is installed in the Dockerfile from backend/vendor/.)
+
+# Force the CPU-only torch build. Embeddings run on CPU; the DEFAULT PyPI torch wheel on linux/amd64
+# bundles ~2GB of CUDA we never use. The pytorch CPU index ships lean +cpu wheels. This keeps the
+# image lean even as sentence-transformers pulls torch up to a recent version.
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["app"]
