@@ -1,0 +1,162 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_design.css">
+<style>
+  body{width:1440px;height:720px}
+  .pty{position:absolute;box-sizing:border-box;border-radius:12px;display:flex;flex-direction:column;justify-content:center;background:#eef3fb;border:1px solid #cdddf3;padding:8px 12px}
+  .pty .nt{font-size:11.5px;font-weight:700;color:var(--ink)}
+  .pty .nd{font-size:9px;color:var(--soft2);margin-top:2px;line-height:1.3}
+  /* boxes: fixed box-sizing so an explicit width/height is the FULL outer size; flex-column-centre
+     so every box in a row is identical regardless of how long its text is. */
+  .node,.vol,.ext{position:absolute;box-sizing:border-box;border-radius:12px;display:flex;flex-direction:column;justify-content:center}
+  .node{background:#FBFAF8;border:1px solid var(--line);box-shadow:0 6px 16px rgba(7,29,73,.07);padding:10px 14px}
+  .node .nt{font-size:13.5px;font-weight:700;color:var(--ink)}
+  .node .nd{font-size:10px;color:var(--soft);margin-top:3px;line-height:1.35}
+  .node .np{align-self:flex-start;font-family:var(--mono);font-size:9px;font-weight:600;color:var(--purple);background:rgba(35,65,123,.1);border-radius:6px;padding:1px 6px;margin-top:6px}
+  .vol{background:#eaf0f9;border:1px solid #d6e0f2;padding:9px 13px}
+  .vol .nt{font-size:12px;font-weight:700;color:var(--ink)}
+  .vol .nd{font-size:9.5px;color:var(--soft2);margin-top:2px;line-height:1.3}
+  .ext{background:linear-gradient(120deg,#071d49,#23417b);color:#fff;padding:10px 13px}
+  .ext .nt{font-size:12.5px;font-weight:700}
+  .ext .nd{font-size:9.5px;color:rgba(245,243,239,.8);margin-top:3px;line-height:1.3}
+  svg.edge{position:absolute;overflow:visible;pointer-events:none;left:0;top:0}
+  .elbl{position:absolute;font-family:var(--mono);font-size:9px;font-weight:600;color:var(--soft2);background:var(--cream);padding:1px 5px;border-radius:5px}
+  .shell{position:absolute;box-sizing:border-box;border-radius:16px}
+</style>
+</head>
+<body>
+
+<div class="abs" style="left:0;right:0;top:22px;text-align:center;font-family:var(--font);font-size:20px;font-weight:700;letter-spacing:.2px;color:var(--ink)">
+  System Topology: Three Compose Projects on Shared Networks, Loopback Bound</div>
+<div class="abs" style="left:0;right:0;top:52px;text-align:center;font-size:11px;color:var(--soft2)">
+  The botox demo owns its frontend, backend, and Neo4j (9xxx); it joins two shared projects over Docker networks — Protegrity (6xxx, detect + tokenize + guard) and Observability (5xxx, Langfuse tracing). Ingest is a one-shot job.</div>
+
+<!-- ================================================================================================
+  Three tiers, each its own compose project + external network:
+
+    BOTOX-DEMO  (this demo's own project, 9xxx band)  ingest -> data/ ; User -> frontend -> backend -> neo4j
+    PROTEGRITY  (shared project, 6xxx band)           backend -> Data Discovery / Data Protection / Guardrail
+    OBSERVABILITY (shared project, 5xxx band)         backend -> obs-langfuse (traces)
+
+  Backend fan-out:
+    up    : backend READS the built index/graph from data/  (dashed, straight up into data/)
+    right : backend -> neo4j                                  (bolt)
+    down  : backend -> obs-langfuse (traces), backend -> Ollama/Anthropic (llm), backend -> Protegrity
+================================================================================================= -->
+
+<svg class="edge" width="1440" height="640">
+  <defs>
+    <marker id="ah" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><polygon points="0,0 6,3 0,6" fill="#23417b"/></marker>
+    <marker id="ahg" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><polygon points="0,0 6,3 0,6" fill="#7f9cd4"/></marker>
+  </defs>
+
+  <!-- ROW B (y-centre 168): ingest(450..650) -> data(690..890) -> hf-cache(930..1130) -->
+  <path d="M650 168 H 686" fill="none" stroke="#23417b" stroke-width="2.2" marker-end="url(#ah)"/>
+  <path d="M890 168 H 926" fill="none" stroke="#23417b" stroke-width="2.2" marker-end="url(#ah)"/>
+
+  <!-- backend READS data/ at startup: dashed arrow straight UP from backend top (x=790, y=272)
+       into data/ volume bottom (y=201). -->
+  <path d="M790 268 V 205" fill="none" stroke="#7f9cd4" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#ahg)"/>
+
+  <!-- ROW A (y-centre 320): User(242) -> frontend(306..538) -> backend(674..906) -> neo4j(1042..1274) -->
+  <path d="M242 320 H 302"  fill="none" stroke="#23417b" stroke-width="2.2" marker-end="url(#ah)"/>
+  <path d="M538 320 H 670"  fill="none" stroke="#23417b" stroke-width="2.2" marker-end="url(#ah)"/>
+  <path d="M906 320 H 1038" fill="none" stroke="#23417b" stroke-width="2.2" marker-end="url(#ah)"/>
+
+  <!-- ROW C (y-centre 486): backend fans DOWN to obs-langfuse (traces, shared) and the model (llm call).
+       Two lanes leave the backend bottom (x=726, x=854), drop to a bus at y=420, run OUTWARD to each
+       target centre (obs-langfuse 666, model 906) and drop in. -->
+  <path d="M726 368 V 420 H 666 V 443" fill="none" stroke="#23417b" stroke-width="2.2" marker-end="url(#ah)"/>
+  <path d="M854 368 V 420 H 906 V 443" fill="none" stroke="#23417b" stroke-width="2.2" marker-end="url(#ah)"/>
+
+  <!-- Ollama -or- Anthropic (its RIGHT neighbour): short dashed link -->
+  <path d="M1011 486 H 1035" fill="none" stroke="#7f9cd4" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#ahg)"/>
+</svg>
+
+<!-- ================= COMPOSE BOUNDARIES ================= -->
+<!-- botox-demo project shell (frontend/backend/neo4j + ingest + data) -->
+<div class="shell" style="left:286px;top:100px;width:1000px;height:290px;border:1.5px dashed rgba(7,29,73,.28)"></div>
+<div class="abs" style="left:300px;top:110px;font-family:var(--mono);font-size:10px;font-weight:600;color:var(--soft2)">docker compose · botox-demo · 9xxx · 127.0.0.1</div>
+
+<!-- ================= EDGE LABELS ================= -->
+<div class="elbl" style="left:346px;top:298px">HTTPS</div>
+<div class="elbl" style="left:588px;top:298px">/api</div>
+<div class="elbl" style="left:960px;top:298px">bolt</div>
+<div class="elbl" style="left:800px;top:222px">reads</div>
+<div class="elbl" style="left:672px;top:388px">traces</div>
+<div class="elbl" style="left:862px;top:388px">llm call</div>
+<div class="elbl" style="left:1013px;top:470px">or</div>
+
+<!-- ================= ROW B (y-centre 168): INGEST BAND ================= -->
+<div class="node" style="left:450px;top:135px;width:200px;height:66px;background:#eef3fb">
+  <div class="nt">ingest <span style="font-weight:500;font-size:10px;color:var(--soft2)">(one-shot)</span></div>
+  <div class="nd">live crawl + build index</div>
+</div>
+<div class="vol" style="left:690px;top:135px;width:200px;height:66px">
+  <div class="nt">data/ volume</div><div class="nd">pages · chunks · graph · index</div>
+</div>
+<div class="vol" style="left:930px;top:135px;width:200px;height:66px">
+  <div class="nt">hf-cache volume</div><div class="nd">embedding model</div>
+</div>
+
+<!-- ================= ROW A (y-centre 320): User, frontend, backend, neo4j ================= -->
+<div class="node" style="left:70px;top:272px;width:172px;height:96px">
+  <div class="nt">User</div><div class="nd">browser: React widget + landing page</div>
+</div>
+<div class="node" style="left:306px;top:272px;width:232px;height:96px">
+  <div class="nt">frontend</div>
+  <div class="nd">nginx: SPA + /api proxy, rate limit + security headers</div>
+  <div class="np">:9001</div>
+</div>
+<div class="node" style="left:674px;top:272px;width:232px;height:96px">
+  <div class="nt">backend</div>
+  <div class="nd">FastAPI + GraphRAG pipeline, non-root, one worker</div>
+  <div class="np">:9000</div>
+</div>
+<div class="node" style="left:1042px;top:272px;width:232px;height:96px">
+  <div class="nt">neo4j <span style="font-weight:500;font-size:10px;color:var(--soft2)">(per-demo)</span></div>
+  <div class="nd">knowledge graph</div><div class="np">:9002 / :9003</div>
+</div>
+
+<!-- ================= ROW C (y-centre 486): SHARED OBSERVABILITY + the model.
+     obs-langfuse lives in the shared observability project (5xxx), reached over the shared network. -->
+<div class="node" style="left:321px;top:447px;width:210px;height:78px;background:#f2eef9;border-color:#ddd0ef">
+  <div class="nt">obs-langfuse-db</div><div class="nd">Postgres + ClickHouse, backs Langfuse</div>
+</div>
+<div class="node" style="left:561px;top:447px;width:210px;height:78px;background:#f2eef9;border-color:#ddd0ef">
+  <div class="nt">obs-langfuse <span style="font-weight:500;font-size:10px;color:var(--soft2)">:5006</span></div>
+  <div class="nd">shared tracing UI · Botox project</div>
+</div>
+<div class="ext" style="left:801px;top:447px;width:210px;height:78px">
+  <div class="nt">Ollama on Host <span style="font-weight:500;font-size:9.5px;color:rgba(245,243,239,.7)">· default, $0</span></div>
+  <div class="nd">llama3.2, host :11434</div>
+</div>
+<div class="ext" style="left:1041px;top:447px;width:210px;height:78px;background:linear-gradient(120deg,#123057,#2A6A96)">
+  <div class="nt">Anthropic / Bedrock</div><div class="nd">optional hosted model, if creds</div>
+</div>
+
+<!-- shared observability shell wraps the two langfuse boxes -->
+<div class="shell" style="left:307px;top:432px;width:478px;height:108px;border:1.5px dashed rgba(94,63,155,.35)"></div>
+<div class="abs" style="left:321px;top:414px;font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.3px;color:var(--peri)">SHARED · observability-shared · 5xxx</div>
+
+<!-- ================= ROW D (y-centre 600): PROTEGRITY services, the shared protection tier the
+     backend calls to detect / tokenize / guard PII. Discovery is local containers on 6xxx;
+     tokenization is the hosted Data Protection API via the appython SDK; Guardrail is optional. ==== -->
+<div class="shell" style="left:307px;top:566px;width:944px;height:98px;border:1.5px dashed rgba(35,65,123,.32)"></div>
+<div class="abs" style="left:321px;top:548px;font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.3px;color:var(--peri)">SHARED · protegrity-shared · 6xxx</div>
+<div class="pty" style="left:321px;top:582px;width:300px;height:56px">
+  <div class="nt">Data Discovery <span style="font-weight:500;color:var(--soft2)">· detect (local)</span></div>
+  <div class="nd">classification :6000 · pattern :6002 · context :6003</div>
+</div>
+<div class="pty" style="left:641px;top:582px;width:280px;height:56px">
+  <div class="nt">Data Protection <span style="font-weight:500;color:var(--soft2)">· tokenize / reveal</span></div>
+  <div class="nd">hosted, appython SDK (DEV_EDITION creds)</div>
+</div>
+<div class="pty" style="left:941px;top:582px;width:310px;height:56px">
+  <div class="nt">Semantic Guardrail <span style="font-weight:500;color:var(--soft2)">· egress (optional)</span></div>
+  <div class="nd">healthcare ML scan of the reply, :6001</div>
+</div>
+
+</body></html>

@@ -1,0 +1,76 @@
+# SHARED observability platform — one Langfuse/MLflow/Prometheus/Grafana, many demos as projects.
+#
+# Instead of every demo bundling its own observability stack (AMLGuard ran Langfuse v4, BOTOX ran a
+# separate v2 — no shared dashboards, port clashes), we run ONE platform here and give each demo its
+# own Langfuse PROJECT (own keys) on it: `amlguard`, `botox`. MLflow gets per-demo EXPERIMENTS
+# (already namespaced amlguard-*); Grafana per-demo folders. One heavy stack, cleanly partitioned.
+#
+#   docker compose -f docker/shared/observability/compose.yml up -d    # (or: make shared-observability-up)
+#   open http://localhost:5006   # Langfuse      open http://localhost:5001  # MLflow
+#   open http://localhost:5002   # Grafana       open http://localhost:5003  # Prometheus
+#   docker compose -f docker/shared/observability/compose.yml down
+#
+# NETWORK: creates `observability-shared`. Each demo joins it as EXTERNAL and points LANGFUSE_HOST /
+# AMLGUARD_MLFLOW_URI at the service names here (obs-langfuse, obs-mlflow, ...). Independent of the
+# protegrity-shared tier — bring either up without the other.
+#
+# SOURCE OF TRUTH: reuses the vendored observability composes under docker/observability/* (the same
+# MLflow, Prometheus/Grafana/Pushgateway, and Langfuse-v4 stacks AMLGuard's compose.full.yml uses),
+# renamed to shared-scoped obs-* names. See docs/adr/shared-infra-decoupling.md.
+#
+# LANGFUSE IS v4 (events_only): traces land in the `events_full` ClickHouse table, NOT the legacy
+# traces/observations tables. ClickHouse mem raised to 6g here (vs 3g per-demo) for the shared load —
+# the events->traces projection OOMs under a tight cap.
+
+name: observability-shared
+
+include:
+  - ../../observability/mlflow/compose.yml           # MLflow
+  - ../../observability/infra/compose.yml            # Prometheus/Grafana/Pushgateway
+  - ../../observability/langfuse/compose.nested.yml  # Langfuse v4 (+ pg/clickhouse/redis/minio)
+
+# Shared-scoped names (obs-*) as container_name + DNS alias, so demos reach the platform by a stable
+# name regardless of which demo is up. Same override technique as AMLGuard's compose.full.yml.
+services:
+  mlflow:
+    container_name: obs-mlflow
+    networks: {protegrity-network: {aliases: [obs-mlflow]}}
+  prometheus:
+    container_name: obs-prometheus
+    networks: {protegrity-network: {aliases: [obs-prometheus]}}
+  grafana:
+    container_name: obs-grafana
+    networks: {protegrity-network: {aliases: [obs-grafana]}}
+  pushgateway:
+    container_name: obs-pushgateway
+    networks: {protegrity-network: {aliases: [obs-pushgateway]}}
+  langfuse-web:
+    container_name: obs-langfuse
+    networks: {protegrity-network: {aliases: [obs-langfuse, langfuse-web]}}
+  langfuse-worker:
+    container_name: obs-langfuse-worker
+    networks: {protegrity-network: {aliases: [obs-langfuse-worker, langfuse-worker]}}
+  langfuse-postgres:
+    container_name: obs-langfuse-postgres
+    networks: {protegrity-network: {aliases: [obs-langfuse-postgres, langfuse-postgres]}}
+  langfuse-clickhouse:
+    container_name: obs-langfuse-clickhouse
+    # Raised from the per-demo 3g: this instance serves BOTH demos' trace volume, and the v4
+    # events->traces projection OOMs under a tight cap (queries hit MEMORY_LIMIT_EXCEEDED at ~90% of
+    # the limit). 6g gives headroom; confirm total VM budget (the DE tier alone is ~3.3g idle).
+    mem_limit: 6g
+    networks: {protegrity-network: {aliases: [obs-langfuse-clickhouse, langfuse-clickhouse]}}
+  langfuse-minio:
+    container_name: obs-langfuse-minio
+    networks: {protegrity-network: {aliases: [obs-langfuse-minio, langfuse-minio]}}
+  langfuse-redis:
+    container_name: obs-langfuse-redis
+    networks: {protegrity-network: {aliases: [obs-langfuse-redis, langfuse-redis]}}
+
+# The langfuse compose declares protegrity-network with name ${DOCKER_NETWORK_NAME:-protegrity-network};
+# pin it to observability-shared so this project owns it and demos attach as external. mlflow/infra
+# inherit this project's default network via the aliases above.
+networks:
+  protegrity-network:
+    name: observability-shared
+    external: false

@@ -1,0 +1,321 @@
+# BOTOX Information Assistant: the whole demo as one project.
+#
+#   cp .env.example .env          # optional: set model/credential overrides (works with defaults)
+#   docker compose up -d --build  # frontend :9001, backend :9000, Neo4j :9002
+#   docker compose run --rm ingest   # crawl botox.com + build the GraphRAG index (one time)
+#   open http://localhost:9001
+#
+# The reasoning model runs with NO cloud account by default (a local Ollama model; set
+# ANTHROPIC_API_KEY / AWS creds for a hosted one). PII protection REQUIRES Protegrity (Discovery +
+# the appython SDK); set PROTEGRITY_DISCOVERY_URL and DEV_EDITION_* below. Until Protegrity is
+# reachable the backend is not-ready (health check) and the bot fails closed.
+name: botox-demo
+
+services:
+  # ── Neo4j: the knowledge graph backing GraphRAG ─────────────────────────────────────────────
+  neo4j:
+    image: neo4j:5.26-community
+    container_name: botox-neo4j
+    environment:
+      # NOTE: NEO4J_AUTH only sets the password on the FIRST init of the neo4j-data volume. If you
+      # change NEO4J_PASSWORD after the volume exists, the DB keeps the OLD password but the Bolt
+      # healthcheck below uses the NEW one, so it fails and the backend never starts. To change it,
+      # also reset the volume: `docker compose down -v` (destroys the graph; re-run ingest after).
+      # (Do NOT add a bare NEO4J_PASSWORD env here: Neo4j 5 treats every NEO4J_-prefixed var as a
+      # config setting and refuses to start on an unknown one. We expose the password to the
+      # healthcheck under a NON-neo4j-prefixed name instead.)
+      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD:-botoxdemo123}
+      # Password for the healthcheck ONLY (not a Neo4j setting, so it doesn't trip strict config
+      # validation). The healthcheck reads it from the environment and double-quotes it, so a password
+      # containing a single quote or shell metacharacters is handled safely.
+      HC_NEO4J_PW: ${NEO4J_PASSWORD:-botoxdemo123}
+      # Advertised Bolt address: when Neo4j Browser (served on the HTTP port) connects, the server
+      # hands it this address to open the Bolt websocket. It defaults to :7687 — the IN-CONTAINER
+      # port, which is NOT published on the host (only 9003 is) — so the browser tries
+      # 127.0.0.1:7687 and "Connection to instance failed". Advertise the real HOST port instead.
+      # (Container-internal clients like the backend still reach it as botox-neo4j:7687 via the
+      # listen address, which stays the default :7687.)
+      NEO4J_server_bolt_advertised__address: "127.0.0.1:9003"
+      NEO4J_server_memory_heap_max__size: 512m
+      NEO4J_server_memory_pagecache_size: 256m
+    ports:
+      - "127.0.0.1:9002:7474"   # browser UI
+      - "127.0.0.1:9003:7687"   # bolt
+    volumes:
+      - neo4j-data:/data
+    # Probe BOLT (7687), the port the backend actually connects on, not just the 7474 HTTP UI, so
+    # `service_healthy` doesn't release the backend before Bolt is ready. cypher-shell ships in the
+    # image; a trivial `RETURN 1` confirms the query engine is up and the credentials work. The
+    # password comes from the container env ($$HC_NEO4J_PW, double-quoted) so special characters in it
+    # don't break the shell word.
+    healthcheck:
+      test: ["CMD-SHELL",
+             "cypher-shell -u neo4j -p \"$$HC_NEO4J_PW\" 'RETURN 1' >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  # ── Backend: FastAPI + the protected GraphRAG pipeline ──────────────────────────────────────
+  backend:
+    build: ./backend
+    container_name: botox-backend
+    depends_on:
+      neo4j:
+        condition: service_healthy
+      # The Protegrity Discovery classifier lives in the SHARED tier now (bring `make shared-up` up
+      # first). Its reachability is checked at runtime by the backend health gate, so we don't
+      # depends_on it here. (For the bundled fallback, add classification-service back via a profile.)
+    environment:
+      NEO4J_URL: bolt://neo4j:7687
+      NEO4J_PASSWORD: ${NEO4J_PASSWORD:-botoxdemo123}
+      # Reasoning model precedence: override -> hosted (if creds) -> local Ollama.
+      BOTOX_MODEL: ${BOTOX_MODEL:-}
+      BOTOX_LOCAL_MODEL: ${BOTOX_LOCAL_MODEL:-llama3.2}
+      OLLAMA_URL: ${OLLAMA_URL:-http://host.docker.internal:11434}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      # PII protection is REQUIRED (no mock): DETECTION via Protegrity Discovery (bundled below) and
+      # TOKENIZATION via the appython SDK (hosted, DEV_EDITION_* creds). If these are unreachable the
+      # backend fails closed (health not-ready, turns refuse). Discovery defaults to the SHARED tier
+      # (pty-classification on protegrity-shared — run the shared tiers first: `make shared-up` from
+      # the repo root). Override PROTEGRITY_DISCOVERY_URL for the bundled service or an external one.
+      PROTEGRITY_DISCOVERY_URL: ${PROTEGRITY_DISCOVERY_URL:-http://pty-classification:8050/pty/data-discovery/v2/classify/text}
+      PROTEGRITY_DISCOVERY_THRESHOLD: ${PROTEGRITY_DISCOVERY_THRESHOLD:-0.6}
+      # appython SDK credentials for hosted tokenization.
+      DEV_EDITION_EMAIL: ${DEV_EDITION_EMAIL:-}
+      DEV_EDITION_PASSWORD: ${DEV_EDITION_PASSWORD:-}
+      DEV_EDITION_API_KEY: ${DEV_EDITION_API_KEY:-}
+      # Shared secret for the ROLE-GATED re-identification endpoint (/api/support/reveal). UNSET by
+      # default, which DISABLES reveal entirely. Set it to enable an internal support tool to
+      # re-identify a stored (tokenized) transcript. nginx blocks this path on the public frontend;
+      # reach it only on the backend's loopback port.
+      SUPPORT_API_TOKEN: ${SUPPORT_API_TOKEN:-}
+      # Semantic Guardrail (bundled below): opt-in ML egress scan layered on the regex guard. Set
+      # PROTEGRITY_SEMANTIC_GUARD=on to enable; the URL defaults to the bundled service.
+      PROTEGRITY_SEMANTIC_GUARD: ${PROTEGRITY_SEMANTIC_GUARD:-}
+      PROTEGRITY_SEMANTIC_GUARD_URL: ${PROTEGRITY_SEMANTIC_GUARD_URL:-http://pty-guardrail:8001/pty/semantic-guardrail/v1.1/conversations/messages/scan}
+      BOTOX_TOKEN_KEY: ${BOTOX_TOKEN_KEY:-botox-demo-deterministic-key}
+      # CORS: the browser origin the frontend is served from. Must match the frontend's HOST port
+      # (9001 in the shared port map; :5173 is the Vite dev server). Override for a real deployment.
+      BOTOX_ALLOWED_ORIGINS: ${BOTOX_ALLOWED_ORIGINS:-http://localhost:9001,http://127.0.0.1:9001,http://localhost:5173}
+      # Observability: agent tracing to the SHARED Langfuse (obs-langfuse on observability-shared),
+      # using BOTOX's OWN project keys — SEPARATE from AMLGuard's project on the same instance. Set
+      # BOTOX_LANGFUSE_PUBLIC_KEY / BOTOX_LANGFUSE_SECRET_KEY in .env to the 'botox' project's keys
+      # (create that project once in the Langfuse UI — the admin/provisioning API is Enterprise-only;
+      # see docs/adr/shared-infra-decoupling.md). These are read FIRST so the shared LANGFUSE_*_KEY
+      # (AMLGuard's project, set in the repo .env) does NOT leak botox traces into AMLGuard's project.
+      # Set BOTOX_TRACING=off to disable.
+      LANGFUSE_HOST: ${LANGFUSE_HOST:-http://obs-langfuse:3000}
+      LANGFUSE_PUBLIC_KEY: ${BOTOX_LANGFUSE_PUBLIC_KEY:-${LANGFUSE_PUBLIC_KEY:-pk-lf-botox-demo}}
+      LANGFUSE_SECRET_KEY: ${BOTOX_LANGFUSE_SECRET_KEY:-${LANGFUSE_SECRET_KEY:-sk-lf-botox-demo}}
+      BOTOX_TRACING: ${BOTOX_TRACING:-}
+      # System prompt is Langfuse-managed (versioned/editable in the UI) with a hardcoded fallback.
+      # The app pulls the BOTOX_PROMPT_LABEL version and re-checks every BOTOX_PROMPT_TTL seconds;
+      # BOTOX_PROMPT_SOURCE=local forces the hardcoded prompt (skips Langfuse). Seed it with
+      # `docker compose run --rm ingest` (step 6) or `docker compose exec backend python -m app.obs.seed_prompt`.
+      BOTOX_PROMPT_NAME: ${BOTOX_PROMPT_NAME:-botox-system}
+      BOTOX_PROMPT_LABEL: ${BOTOX_PROMPT_LABEL:-production}
+      BOTOX_PROMPT_TTL: ${BOTOX_PROMPT_TTL:-60}
+      BOTOX_PROMPT_SOURCE: ${BOTOX_PROMPT_SOURCE:-}
+    volumes:
+      - ./data:/app/data                     # crawled pages + built index (shared with ingest)
+      - hf-cache:/home/botox/.cache/huggingface   # embedding-model cache, persisted
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # reach a host-run Ollama on Linux
+    ports:
+      - "127.0.0.1:9000:8000"
+    # Readiness probe on the app's own /api/health (stdlib urllib, no curl/wget dependency). This
+    # checks the JSON `ready` field, NOT just HTTP 200 (health always returns 200 so it can report
+    # not-ready without 500ing). So the container is only `healthy` when the index AND Protegrity
+    # protection are both up, and the frontend, gated on service_healthy, won't proxy /api to a
+    # backend that would refuse every turn. start_period covers first-run model-load / index-warm /
+    # Protegrity warmup.
+    healthcheck:
+      test: ["CMD-SHELL",
+             "python -c \"import urllib.request,json,sys; d=json.load(urllib.request.urlopen('http://localhost:8000/api/health', timeout=4)); sys.exit(0 if d.get('ready') else 1)\""]
+      interval: 10s
+      timeout: 6s
+      retries: 18
+      # Generous: first run pays the embedding-model load/index-warm AND Protegrity login/warmup.
+      start_period: 90s
+    restart: unless-stopped
+    networks:
+      default: {}                 # backend ↔ neo4j / frontend (this project)
+      protegrity-shared: {}       # shared DE tokenizer tier (pty-*)
+      observability-shared: {}    # shared Langfuse (obs-langfuse)
+
+  # ── Ingest: one-shot crawl + GraphRAG index build (run on demand) ───────────────────────────
+  ingest:
+    build: ./backend
+    container_name: botox-ingest
+    profiles: ["ingest"]                     # only runs via `docker compose run ingest`
+    depends_on:
+      neo4j:
+        condition: service_healthy
+    environment:
+      NEO4J_URL: bolt://neo4j:7687
+      NEO4J_PASSWORD: ${NEO4J_PASSWORD:-botoxdemo123}
+      # Ingest tokenizes during the build, so it reaches the SHARED Discovery too.
+      PROTEGRITY_DISCOVERY_URL: ${PROTEGRITY_DISCOVERY_URL:-http://pty-classification:8050/pty/data-discovery/v2/classify/text}
+      DEV_EDITION_EMAIL: ${DEV_EDITION_EMAIL:-}
+      DEV_EDITION_PASSWORD: ${DEV_EDITION_PASSWORD:-}
+      DEV_EDITION_API_KEY: ${DEV_EDITION_API_KEY:-}
+      # Langfuse (shared) so build step 6 can seed the system prompt into Prompt Management. A
+      # Langfuse outage just skips the seed (the app falls back to the hardcoded prompt). Same
+      # BOTOX-project-first key precedence as the backend, so the prompt is seeded into BOTOX's project.
+      LANGFUSE_HOST: ${LANGFUSE_HOST:-http://obs-langfuse:3000}
+      LANGFUSE_PUBLIC_KEY: ${BOTOX_LANGFUSE_PUBLIC_KEY:-${LANGFUSE_PUBLIC_KEY:-pk-lf-botox-demo}}
+      LANGFUSE_SECRET_KEY: ${BOTOX_LANGFUSE_SECRET_KEY:-${LANGFUSE_SECRET_KEY:-sk-lf-botox-demo}}
+      BOTOX_PROMPT_NAME: ${BOTOX_PROMPT_NAME:-botox-system}
+      BOTOX_PROMPT_LABEL: ${BOTOX_PROMPT_LABEL:-production}
+    volumes:
+      - ./data:/app/data
+      - hf-cache:/home/botox/.cache/huggingface
+    networks:
+      default: {}
+      protegrity-shared: {}
+      observability-shared: {}
+    # Crawl botox.com first, then build everything. `data/` is gitignored, so on a fresh checkout
+    # this is what populates it; the crawl is idempotent and re-run safe.
+    command: ["python", "-m", "app.ingest.build_all", "--crawl"]
+
+  # ── Frontend: React widget served by nginx, proxying /api to the backend ────────────────────
+  frontend:
+    build: ./frontend
+    container_name: botox-frontend
+    # Wait for the backend to be READY (health-checked), not just started, so early requests to /api
+    # don't hit a 502 before uvicorn is serving.
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:9001:80"
+    restart: unless-stopped
+
+  # ── Observability: Langfuse (agent tracing) + its Postgres ──────────────────────────────────
+  # Langfuse v2 is deliberately chosen over v3: it needs only Postgres (v3 adds ClickHouse, Redis,
+  # and MinIO, four extra services). The bundled tracing SDK talks to either. This keeps the demo
+  # self-contained and light enough to run alongside other local stacks without exhausting the VM.
+  langfuse-db:
+    image: postgres:16-alpine
+    container_name: botox-langfuse-db
+    profiles: ["bundled"]   # shared-by-default: bundled copy only with --profile bundled
+    environment:
+      POSTGRES_USER: langfuse
+      POSTGRES_PASSWORD: ${LANGFUSE_DB_PASSWORD:-langfuse-demo-pw}
+      POSTGRES_DB: langfuse
+    volumes:
+      - langfuse-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U langfuse -d langfuse"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  langfuse-web:
+    image: langfuse/langfuse:2
+    container_name: botox-langfuse
+    profiles: ["bundled"]   # shared-by-default: bundled copy only with --profile bundled
+    depends_on:
+      langfuse-db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://langfuse:${LANGFUSE_DB_PASSWORD:-langfuse-demo-pw}@langfuse-db:5432/langfuse
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: ${LANGFUSE_NEXTAUTH_SECRET:-botox-demo-nextauth-secret-change-me}
+      SALT: ${LANGFUSE_SALT:-botox-demo-salt-change-me}
+      TELEMETRY_ENABLED: "false"
+      LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES: "false"
+      # Disable open signup: the headless init below already provisions the demo operator, so no one
+      # needs to self-register. Leaving signup open would let anyone who can reach :3000 create an
+      # account on the trace store. Override in .env only if you deliberately want open registration.
+      AUTH_DISABLE_SIGNUP: "true"
+      # Headless bootstrap: provision an org, project, a login, and FIXED API keys at first start,
+      # so tracing works out of the box (no manual UI signup). The keys below are also handed to the
+      # backend, so a plain `docker compose up` lights up traces with zero clicks. Change them (here
+      # and in .env) for anything beyond a local demo.
+      LANGFUSE_INIT_ORG_ID: botox-demo
+      LANGFUSE_INIT_ORG_NAME: BOTOX Demo
+      LANGFUSE_INIT_PROJECT_ID: botox-assistant
+      LANGFUSE_INIT_PROJECT_NAME: BOTOX Assistant
+      LANGFUSE_INIT_PROJECT_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-pk-lf-botox-demo}
+      LANGFUSE_INIT_PROJECT_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-sk-lf-botox-demo}
+      LANGFUSE_INIT_USER_EMAIL: ${LANGFUSE_INIT_USER_EMAIL:-demo@botox.local}
+      LANGFUSE_INIT_USER_NAME: Demo Operator
+      LANGFUSE_INIT_USER_PASSWORD: ${LANGFUSE_INIT_USER_PASSWORD:-botoxdemo123}
+    ports:
+      - "127.0.0.1:3000:3000"
+    restart: unless-stopped
+
+  # ── Protegrity Data Discovery (local): the PII DETECTION service ────────────────────────────
+  # Three containers from Protegrity Developer Edition (ghcr.io/protegrity-ai-developer-edition):
+  # a pattern provider, a context provider, and the classification service the backend calls. These
+  # images require access to the Protegrity DE registry (docker login ghcr.io with a DE token); pin
+  # the tags to a DE release you can pull. The classification API is on 8050 inside the network.
+  pattern-provider-service:
+    image: ${DOCKER_PATTERN_IMAGE:-ghcr.io/protegrity-ai-developer-edition/pattern-provider:${PATTERN_TAG:-2.0.0.320.59776828}}
+    container_name: botox-pty-pattern
+    profiles: ["bundled"]   # shared-by-default: bundled copy only with --profile bundled
+    restart: unless-stopped
+
+  context-provider-service:
+    image: ${DOCKER_CONTEXT_IMAGE:-ghcr.io/protegrity-ai-developer-edition/context-provider:${CONTEXT_TAG:-2.0.0.242.5041932c}}
+    container_name: botox-pty-context
+    profiles: ["bundled"]   # shared-by-default: bundled copy only with --profile bundled
+    restart: unless-stopped
+
+  classification-service:
+    image: ${DOCKER_CLASSIFICATION_IMAGE:-ghcr.io/protegrity-ai-developer-edition/classification-service:${CLASSIFICATION_TAG:-2.0.0.374.8047721c}}
+    container_name: botox-pty-classification
+    profiles: ["bundled"]   # shared-by-default: bundled copy only with --profile bundled
+    depends_on:
+      - pattern-provider-service
+      - context-provider-service
+    environment:
+      PROVIDERS: '[{"name":"Pattern","address":"http://pattern-provider-service:8051"},{"name":"Context","address":"http://context-provider-service:8052"}]'
+    ports:
+      - "127.0.0.1:8580:8050"   # loopback-bound; the backend reaches it in-network on 8050
+    # Real readiness probe on the Discovery API's own /health, so the backend (gated on
+    # service_healthy below) waits for Discovery to actually accept requests, not just for the
+    # container to have started. curl ships in the image. start_period covers model/provider load.
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8050/health >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+    restart: unless-stopped
+
+  # ── Protegrity Semantic Guardrail (local): optional ML egress scan ──────────────────────────
+  # Also a DE-registry image. Enabled only when PROTEGRITY_SEMANTIC_GUARD=on for the backend; the
+  # container runs regardless, the backend just doesn't call it unless the flag is set. API on 8001.
+  semantic-guardrail-service:
+    image: ${DOCKER_SEMANTIC_GUARDRAIL_IMAGE:-ghcr.io/protegrity-ai-developer-edition/semantic-guardrail:${SEMANTIC_GUARDRAIL_TAG:-1.1.1-36-1b3de114}}
+    container_name: botox-pty-guardrail
+    profiles: ["bundled"]   # shared-by-default: bundled copy only with --profile bundled
+    environment:
+      LOG_LEVEL: ${SEMANTIC_GUARDRAIL_LOG_LEVEL:-WARNING}
+      HF_HUB_OFFLINE: "1"
+      TRANSFORMERS_OFFLINE: "1"
+    ports:
+      - "127.0.0.1:8581:8001"   # loopback-bound; the backend reaches it in-network on 8001
+    restart: unless-stopped
+
+networks:
+  # `default` is this project's own bridge (backend ↔ neo4j ↔ frontend). The two shared networks are
+  # EXTERNAL — created by the shared tiers (`make shared-up` from the repo root) — so backend/ingest
+  # reach pty-* and obs-* by name. Bring the shared tiers up before `docker compose up` here.
+  default: {}
+  protegrity-shared:
+    external: true
+  observability-shared:
+    external: true
+
+volumes:
+  neo4j-data:
+  langfuse-db-data:
+  hf-cache:

@@ -55,6 +55,21 @@ class Domain:
     # support it; a fork adding a domain without a corpus flips this off. Single source of truth:
     # the UI offers Live from it, and /chat/turn fails with a precise 503 when it is off.
     supports_live_chat: bool = False
+    # Re-identification roles for THIS domain, most-restrictive first. The live chat and the
+    # role-view cards offer only these, so a support turn can't be run as an AML `investigator`
+    # (which would reveal the customer in full — the exact inversion of the "agent masked,
+    # supervisor full" story). `default_live_role` is the low-privilege default a live turn uses
+    # when the request names no domain-valid role, so the masked view is what you see first.
+    live_roles: tuple[str, ...] = ()
+    default_live_role: str = ""
+
+    def role_for(self, requested: str | None) -> str:
+        """The effective role name for a live turn: the requested role IF it is valid for this
+        domain, else this domain's default. Prevents cross-domain role bleed (e.g. an AML
+        `investigator` role leaking full PII on a customer-support turn)."""
+        if requested and requested in self.live_roles:
+            return requested
+        return self.default_live_role or (self.live_roles[0] if self.live_roles else "auditor")
 
     def high_sensitivity_values(self, records: list[dict]) -> frozenset[str]:
         """Clear high-sensitivity identifier values in these records, for the egress guard."""
@@ -91,6 +106,8 @@ _AML = Domain(
         "value_date": "DATETIME",
     },
     injection_processor="customer-support",
+    live_roles=("auditor", "analyst", "investigator"),
+    default_live_role="analyst",   # partial view: orgs/locations revealed, identities masked
     investigation_prompt="amlguard-investigation-system",
     rationale_prompt="amlguard-rationale-system",
     judge_prompt="amlguard-judge-system",
@@ -102,7 +119,11 @@ _HEALTHCARE = Domain(
     name="healthcare",
     label="Clinical record assistant",
     record_fields={
-        "patient_name": "PERSON",
+        # Party rows store the name under `full_name` (like AML); a `patient_name` key here would be
+        # inert — ingest-protection, the egress forbidden-value hard-block, and trace redaction all
+        # read party rows BY this key, so a mismatch silently leaves patient names unprotected in
+        # traces and unblocked at egress. Must match the corpus row key.
+        "full_name": "PERSON",
         # HEALTH_CARE_ID is the entity type ingest actually maps (to the `number` element);
         # MEDICAL_RECORD_NUMBER is not in ENTITY_TO_ELEMENT and would silently pass unprotected.
         "mrn": "HEALTH_CARE_ID",
@@ -115,6 +136,8 @@ _HEALTHCARE = Domain(
         "provider_name": "PERSON",
     },
     injection_processor="healthcare",
+    live_roles=("researcher", "billing", "clinician"),
+    default_live_role="billing",   # sees name + MRN to bill; the rest stays masked
     investigation_prompt="healthcare-investigation-system",
     rationale_prompt="healthcare-rationale-system",
     judge_prompt="healthcare-judge-system",
@@ -126,7 +149,9 @@ _SUPPORT = Domain(
     name="customer-support",
     label="Customer-support assistant",
     record_fields={
-        "customer_name": "PERSON",
+        # Party rows store the name under `full_name` (see healthcare note above); `customer_name`
+        # here would be inert and leave customer names unprotected in traces / unblocked at egress.
+        "full_name": "PERSON",
         "email": "EMAIL_ADDRESS",
         "phone": "PHONE_NUMBER",
         "address": "ADDRESS",
@@ -135,6 +160,8 @@ _SUPPORT = Domain(
         "order_id": "ACCOUNT_NUMBER",
     },
     injection_processor="customer-support",
+    live_roles=("support_agent", "supervisor"),
+    default_live_role="support_agent",   # front-line agent: customer masked (the demo's default view)
     investigation_prompt="support-investigation-system",
     rationale_prompt="support-rationale-system",
     judge_prompt="support-judge-system",

@@ -15,39 +15,42 @@
 # and the observability stacks are ../../observability/<stack>/.
 #
 #   docker compose -f docker/app/ui/compose.yml up -d --build      (or: make docker-up)
-#   open http://localhost:8600
+#   open http://localhost:8000
 
-# Fixed project name (independent of the compose file's directory), so container
-# names, the shared network, and `make docker-ps` stay stable.
-name: protegrity
+# Project name: `amlguard` (the AMLGuard demo). Distinct from `protegrity-shared` (the shared DE
+# tier) and `observability-shared` — so `docker compose ls` reads clearly.
+name: amlguard
 include:
-  # The one canonical app-Postgres definition (container amlguard_postgres, port 5433, schemas
+  # The one canonical app-Postgres definition (container amlguard-postgres, port 5433, schemas
   # aml/healthcare/support). Reused verbatim so there is never a second, conflicting definition.
   - ../postgres/compose.yml            # docker/app/postgres/
 
+# SHARED-BY-DEFAULT: the app attaches to the two shared external networks (bring the shared tiers up
+# first: `make shared-up`). The DE / Langfuse / MLflow URLs default to the shared service names (see
+# the app service env below), so no overlay is needed — one `docker compose up` reaches the shared
+# tier. `amlguard-net` is the app's own bridge (app↔postgres).
 networks:
-  # Same named bridge the vendor Developer-Edition composes use, so when the full stack is up the
-  # app can reach Discovery/Guardrail by container name. Declared identically everywhere it appears,
-  # so the definitions merge and the first service up creates it (no pre-step, no external:true).
-  protegrity-network:
-    name: ${DOCKER_NETWORK_NAME:-protegrity-network}
+  amlguard-net:
+    name: amlguard-net
+  protegrity-shared:
+    external: true
+  observability-shared:
+    external: true
 
 services:
-  # The included Postgres, renamed path-style (app-postgres) and attached to the shared network so
-  # the app reaches it by that name and the full stack has everything co-networked. Same path-style
-  # convention as docker-compose.full.yml, so names are identical in standalone and full modes.
+  # The included Postgres, renamed (amlguard-postgres) on the app's own network.
   postgres:
-    container_name: app-postgres
+    container_name: amlguard-postgres
     networks:
-      protegrity-network:
-        aliases: [app-postgres]
+      amlguard-net:
+        aliases: [amlguard-postgres]
 
   amlguard_app:
     build:
       context: ../../..              # repo root: the Dockerfile copies src/, scripts/, ui/, data/
       dockerfile: docker/app/ui/Dockerfile
     image: amlguard-app:latest
-    container_name: app-ui
+    container_name: amlguard-ui
     depends_on:
       postgres:
         condition: service_healthy
@@ -60,17 +63,22 @@ services:
       - path: ../../../.env
         required: false
     environment:
-      # Reach the in-network services by their path-style NAME (not localhost — that is the app
-      # container itself). These override the app's localhost defaults (settings.py). In standalone
-      # mode only app-postgres is up; the vendor/observability names resolve once the full stack is.
-      AMLGUARD_POSTGRES_URL: postgresql://amlguard:amlguard@app-postgres:5432/amlguard
-      AMLGUARD_DISCOVERY_URL: http://vendor-de-classification:8050/pty/data-discovery/v2/classify/text
-      AMLGUARD_GUARDRAIL_URL: http://vendor-de-guardrail:8001/pty/semantic-guardrail/v1.1/conversations/messages/scan
-      AMLGUARD_ANONYMIZATION_URL: http://vendor-de-anon:8085/pty/anonymization/v3
-      AMLGUARD_SYNTHETIC_URL: http://vendor-de-synthetic:8000/pty/syntheticdata/v2
-      # Observability (optional; the app degrades gracefully if absent). In standalone mode MLflow
-      # is host-run (host.docker.internal); the full stack overrides this to observability-mlflow.
-      AMLGUARD_MLFLOW_URI: ${AMLGUARD_MLFLOW_URI:-http://host.docker.internal:5001}
+      # Reach in-network services by name (not localhost — that is the app container itself). The app
+      # DB is on amlguard-net; the DE + observability names resolve over the shared external networks.
+      AMLGUARD_POSTGRES_URL: postgresql://amlguard:amlguard@amlguard-postgres:5432/amlguard
+      # Protegrity DE endpoints. Default to the SHARED tier names (pty-*, on the protegrity-shared
+      # external network — bring up docker/shared/protegrity/compose.yml first). Each is overridable
+      # from .env, so the `bundled` fallback (or any external DE) can repoint them without editing
+      # this file. See docs/adr/shared-infra-decoupling.md.
+      AMLGUARD_DISCOVERY_URL: ${AMLGUARD_DISCOVERY_URL:-http://pty-classification:8050/pty/data-discovery/v2/classify/text}
+      AMLGUARD_GUARDRAIL_URL: ${AMLGUARD_GUARDRAIL_URL:-http://pty-guardrail:8001/pty/semantic-guardrail/v1.1/conversations/messages/scan}
+      AMLGUARD_ANONYMIZATION_URL: ${AMLGUARD_ANONYMIZATION_URL:-http://pty-anon:8085/pty/anonymization/v3}
+      AMLGUARD_SYNTHETIC_URL: ${AMLGUARD_SYNTHETIC_URL:-http://pty-synthetic:8000/pty/syntheticdata/v2}
+      # Observability (optional; the app degrades gracefully if absent). Defaults to the SHARED
+      # platform (obs-mlflow on the observability-shared external network); overridable from .env.
+      AMLGUARD_MLFLOW_URI: ${AMLGUARD_MLFLOW_URI:-http://obs-mlflow:5000}
+      # Langfuse: the shared platform, AMLGuard's own project keys. Overridable from .env.
+      LANGFUSE_HOST: ${LANGFUSE_HOST:-http://obs-langfuse:3000}
       # AWS region needs an in-container default (there is no ~/.aws in the image). The AWS
       # CREDENTIALS themselves (AWS_ACCESS_KEY_ID / _SECRET_ACCESS_KEY / _SESSION_TOKEN) and the
       # Protegrity DEV_EDITION_* credentials come from the env_file above — they are deliberately NOT
@@ -108,7 +116,9 @@ services:
       - ../../../vendor-de:/app/vendor-de:ro
     # Loopback-only on the host: this API bills LLM calls and re-identifies PII, no LAN exposure.
     ports:
-      - "127.0.0.1:8600:8600"
+      - "127.0.0.1:8000:8600"
     networks:
-      - protegrity-network
+      - amlguard-net           # app ↔ postgres
+      - protegrity-shared      # shared DE tokenizer tier (pty-*)
+      - observability-shared   # shared Langfuse/MLflow/Prometheus/Grafana (obs-*)
     restart: unless-stopped

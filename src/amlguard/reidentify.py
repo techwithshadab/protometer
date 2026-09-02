@@ -128,8 +128,11 @@ BILLING = Role(
     name="billing",
     label="Billing / Claims",
     # Minimum necessary: the patient name and medical-record/beneficiary number to attach a claim to
-    # the right record — clinical detail and contact identifiers stay tokenized.
-    may_unprotect=frozenset({"PERSON", "MED_REC", "MEDICAL_RECORD_NUMBER"}),
+    # the right record — clinical detail and contact identifiers stay tokenized. HEALTH_CARE_ID is
+    # the entity type the MRN actually tokenizes as (domains.py maps `mrn` -> HEALTH_CARE_ID); the
+    # legacy MED_REC/MEDICAL_RECORD_NUMBER names never appear as tag types, so without HEALTH_CARE_ID
+    # billing could see the name but not the MRN it exists to bill against (fails closed, no leak).
+    may_unprotect=frozenset({"PERSON", "HEALTH_CARE_ID", "MED_REC", "MEDICAL_RECORD_NUMBER"}),
     description="Minimum-necessary access; sees who and which record to bill, not clinical detail.",
 )
 

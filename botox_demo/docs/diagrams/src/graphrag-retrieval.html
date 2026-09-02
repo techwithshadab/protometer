@@ -1,0 +1,105 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_design.css">
+<style>
+  body{width:1440px;height:640px}
+  .rcard{position:absolute;background:#FBFAF8;border:1px solid var(--line);border-radius:12px;box-shadow:0 6px 16px rgba(7,29,73,.07);padding:13px 15px}
+  .rcard .rt{font-size:14px;font-weight:700;color:var(--ink)}
+  .rcard .rd{font-size:10.5px;color:var(--soft);margin-top:4px;line-height:1.4}
+  .rcard .rk{display:inline-block;font-family:var(--mono);font-size:9px;font-weight:600;color:var(--purple);background:rgba(35,65,123,.09);border-radius:6px;padding:2px 7px;margin-top:8px}
+  .picon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;margin-bottom:8px}
+  .picon svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  svg.edge{position:absolute;overflow:visible;pointer-events:none;left:0;top:0}
+  .lane{position:absolute;font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.3px;color:var(--soft2)}
+</style>
+</head>
+<body>
+
+<div class="abs" style="left:0;right:0;top:22px;text-align:center;font-family:var(--font);font-size:20px;font-weight:700;letter-spacing:.2px;color:var(--ink)">
+  GraphRAG Retrieval: Vector Seeds Plus Graph Expansion</div>
+<div class="abs" style="left:0;right:0;top:52px;text-align:center;font-size:11px;color:var(--soft2)">
+  Vector search finds seed chunks by similarity; the graph pulls in connected context those seeds co-mention.</div>
+
+<!-- Layout (all orthogonal):
+     TOP ROW  y-centre 200 : Tokenized Query -> Vector Search -> Seed Chunks -> Graph Expand
+     Seed Chunks (x 618..792) and Graph Expand (x 918..1406) both drop to a join bus at y=392,
+     which enters Merge + Dedupe (centred x=712, y-centre 392). Merge -> Context (below, y 470). -->
+<svg class="edge" width="1440" height="600">
+  <defs>
+    <marker id="ah" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><polygon points="0,0 6,3 0,6" fill="#23417b"/></marker>
+  </defs>
+  <!-- top row -->
+  <path d="M250 200 H 306" fill="none" stroke="#23417b" stroke-width="2.2" marker-end="url(#ah)"/>
+  <path d="M556 200 H 612" fill="none" stroke="#23417b" stroke-width="2.2" marker-end="url(#ah)"/>
+  <path d="M792 200 H 912" fill="none" stroke="#23417b" stroke-width="2.2" marker-end="url(#ah)"/>
+
+  <!-- seed chunks -> merge : drop from seed bottom (x=702) straight into merge top -->
+  <path d="M702 246 V 358" fill="none" stroke="#23417b" stroke-width="2.2" marker-end="url(#ah)"/>
+  <!-- graph expand -> merge : from graph-expand LEFT edge (x=918,y=250) straight left to x=760,
+       then down into merge top. Runs high (y=250) so it never touches the note box below. -->
+  <path d="M918 250 H 760 V 358" fill="none" stroke="#23417b" stroke-width="2.2" marker-end="url(#ah)"/>
+
+  <!-- merge -> context : straight down -->
+  <path d="M712 438 V 470" fill="none" stroke="#23417b" stroke-width="2.2" marker-end="url(#ah)"/>
+</svg>
+
+<!-- ===== TOP ROW (y-centre 200) ===== -->
+<div class="rcard" style="left:46px;top:158px;width:204px">
+  <div class="picon ic3"><svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="M7 10h7M7 14h4"/></svg></div>
+  <div class="rt">Tokenized Query</div>
+  <div class="rd">the visitor's message, PII already replaced with tokens</div>
+</div>
+
+<div class="lane" style="left:306px;top:120px">Vector Half</div>
+<div class="rcard" style="left:306px;top:140px;width:250px">
+  <div class="picon ic1"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 L21 21"/></svg></div>
+  <div class="rt">Vector Search</div>
+  <div class="rd">cosine over a 100 x 384 matrix, MiniLM embeddings, sub-millisecond</div>
+  <div class="rk">search(query, k)</div>
+</div>
+
+<div class="rcard" style="left:612px;top:164px;width:180px">
+  <div class="rt">Seed Chunks</div>
+  <div class="rd">top-k passages ranked by similarity</div>
+</div>
+
+<div class="lane" style="left:918px;top:120px">Graph Half, 1-Hop Expansion</div>
+<div class="rcard" style="left:918px;top:140px;width:344px">
+  <div class="picon ic4"><svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="7" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M7.8 7.4l2.6 8.2M16.4 8.6l-3 7.4M8 6.4l8-.4"/></svg></div>
+  <div class="rt">Graph Expand: Chunks Sharing an Entity</div>
+  <div class="rd">pull passages that co-mention a seed's entities, so an answer about "chronic migraine" also sees co-mentioned safety and cost context</div>
+  <div style="display:flex;gap:8px;margin-top:9px">
+    <div style="flex:1;background:#eaf0f9;border:1px solid #d6e0f2;border-radius:8px;padding:7px 9px">
+      <div style="font-size:10.5px;font-weight:700;color:var(--ink)">Neo4j up</div>
+      <div style="font-size:9.5px;color:var(--soft);margin-top:1px">(:Chunk)-[:MENTIONS]->(:Entity)</div>
+    </div>
+    <div style="flex:1;background:var(--cream);border:1px dashed var(--line);border-radius:8px;padding:7px 9px">
+      <div style="font-size:10.5px;font-weight:700;color:var(--ink)">Neo4j down</div>
+      <div style="font-size:9.5px;color:var(--soft);margin-top:1px">local graph.json fallback</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== JOIN: Merge (centre x=712, y-centre 392) then Context below ===== -->
+<div class="rcard" style="left:618px;top:364px;width:188px">
+  <div class="rt">Merge + Dedupe</div>
+  <div class="rd">seeds and expanded chunks, deduplicated</div>
+</div>
+
+<div class="afeat abs" style="left:526px;top:470px;width:372px">
+  <div class="fk">Handed to the Generator</div>
+  <div class="ft">Context for the LLM</div>
+  <div class="fc">Richer, better-cited context than pure similarity: connected passages the seeds alone would miss.</div>
+</div>
+
+<!-- note (bottom-right, clear of the join column) -->
+<div class="abs" style="left:942px;top:392px;width:460px">
+  <div class="estrip">
+    <div class="ek">Why an Embedded Vector Store, Not a Service</div>
+    <div style="font-size:10.5px;color:var(--soft);margin-top:5px;line-height:1.4">~100 chunks is a few hundred KB of numpy. Cosine over a 100 x 384 matrix is sub-millisecond, so a vector DB would add a container and a network hop for nothing. Neo4j does run as a service; the graph half genuinely benefits from a graph engine.</div>
+  </div>
+</div>
+
+</body></html>

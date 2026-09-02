@@ -1,0 +1,427 @@
+{
+  "title": "Botox",
+  "uid": "botox-domain",
+  "tags": [
+    "domain",
+    "botox"
+  ],
+  "schemaVersion": 39,
+  "editable": true,
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "refresh": "30s",
+  "templating": {
+    "list": []
+  },
+  "panels": [
+    {
+      "id": 11,
+      "type": "row",
+      "collapsed": false,
+      "title": "Live serving \u2014 public chatbot turns",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "id": 1,
+      "title": "Turn rate by outcome (per min)",
+      "description": "Public chatbot turns, split by outcome (ok / refused / blocked / error). Rate over 5m. 'refused' includes grounded refusals and protection-down.",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 16,
+        "x": 0,
+        "y": 1
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "cpm",
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "stacking": {
+              "mode": "normal"
+            }
+          }
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "sum"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (outcome) (rate(botox_serving_turns_total[5m])) * 60",
+          "legendFormat": "{{outcome}}"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Turns total (by outcome)",
+      "type": "piechart",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 1
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "values": [
+            "value"
+          ]
+        },
+        "pieType": "donut"
+      },
+      "targets": [
+        {
+          "expr": "sum by (outcome) (botox_serving_turns_total)",
+          "legendFormat": "{{outcome}}",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "0"
+        }
+      }
+    },
+    {
+      "id": 3,
+      "title": "Turn latency (p50 / p90 / p99)",
+      "description": "End-to-end turn latency (emergency-check -> protect -> retrieve -> graph-expand -> generate -> egress).",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 16,
+        "x": 0,
+        "y": 9
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10
+          }
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(botox_serving_turn_latency_seconds_bucket[5m])))",
+          "legendFormat": "p50"
+        },
+        {
+          "expr": "histogram_quantile(0.90, sum by (le) (rate(botox_serving_turn_latency_seconds_bucket[5m])))",
+          "legendFormat": "p90"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(botox_serving_turn_latency_seconds_bucket[5m])))",
+          "legendFormat": "p99"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Egress blocks",
+      "description": "Replies withheld/redirected by the egress guard (PII-leak / medical-advice / grounding).",
+      "type": "stat",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 16,
+        "y": 9
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          },
+          "noValue": "0"
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "area"
+      },
+      "targets": [
+        {
+          "expr": "sum(botox_serving_egress_blocks_total) or vector(0)",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Protection down (fail-closed)",
+      "description": "Turns refused because Protegrity was unavailable. Proves the bot fails closed, never processes unprotected PII.",
+      "type": "stat",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 9
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "noValue": "0"
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "targets": [
+        {
+          "expr": "sum(botox_serving_protection_down_total) or vector(0)",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Entities protected (total)",
+      "description": "Visitor PII entities tokenized at ingress.",
+      "type": "stat",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 16,
+        "y": 13
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "purple"
+          },
+          "noValue": "0"
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      },
+      "targets": [
+        {
+          "expr": "sum(botox_serving_entities_protected_total) or vector(0)",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Emergency short-circuits",
+      "description": "Turns short-circuited by the urgent-symptom check (runs on raw text, before protection).",
+      "type": "stat",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 13
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "orange"
+          },
+          "noValue": "0"
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      },
+      "targets": [
+        {
+          "expr": "sum(botox_serving_emergency_hits_total) or vector(0)",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Grounding score distribution",
+      "description": "Distribution of the grounding score over answered turns (higher = better anchored to official-site content).",
+      "type": "histogram",
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 17
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (le) (botox_serving_grounding_score_bucket)",
+          "legendFormat": "{{le}}",
+          "format": "heatmap",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Errors by kind",
+      "description": "Turns that ended in an error, by kind. Empty = no errors.",
+      "type": "table",
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 17
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "red"
+          },
+          "noValue": "No errors"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (kind) (botox_serving_errors_total)",
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true
+            },
+            "renameByName": {
+              "Value": "errors",
+              "kind": "error kind"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "title": "LLM tokens (per min, by direction)",
+      "description": "Estimated LLM token throughput (~4 chars/token; Ollama does not report usage uniformly).",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 24
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10
+          }
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (direction) (rate(botox_serving_llm_tokens_total[5m])) * 60",
+          "legendFormat": "{{direction}}"
+        }
+      ]
+    }
+  ]
+}

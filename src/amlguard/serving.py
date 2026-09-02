@@ -194,11 +194,13 @@ class ConversationSession:
         # A per-turn quality signal on the conversation's Langfuse session, so failed and
         # blocked turns are visible in telemetry, not only successful generations.
         try:
-            from amlguard.observability import record_score
+            from amlguard.domains import get_domain
+            from amlguard.observability import domain_project, record_score
 
             record_score(
                 "serving.turn_ok", 1.0 if result.ok else 0.0,
                 comment=result.error or "ok",
+                project=domain_project((self.domain or get_domain()).name),
             )
         except Exception:  # noqa: BLE001, telemetry is never a dependency
             pass
@@ -207,9 +209,11 @@ class ConversationSession:
         if self.system_prompt is not None:
             return self.system_prompt
         from amlguard.domains import get_domain
-        from amlguard.observability import managed_prompt
+        from amlguard.observability import domain_project, managed_prompt
 
-        return managed_prompt((self.domain or get_domain()).investigation_prompt)
+        dom = self.domain or get_domain()
+        # Read/seed each domain's investigation prompt in ITS OWN Langfuse project.
+        return managed_prompt(dom.investigation_prompt, project=domain_project(dom.name))
 
     def turn(self, message: str, context: str = "", max_tokens: int | None = None) -> TurnResult:
         """Run one protected turn, then audit it.
@@ -244,6 +248,17 @@ class ConversationSession:
             self.llm.trace_session = self.conversation_id
             if getattr(self.llm, "trace_component", "") == "":
                 self.llm.trace_component = "serving"
+            # Route this turn's traces into the DOMAIN's own Langfuse project (aml/healthcare/support),
+            # so the three use cases are fully isolated in Langfuse.
+            from amlguard.domains import get_domain
+            from amlguard.observability import domain_project
+            _dom = self.domain or get_domain()
+            self.llm.trace_project = domain_project(_dom.name) or ""
+            # Name of the managed system prompt this turn runs, so record_generation can link the
+            # generation to its Prompt-Management version. Only when the system prompt is the managed
+            # one (not a caller-supplied override).
+            if self.system_prompt is None:
+                self.llm.trace_prompt_name = _dom.investigation_prompt
         except Exception:  # noqa: BLE001, a read-only client must not break the turn
             pass
         try:
@@ -288,8 +303,20 @@ class ConversationSession:
                 error="egress-unavailable: no guardrail",
             )
         if self.guardrail is not None:
+            # The surrogates this turn just minted (from tokenizing the user's own message) are
+            # NOT on disk in the serving container (`.dockerignore` strips `data/protected/`), so
+            # the guardrail's on-disk surrogate-discount can't recognise a freshly-tokenized name
+            # and would reject a safe reply (a `[PERSON]` surrogate mislabelled PASSWORD). Hand the
+            # scan this turn's own protection tokens so the discount fires; the guardrail still
+            # subtracts every forbidden clear value from them (Rail 2) and checks leaked_values
+            # first, so this cannot discount a real leak.
             try:
-                verdict = self.guardrail.scan_response(completion or "")
+                from amlguard.reidentify import find_tokens
+                live_tokens = frozenset(tok for _e, _el, tok in find_tokens(protected_input))
+            except Exception:  # noqa: BLE001, token extraction is best-effort, never fatal
+                live_tokens = frozenset()
+            try:
+                verdict = self.guardrail.scan_response(completion or "", extra_tokens=live_tokens)
             except Exception as exc:  # noqa: BLE001, an unreachable guard must fail closed
                 _log.warning("egress scan failed: %s: %s", type(exc).__name__, exc)
                 return TurnResult(

@@ -256,7 +256,7 @@ class TestProtectionInvariants:
 
         guard = Guardrail(forbidden_values=frozenset({"Sablefield Management GmbH"}))
         # Stub the service to its measured behaviour: approves, scores zero, finds nothing.
-        guard._scan = lambda content, processor, direction: ScanResult(  # type: ignore[method-assign]
+        guard._scan = lambda content, processor, direction, extra_tokens=None: ScanResult(  # type: ignore[method-assign]
             outcome="approved", score=0.0, findings=[],
             leaked_values=guard._leaked(content),
         )
@@ -1338,7 +1338,7 @@ class TestReviewHead:
                         '"undermines_suspicion": "none", "what_to_check_next": "x"}')
 
         class RejectingGuardrail:
-            def scan_response(self, content):
+            def scan_response(self, content, extra_tokens=None):
                 class V:
                     blocked = True
                     discounted = False
@@ -1404,7 +1404,7 @@ class TestEgressHardening:
                 return '{"supports_suspicion": "John Q Secret sent it", "undermines_suspicion": "x", "what_to_check_next": "y"}'
 
         class CatchingGuardrail:
-            def scan_response(self, content):
+            def scan_response(self, content, extra_tokens=None):
                 class V:
                     blocked = True; discounted = False
                     leaked_values = ("John Q Secret",); outcome = "rejected"

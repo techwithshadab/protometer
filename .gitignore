@@ -7,10 +7,14 @@ __pycache__/
 data/cache/
 .chroma/
 data/index/
-# All protected-corpus files stay local EXCEPT the ingestion summary: pure counts/latency/
-# fingerprints (no values, no PII), and the UI's Replay Ingest stage reads it on a fresh clone.
+# All protected-corpus files stay local EXCEPT (a) the ingestion summary: pure counts/latency/
+# fingerprints (no values, no PII), the UI's Replay Ingest stage reads it on a fresh clone; and
+# (b) the token manifest: token-ONLY (no clear values), which the serving guardrail's
+# surrogate-discount needs — committed so a fresh clone + `docker build` ships it without first
+# running a local ingest (else the container's token set is empty and safe replies get withheld).
 data/protected/*
 !data/protected/ingestion_summary.json
+!data/protected/token-manifest.json
 *.log
 
 # Telemetry and response caches — never committed.
@@ -57,3 +61,4 @@ data/.amlguard.lock
 # Runtime reveal-audit ledgers (hash-chained detokenization records; regenerated at runtime).
 data/audit/
 data/eval/_attack_reveal_ledger.jsonl
+*.egg-info/

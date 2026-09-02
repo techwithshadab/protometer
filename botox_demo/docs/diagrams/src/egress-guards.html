@@ -1,0 +1,112 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_design.css">
+<style>body{width:1440px;height:720px}
+  .gcheck{position:absolute;background:#FBFAF8;border:1px solid var(--line);border-radius:12px;box-shadow:0 6px 16px rgba(7,29,73,.07);padding:0 15px;display:flex;align-items:center;gap:14px;width:720px;height:76px}
+  .gcheck .gn{font-family:var(--mono);font-size:20px;font-weight:600;color:var(--peri);flex:none;width:26px}
+  .gcheck .gt{font-size:14px;font-weight:700;color:var(--ink)}
+  .gcheck .gd{font-size:10.5px;color:var(--soft);margin-top:2px;line-height:1.35}
+  .outcome{position:absolute;border-radius:11px;padding:0 14px;width:300px;height:64px;display:flex;flex-direction:column;justify-content:center}
+  .outcome .ot{font-size:13px;font-weight:700}
+  .outcome .od{font-size:10px;margin-top:2px;line-height:1.3}
+  .o-block{background:#fdecea;border:1px solid #e7a9a2}
+  .o-block .ot{color:#7a1c14}.o-block .od{color:#9a4b42}
+  .o-refuse{background:#fff6e6;border:1px solid #f0c66b}
+  .o-refuse .ot{color:#7a5310}.o-refuse .od{color:#96702a}
+  .o-pass{background:#eaf0f9;border:1px solid #9fb6dd}
+  .o-pass .ot{color:#071d49}.o-pass .od{color:#3f5a86}
+  svg.edge{position:absolute;overflow:visible;pointer-events:none;left:0;top:0}
+  .ylbl{position:absolute;font-family:var(--mono);font-size:9px;font-weight:600;color:var(--red);background:var(--cream);padding:0 4px}
+  .nlbl{position:absolute;font-family:var(--mono);font-size:9px;font-weight:600;color:var(--soft2);background:var(--cream);padding:0 3px}
+</style>
+</head>
+<body>
+
+<div class="abs" style="left:0;right:0;top:22px;text-align:center;font-family:var(--font);font-size:20px;font-weight:700;letter-spacing:.2px;color:var(--ink)">
+  Egress Guards: Every Reply Scanned, Fail Closed</div>
+<div class="abs" style="left:0;right:0;top:52px;text-align:center;font-size:11px;color:var(--soft2)">
+  scan_reply() runs these checks in order before a human sees the reply. It never silently passes a bad reply.</div>
+
+<!-- Geometry: reply pill centre x=150. Checks left x=60, width 720 (right edge x=780).
+     Check centres y: 150, 260, 370, 480. Outcomes left x=920, centred on the same y as each check.
+     Ladder spine runs down x=150; each "no" continues to the next check; final passes to the Passed box. -->
+<svg class="edge" width="1440" height="720">
+  <defs>
+    <marker id="ah" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><polygon points="0,0 6,3 0,6" fill="#23417b"/></marker>
+    <marker id="ahr" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><polygon points="0,0 6,3 0,6" fill="#A71000"/></marker>
+  </defs>
+
+  <!-- reply -> check 1 (down the spine) -->
+  <!-- reply pill (bottom y=96) -> check 1 (top y=110): a clean short arrow between them. -->
+  <path d="M150 96 V 106" fill="none" stroke="#23417b" stroke-width="2.2" marker-end="url(#ah)"/>
+  <!-- no: check1 -> check2 -> check3 -> check4 (spine at x=150, between rows) -->
+  <path d="M150 188 V 226" fill="none" stroke="#23417b" stroke-width="2.2" marker-end="url(#ah)"/>
+  <path d="M150 298 V 336" fill="none" stroke="#23417b" stroke-width="2.2" marker-end="url(#ah)"/>
+  <path d="M150 408 V 446" fill="none" stroke="#23417b" stroke-width="2.2" marker-end="url(#ah)"/>
+
+  <!-- yes: each check right edge (x=780) -> its outcome (x=920), same y as the check centre -->
+  <path d="M780 150 H 916" fill="none" stroke="#A71000" stroke-width="2" marker-end="url(#ahr)"/>
+  <path d="M780 260 H 916" fill="none" stroke="#A71000" stroke-width="2" marker-end="url(#ahr)"/>
+  <path d="M780 370 H 916" fill="none" stroke="#A71000" stroke-width="2" marker-end="url(#ahr)"/>
+  <path d="M780 480 H 916" fill="none" stroke="#A71000" stroke-width="2" marker-end="url(#ahr)"/>
+
+  <!-- all clear: check4 no-spine continues down to y=590, right to the Passed box -->
+  <path d="M150 518 V 590 H 916" fill="none" stroke="#23417b" stroke-width="2.2" marker-end="url(#ah)"/>
+</svg>
+
+<!-- reply pill (centre x=150). Sits above check 1 with a clear gap; bottom ~y=95. -->
+<div class="abs" style="left:60px;top:62px;width:180px;text-align:center;background:linear-gradient(120deg,#071d49,#23417b);color:#fff;border-radius:11px;padding:8px 10px;font-size:12.5px;font-weight:700">Model Reply</div>
+
+<!-- branch labels -->
+<div class="nlbl" style="left:158px;top:198px">no</div>
+<div class="nlbl" style="left:158px;top:308px">no</div>
+<div class="nlbl" style="left:158px;top:418px">no</div>
+<div class="ylbl" style="left:838px;top:134px">yes, block</div>
+<div class="ylbl" style="left:838px;top:244px">yes, block</div>
+<div class="ylbl" style="left:838px;top:354px">yes, refuse</div>
+<div class="ylbl" style="left:832px;top:464px">below floor</div>
+<div class="nlbl" style="left:300px;top:572px">all clear</div>
+
+<!-- checks (centres y 150,260,370,480 => tops y-38) -->
+<div class="gcheck" style="left:60px;top:112px">
+  <div class="gn">01</div>
+  <div><div class="gt">PII / Token Leak?</div><div class="gd">reply contains a user token or a [TYPE] wrapper / surrogate shape</div></div>
+</div>
+<div class="gcheck" style="left:60px;top:222px">
+  <div class="gn">02</div>
+  <div><div class="gt">Medical Advice?</div><div class="gd">a second-person directive: "you should take", "your dose", "stop taking"</div></div>
+</div>
+<div class="gcheck" style="left:60px;top:332px">
+  <div class="gn">03</div>
+  <div><div class="gt">Meta-Language Echo?</div><div class="gd">the model reciting its instructions instead of answering the question</div></div>
+</div>
+<div class="gcheck" style="left:60px;top:442px">
+  <div class="gn">04</div>
+  <div><div class="gt">Grounded?</div><div class="gd">content overlap below the floor (0.20), OR a number/dose the reply asserts is not in the context</div></div>
+</div>
+
+<!-- outcomes (centred on each check's y => tops y-32) -->
+<div class="outcome o-block" style="left:920px;top:118px">
+  <div class="ot">Blocked</div><div class="od">safe redirect to a provider</div>
+</div>
+<div class="outcome o-block" style="left:920px;top:228px">
+  <div class="ot">Blocked</div><div class="od">safe redirect to a provider</div>
+</div>
+<div class="outcome o-refuse" style="left:920px;top:338px">
+  <div class="ot">Refused</div><div class="od">grounded "not on the official site" fallback</div>
+</div>
+<div class="outcome o-refuse" style="left:920px;top:448px">
+  <div class="ot">Refused</div><div class="od">grounded fallback (anti-hallucination)</div>
+</div>
+<div class="outcome o-pass" style="left:920px;top:558px">
+  <div class="ot">Passed: Reveal</div><div class="od">role-gated; neither block nor refuse ever leaks rejected content or PII</div>
+</div>
+
+<!-- footnote (full width along the bottom, clear of every line) -->
+<div class="abs" style="left:60px;top:648px;width:1320px;font-size:10.5px;color:var(--soft);line-height:1.4">
+  <span style="font-weight:700;color:var(--ink)">Heuristics, not guarantees.</span> These regex + lexical-overlap checks are defense-in-depth: they raise the bar substantially but do not prove safety. When wired, Protegrity's <span style="font-weight:600;color:var(--ink)">Semantic Guardrail</span> (healthcare ML model) adds a second opinion on the reply, it can only ADD a block, never pass what these rejected. All complement the grounded-only prompt and the protection boundary; they do not replace them.
+</div>
+
+</body></html>

@@ -65,8 +65,10 @@ def _get_bool(name: str, default: bool) -> bool:
 
 # --- Protegrity services ----------------------------------------------------------------------
 def discovery_url() -> str:
+    # Host-side default is the shared protegrity-shared tier's classification service on host :6000
+    # (in-container the compose overrides this to pty-classification:8050).
     return _get("AMLGUARD_DISCOVERY_URL",
-                "http://localhost:8580/pty/data-discovery/v2/classify/text")
+                "http://localhost:6000/pty/data-discovery/v2/classify/text")
 
 
 def discovery_threshold() -> float:
@@ -79,24 +81,34 @@ def discovery_workers() -> int:
 
 
 def guardrail_url() -> str:
+    # Host-side default is the shared tier's Semantic Guardrail on host :6001 (in-container the
+    # compose overrides this to pty-guardrail:8001).
     return _get("AMLGUARD_GUARDRAIL_URL",
-                "http://localhost:8581/pty/semantic-guardrail/v1.1/conversations/messages/scan")
+                "http://localhost:6001/pty/semantic-guardrail/v1.1/conversations/messages/scan")
 
 
 def anonymization_url() -> str:
-    """Anonymization service (k-anon/DP/risk). Was hardcoded as ANON_EP in two scripts."""
-    return _get("AMLGUARD_ANONYMIZATION_URL", "http://localhost:8085/pty/anonymization/v3")
+    """Anonymization service (k-anon/DP/risk). Was hardcoded as ANON_EP in two scripts.
+
+    Host-side default is the shared tier's anonymization service on host :6004 (in-container the
+    compose overrides this to pty-anon:8085)."""
+    return _get("AMLGUARD_ANONYMIZATION_URL", "http://localhost:6004/pty/anonymization/v3")
 
 
 def synthetic_url() -> str:
-    """Synthetic-data service (vine copula). Was hardcoded in compare_protection_methods."""
-    return _get("AMLGUARD_SYNTHETIC_URL", "http://localhost:8000/pty/syntheticdata/v2")
+    """Synthetic-data service (vine copula). Was hardcoded in compare_protection_methods.
+
+    Host-side default is the shared tier's synthetic-data service on host :6005 (in-container the
+    compose overrides this to pty-synthetic:8000). Note :8000 on the host is the AMLGuard UI — the
+    shared tier deliberately remaps this service off :8000 to :6005 to avoid that collision."""
+    return _get("AMLGUARD_SYNTHETIC_URL", "http://localhost:6005/pty/syntheticdata/v2")
 
 
 def ui_api_base() -> str:
     """Base URL the demo UI's browser client calls. Injected into the page at serve time so
-    the frontend endpoint is config, not a literal baked into app.js."""
-    return _get("AMLGUARD_UI_API_BASE", "http://localhost:8600")
+    the frontend endpoint is config, not a literal baked into app.js. Browser-facing, so the
+    default is the host publish port :8000 (the app binds container :8600, mapped to host :8000)."""
+    return _get("AMLGUARD_UI_API_BASE", "http://localhost:8000")
 
 
 def ui_api_token() -> str | None:
@@ -237,7 +249,7 @@ def mlflow_store_dir() -> str | None:
 
 
 def postgres_url() -> str:
-    """Connection URL for the app Postgres (the corpus mirror), on host port 5433.
+    """Connection URL for the app Postgres (the corpus mirror), on host port 8001.
 
     Default targets the local `docker/app/postgres` container. The library read helpers in
     db.py are fail-soft (return None), but the online app treats Postgres as a REQUIRED dependency
@@ -247,11 +259,13 @@ def postgres_url() -> str:
     (MLflow's backend deliberately stays on the SQLite store, not this Postgres: the
     model-registry alias API is broken against Postgres in the pinned MLflow version, and the
     champion registry must keep working. Only the corpus mirror lives here.)"""
-    return _get("AMLGUARD_POSTGRES_URL", "postgresql://amlguard:amlguard@localhost:5433/amlguard")
+    return _get("AMLGUARD_POSTGRES_URL", "postgresql://amlguard:amlguard@localhost:8001/amlguard")
 
 
 def langfuse_host() -> str:
-    return _get("LANGFUSE_HOST", "http://127.0.0.1:3000")
+    # Shared observability tier publishes Langfuse on host :5006 (not :5000 — macOS AirPlay owns
+    # :5000 and answers first with a 403). In-container runs get obs-langfuse:3000 from compose.
+    return _get("LANGFUSE_HOST", "http://127.0.0.1:5006")
 
 
 def langfuse_timeout() -> int:
@@ -259,13 +273,15 @@ def langfuse_timeout() -> int:
 
 
 def pushgateway() -> str:
-    return _get("AMLGUARD_PUSHGATEWAY", "localhost:9093")
+    # Shared observability tier publishes the Pushgateway on host :5004 (container 9091).
+    return _get("AMLGUARD_PUSHGATEWAY", "localhost:5004")
 
 
 def prometheus_query_url() -> str:
-    """The Prometheus HTTP query API (read side), distinct from the pushgateway (write side, 9093).
-    Used by observability_report.py to read back the metrics a run pushed."""
-    return _get("AMLGUARD_PROMETHEUS_URL", "http://localhost:9092")
+    """The Prometheus HTTP query API (read side), distinct from the pushgateway (write side, :5004).
+    Used by observability_report.py to read back the metrics a run pushed. Shared tier publishes
+    Prometheus on host :5003 (container 9090)."""
+    return _get("AMLGUARD_PROMETHEUS_URL", "http://localhost:5003")
 
 
 def log_level() -> str:

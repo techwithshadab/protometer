@@ -48,10 +48,16 @@ repo; nothing is hand-entered.
 
 ## Quick start
 
-**Try the demo UI** (`make docker-up` → http://localhost:8600): the app + its Postgres come up in one
-command, corpus auto-loaded, and Replay mode plus the healthcare/support views work with no cloud
-dependency. Live chat and paid batch stages additionally need the vendor Developer-Edition services
-(`make docker-full`); see [ui/README.md](ui/README.md).
+**Try the demo UI** (`make shared-up && make docker-up` → http://localhost:8000): the shared tiers come
+up first, then the app + its Postgres, corpus auto-loaded. Replay mode plus the healthcare/support
+views work with no cloud dependency (for a Replay-only look you can skip `make shared-up` and just
+`make docker-up`). Live chat, the egress guardrail, and paid batch stages need the shared Protegrity
+tier that `make shared-up` starts; see [ui/README.md](ui/README.md).
+
+The Protegrity DE services and the observability platform are **decoupled shared tiers**, so this same
+boundary also runs a second product — a public GraphRAG chatbot (`botox_demo/`, `docker compose up -d
+--build`) that protects the visitor and fails closed without Protegrity — side by side with AMLGuard
+against one tokenizer.
 
 ![Live assistant with the protection boundary panel: the inbound message tokenized, the model seeing tokens only, and a reply held at the egress gate](docs/img/ui-live-egress.jpg)
 
@@ -529,10 +535,14 @@ decision in [docs/architecture.md](docs/architecture.md).
   cache state, and latency at the single seam all calls cross; run verdicts (grounded rate,
   egress blocks, queue precision) attached as scores. Loopback-bound because traces store
   prompts at rest.
-- **Prometheus + Grafana for ingest operations**: the batch stage whose health is a
-  time-series (rate, per-scope duration, discovery share, no-op/failure counts) pushes to a
-  Pushgateway and dashboards in Grafana, the right shape for operational signal, which
-  MLflow's experiment-comparison model is not. All three planes degrade to no-ops when down.
+- **Prometheus + Grafana for operations**, with **one dashboard per domain** (AML, Healthcare,
+  Customer Support, Botox) so a domain's metrics land in one place whether they came from a batch
+  run or a live turn. Two sources, each in the right Prometheus shape: **batch ingest** pushes to a
+  (persistent) Pushgateway — rate, per-scope duration, discovery share, no-op/failure counts (AML's
+  8-scope sweep); **live serving** is scraped from each app's `/metrics` endpoint — turn
+  count by outcome, latency p50/p90/p99, entities protected, egress blocks, errors, tokens. This is
+  the right shape for operational signal, which MLflow's experiment-comparison model is not. All
+  planes degrade to no-ops when down.
 - **SHAP in interventional mode with a real background** (probability units, one explainer
   per model) so "raises the score by 0.034" is literally denominated in the score, and the
   reliance-shift comparison across scopes is what turns "AP dropped 10%" into "the model
@@ -691,18 +701,17 @@ python scripts/run_eval.py --model bedrock-sonnet-5
 python scripts/generate_results.py --domain aml > docs/results-aml.md
 
 # 7. Observability (optional, every script degrades to a no-op without it).
-#    All three planes and their config live under docker/ — see docker/README.md.
-#    MLflow: experiment ledger + model registry, http://localhost:5001
-cd docker/observability/mlflow && docker compose up -d && cd ../..
-#    Prometheus + Grafana for ingest operations, http://localhost:3001 (admin/amlguard)
-cd observability && docker compose up -d && cd ..
-#    Langfuse: per-generation LLM traces, http://127.0.0.1:3000, self-hosted, loopback-only.
-#    Prompts are stored at rest in its database; keep it loopback-bound, as the override does.
-git clone --depth 1 https://github.com/langfuse/langfuse.git vendor/langfuse
-cp docker/observability/langfuse/compose.override.yml vendor/langfuse/docker-compose.override.yml
-cp docker/observability/langfuse/env.example vendor/langfuse/.env   # then replace every CHANGEME
-cd vendor/langfuse && docker compose up -d && cd ../..
+#    All three planes live in ONE shared tier (project: observability-shared) — see docker/README.md.
+#    One command brings up MLflow + Prometheus/Grafana/Pushgateway + Langfuse v4 together:
+make shared-observability-up
+#    MLflow (experiment ledger + model registry):  http://localhost:5001
+#    Grafana (one dashboard per domain, admin/amlguard):  http://localhost:5002  · Prometheus: :5003
+#    Langfuse v4 (per-generation LLM traces, one shared instance, a project per domain,
+#    loopback-only because prompts are stored at rest):  http://127.0.0.1:5006
 ```
+
+Bring the shared observability tier up **before** the app, or the app's OTel exporter caches a failed
+DNS lookup — restart the app if it started first.
 
 Models are declared in [`config/models.yaml`](config/models.yaml), twelve across Ollama,
 AWS Bedrock, Anthropic and OpenAI. Swapping is a `--model` flag; no code changes.

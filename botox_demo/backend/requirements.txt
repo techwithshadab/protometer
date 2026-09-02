@@ -1,0 +1,30 @@
+# BOTOX chatbot backend: pinned for reproducible builds.
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+pydantic==2.10.3
+httpx==0.28.1
+requests==2.32.3
+selectolax==0.3.27
+# GraphRAG: graph store + embeddings
+neo4j==5.27.0
+# Pin a CPU torch build: unpinned, sentence-transformers resolves torch 2.13 which drags in ~2GB of
+# NVIDIA CUDA wheels we never use (embeddings run on CPU). 2.4.x is lean AND built against NumPy 2
+# (2.2.x was NumPy-1-only, which crashed `model.encode` under our numpy==2.2.0 pin).
+torch==2.4.1
+sentence-transformers==3.3.1
+numpy==2.2.0
+# Hosted-model clients are optional at runtime (local Ollama is the default and needs none of
+# these); installed so a deployment WITH credentials works without a rebuild.
+anthropic==0.40.0
+boto3==1.35.71
+# Observability: agent tracing to Langfuse. Optional at runtime, if it's not configured, the
+# tracing layer is a no-op and the pipeline runs unchanged (see app/obs/tracing.py).
+langfuse==4.14.4
+# Protegrity Data Protection SDK (`appython`), REQUIRED for tokenization. It is the vendor's
+# Developer-Edition SDK, distributed as `protegrity-ai-developer-python` (not on public PyPI); install
+# it from the vendor wheel / the vendor-sdk source into the backend image, e.g.:
+#   pip install /path/to/protegrity-ai-developer-python  (or the provided wheel)
+# The import name is `appython`. Without it the backend fails closed (health not-ready) rather than
+# processing unprotected PII. Pinned to the version this integration was written against:
+#   protegrity-ai-developer-python==1.2.1
+prometheus-client==0.21.1

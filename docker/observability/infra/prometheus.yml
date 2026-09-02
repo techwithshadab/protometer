@@ -1,7 +1,28 @@
 global:
   scrape_interval: 15s
+
 scrape_configs:
+  # Batch ingest metrics are PUSHED to the gateway (a batch job's series would be empty between
+  # runs). honor_labels keeps the domain/scope/job labels the ingest push set.
   - job_name: pushgateway
-    honor_labels: true   # keep the job/scope labels the ingest push set
+    honor_labels: true
     static_configs:
       - targets: ["pushgateway:9091"]
+
+  # Live-serving metrics are SCRAPED from each app's /metrics endpoint (a long-running server is
+  # always up, so counters/histograms accumulate). The apps join observability-shared, so Prometheus
+  # reaches them by their in-network container names. Container ports (not the host publish ports):
+  # AMLGuard binds :8600 in-container, botox backend :8000.
+  - job_name: amlguard-serving
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["amlguard-ui:8600"]
+        labels:
+          service: amlguard-ui
+
+  - job_name: botox-serving
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["botox-backend:8000"]
+        labels:
+          service: botox-backend

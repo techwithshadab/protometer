@@ -21,8 +21,8 @@ def _capture(monkeypatch):
     captured = {}
     monkeypatch.setattr(
         metrics_export, "push_ingest_metrics",
-        lambda scope, values, corpus_fingerprint=None: captured.update(
-            scope=scope, values=values, corpus_fingerprint=corpus_fingerprint),
+        lambda scope, values, corpus_fingerprint=None, domain="aml": captured.update(
+            scope=scope, values=values, corpus_fingerprint=corpus_fingerprint, domain=domain),
     )
     return captured
 
@@ -112,8 +112,9 @@ def test_select_f1_threshold_is_degenerate_safe():
 
 def test_prometheus_gauges_are_labelled_by_bounded_keys_never_run_id(monkeypatch):
     """run_id must NOT be a Prometheus label: it changes per run and would explode TSDB cardinality
-    and fragment each metric in Grafana. The gauges carry ONLY bounded labels — `scope` and
-    `corpus_fingerprint` (one value per corpus, the documented cross-plane join key) — never run_id."""
+    and fragment each metric in Grafana. The gauges carry ONLY bounded labels — `domain` (3 use
+    cases), `scope`, and `corpus_fingerprint` (one value per corpus, the documented cross-plane join
+    key) — never run_id."""
     captured = {}
 
     class _FakeGauge:
@@ -137,15 +138,16 @@ def test_prometheus_gauges_are_labelled_by_bounded_keys_never_run_id(monkeypatch
     monkeypatch.delenv("AMLGUARD_NO_METRICS", raising=False)
 
     metrics_export.push_ingest_metrics("all", {"seconds": 100.0, "api_calls": 5},
-                                       corpus_fingerprint="fp0011223344")
+                                       corpus_fingerprint="fp0011223344", domain="healthcare")
 
-    # every gauge is labelled by exactly ("scope", "corpus_fingerprint") — never includes run_id
+    # every gauge is labelled by exactly ("domain", "scope", "corpus_fingerprint") — never run_id
     assert captured["labelnames"], "no gauges were created"
     for names in captured["labelnames"]:
-        assert names == ("scope", "corpus_fingerprint"), \
-            f"gauge labelled by {names}, must be ('scope', 'corpus_fingerprint')"
+        assert names == ("domain", "scope", "corpus_fingerprint"), \
+            f"gauge labelled by {names}, must be ('domain', 'scope', 'corpus_fingerprint')"
     for call in captured["label_calls"]:
-        assert set(call) == {"scope", "corpus_fingerprint"} and "run_id" not in call
+        assert set(call) == {"domain", "scope", "corpus_fingerprint"} and "run_id" not in call
+        assert call["domain"] == "healthcare"   # the domain label is threaded through
 
 
 def test_missing_fingerprint_falls_back_to_unknown_bounded_label(monkeypatch):

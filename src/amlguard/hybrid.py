@@ -383,9 +383,10 @@ def generate_rationale(
     # Resolve the rationale system prompt once from the Langfuse registry (fallback to the
     # code constant). Resolved ONCE so the pacing key, the actual call, and the provenance
     # hash all reference the same text, a per-call re-resolve could desync the hash.
-    from amlguard.observability import managed_prompt
+    from amlguard.observability import domain_project, managed_prompt
 
-    system = managed_prompt("amlguard-rationale-system")
+    # Hybrid rationale runs on the AML queue (AML-only path), so the AML rationale prompt + project.
+    system = managed_prompt("amlguard-rationale-system", project=domain_project("aml"))
 
     prompt = (
         f"ITEM {decision.item_id}, ranked {decision.rank} in the review queue "

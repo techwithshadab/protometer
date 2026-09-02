@@ -33,8 +33,25 @@ from amlguard.log import get_logger
 
 _log = get_logger("observability")
 
-_client: Any = None
-_initialised = False
+# One Langfuse client PER PROJECT (keyed by project id), so each AMLGuard domain traces into its OWN
+# Langfuse project (aml / healthcare / support) for full isolation, like Botox has its own. The
+# default project (LANGFUSE_PUBLIC_KEY/SECRET_KEY, no suffix) is used when no project is named or a
+# domain's own keys are unset. Cached so the health probe + import cost are paid once per project.
+_clients: dict[str, Any] = {}
+_atexit_registered = False
+
+# AMLGuard domain name -> Langfuse project suffix. The env keys are LANGFUSE_PUBLIC_KEY_<SUFFIX> /
+# LANGFUSE_SECRET_KEY_<SUFFIX> (uppercased). A domain with no keys set falls back to the default
+# project, so this is safe to add before the healthcare/support projects exist.
+_DOMAIN_PROJECT = {"aml": "aml", "healthcare": "healthcare", "customer-support": "support"}
+
+
+def domain_project(domain: str | None) -> str | None:
+    """The Langfuse project id for an AMLGuard domain (aml/healthcare/support), or None for the
+    default project. Used to route each domain's traces into its own project."""
+    if not domain:
+        return None
+    return _DOMAIN_PROJECT.get(domain)
 
 # Clear values that must be scrubbed from generation bodies before they are written to
 # Langfuse. At scope `none` (and any partially-protecting scope) the prompt and completion
@@ -48,15 +65,26 @@ _REDACT_TOKEN = "[REDACTED-PII]"
 
 
 def set_trace_redaction(values: "frozenset[str] | set[str] | None") -> None:
-    """Install the clear values to scrub from every exported generation body (or clear it).
+    """ADD clear values to scrub from every exported generation body (union, process-wide).
 
-    Called once per run by an entry point that knows the corpus's clear identifiers (the same
-    forbidden-value set the egress guard uses). Idempotent and process-wide; passing None or an
-    empty set disables redaction. This is defence in depth *in addition to* the loopback bind,
-    not a replacement for it.
+    Called once per domain by an entry point that knows that corpus's clear identifiers (the same
+    forbidden-value set the egress guard uses). Because ONE process now serves all three AMLGuard
+    domains (aml/healthcare/support), this ACCUMULATES a UNION rather than replacing: otherwise the
+    last domain to build its guardrail would clobber the others' forbidden values, leaving a
+    partial-scope trace of an earlier-loaded domain unredacted. Passing None or an empty set is a
+    no-op that keeps the accumulated set (use reset_trace_redaction() to clear, e.g. in tests).
+    Defence in depth *in addition to* the loopback bind, not a replacement for it.
     """
     global _REDACT_VALUES
-    _REDACT_VALUES = frozenset(v for v in (values or ()) if v)
+    incoming = frozenset(v for v in (values or ()) if v)
+    if incoming:
+        _REDACT_VALUES = _REDACT_VALUES | incoming
+
+
+def reset_trace_redaction() -> None:
+    """Clear the accumulated redaction set (tests / a fresh run)."""
+    global _REDACT_VALUES
+    _REDACT_VALUES = frozenset()
 
 
 def _redact(text: str) -> str:
@@ -84,27 +112,44 @@ def _redact(text: str) -> str:
     return norm if _REDACT_TOKEN in norm else text
 
 
-def _get_client() -> Any:
-    """The process-wide Langfuse client, or None when observability is off.
+def _project_keys(project: str | None) -> tuple[str | None, str | None]:
+    """(public, secret) keys for a project. A named project uses LANGFUSE_PUBLIC_KEY_<SUFFIX> /
+    LANGFUSE_SECRET_KEY_<SUFFIX>; if those are unset it FALLS BACK to the default keys, so adding a
+    domain before its dedicated project exists still traces (into the default project)."""
+    default_pub, default_sec = os.getenv("LANGFUSE_PUBLIC_KEY"), os.getenv("LANGFUSE_SECRET_KEY")
+    if not project:
+        return default_pub, default_sec
+    suffix = project.upper().replace("-", "_")
+    pub = os.getenv(f"LANGFUSE_PUBLIC_KEY_{suffix}") or default_pub
+    sec = os.getenv(f"LANGFUSE_SECRET_KEY_{suffix}") or default_sec
+    return pub, sec
 
-    Lazy and memoized: import cost and the health probe are paid once, and only by
-    processes that actually complete an LLM call.
+
+def _get_client(project: str | None = None) -> Any:
+    """The Langfuse client for a project (or the default project), or None when observability is off.
+
+    One client per distinct key pair, memoized: import cost and the health probe are paid once per
+    project, and only by processes that actually trace. `project` routes an AMLGuard domain's traces
+    into its own Langfuse project (aml/healthcare/support); None uses the default project.
     """
-    global _client, _initialised
-    if _initialised:
-        return _client
-    _initialised = True
-
+    global _atexit_registered
     if os.getenv("AMLGUARD_NO_TRACING") == "1":
         return None
-    public = os.getenv("LANGFUSE_PUBLIC_KEY")
-    secret = os.getenv("LANGFUSE_SECRET_KEY")
+
+    public, secret = _project_keys(project)
     if not public or not secret:
         return None
+    # Cache key is the public key, so two domains that resolve to the SAME keys (e.g. both falling
+    # back to the default) share ONE client rather than opening duplicates.
+    cache_key = public
+    if cache_key in _clients:
+        return _clients[cache_key]
+
+    client = None
     try:
         from langfuse import Langfuse
 
-        _client = Langfuse(
+        client = Langfuse(
             public_key=public,
             secret_key=secret,
             host=_settings.langfuse_host(),
@@ -113,11 +158,14 @@ def _get_client() -> Any:
             # batch of generations. 20s costs nothing on the happy path.
             timeout=_settings.langfuse_timeout(),
         )
-        atexit.register(flush)
+        if not _atexit_registered:
+            atexit.register(flush)
+            _atexit_registered = True
     except Exception as exc:  # noqa: BLE001, observability must never break the run
         _log.warning("disabled: %s: %s", type(exc).__name__, str(exc)[:100])
-        _client = None
-    return _client
+        client = None
+    _clients[cache_key] = client
+    return client
 
 
 def record_generation(
@@ -133,10 +181,18 @@ def record_generation(
     latency_s: float,
     cached: bool,
     attempts: int = 1,
+    prompt_name: str | None = None,
+    project: str | None = None,
     metadata: dict[str, Any] | None = None,
 ) -> None:
-    """One completed LLM call, as a Langfuse generation."""
-    client = _get_client()
+    """One completed LLM call, as a Langfuse generation.
+
+    `project` routes this generation into a specific Langfuse project (an AMLGuard domain's own
+    project); None uses the default project. When `prompt_name` is a managed Prompt-Management
+    prompt, the generation is LINKED to that prompt's version (UI lineage), resolved from that
+    project's client cache so there's no extra round-trip in the hot path.
+    """
+    client = _get_client(project)
     if client is None:
         return
     try:
@@ -146,11 +202,25 @@ def record_generation(
         # store. A no-op unless a run installed forbidden values via `set_trace_redaction`.
         system, prompt, completion = _redact(system), _redact(prompt), _redact(completion)
 
+        # Resolve the managed prompt object to link the generation to its version. Best-effort:
+        # a miss (unmanaged prompt, registry hiccup) just means no link, never a failed trace.
+        prompt_obj = None
+        if prompt_name:
+            try:
+                prompt_obj = client.get_prompt(prompt_name)
+            except Exception:  # noqa: BLE001, no link is fine
+                prompt_obj = None
+
+        start_kwargs: dict[str, Any] = {
+            "name": f"{component}:{model}",
+            "as_type": "generation",
+            "model": model,
+            "input": {"system": system, "prompt": prompt},
+        }
+        if prompt_obj is not None:
+            start_kwargs["prompt"] = prompt_obj
         obs = client.start_observation(
-            name=f"{component}:{model}",
-            as_type="generation",
-            model=model,
-            input={"system": system, "prompt": prompt},
+            **start_kwargs,
             metadata={
                 "component": component,
                 "run_id": RUN_ID,
@@ -177,8 +247,10 @@ def record_generation(
         _log.warning("generation not recorded: %s: %s", type(exc).__name__, str(exc)[:80])
 
 
-def record_score(name: str, value: float, comment: str = "") -> None:
+def record_score(name: str, value: float, comment: str = "", project: str | None = None) -> None:
     """A run-level quality verdict, groundedness flags, egress outcomes, queue precision.
+
+    `project` routes the score into a specific Langfuse project (a domain's own); None = default.
 
     This self-hosted Langfuse runs in v4 `events_only` mode, where the legacy score-ingestion
     route (`client.create_score`, backing `/api/public/scores`) is DISABLED and returns a
@@ -192,7 +264,7 @@ def record_score(name: str, value: float, comment: str = "") -> None:
     an anchor span, score its own trace, end it. No standalone `create_score`, no `session_id`
     (session grouping comes from the span metadata, as with every other span here).
     """
-    client = _get_client()
+    client = _get_client(project)
     if client is None:
         return
     try:
@@ -213,8 +285,12 @@ def record_score(name: str, value: float, comment: str = "") -> None:
         _log.warning("score not recorded: %s: %s", type(exc).__name__, str(exc)[:80])
 
 
-def managed_prompt(name: str, label: str | None = None) -> str:
+def managed_prompt(name: str, label: str | None = None, project: str | None = None) -> str:
     """Resolve a prompt: Langfuse's latest version, else the file-backed fallback on disk.
+
+    `project` selects which Langfuse project the prompt is read from / seeded into, so each
+    AMLGuard domain's prompts are versioned in ITS OWN project (aml/healthcare/support); None uses
+    the default project.
 
     The durable source of truth is `config/prompts/<name>.txt` (see `amlguard.prompts`), which
     ships with the code and needs no telemetry to read. Langfuse is the *editing surface*: a
@@ -235,7 +311,7 @@ def managed_prompt(name: str, label: str | None = None) -> str:
     from amlguard.prompts import load_prompt, save_prompt
 
     fallback = load_prompt(name)  # disk is the floor; raises only if the file is missing
-    client = _get_client()
+    client = _get_client(project)
     if client is None:
         return fallback
     try:
@@ -326,9 +402,11 @@ def record_dataset_run_score(
 
 
 def flush() -> None:
-    """Drain the buffer, required in short-lived scripts, harmless elsewhere."""
-    if _client is not None:
-        try:
-            _client.flush()
-        except Exception:  # noqa: BLE001
-            pass
+    """Drain the buffers of EVERY per-project client, required in short-lived scripts, harmless
+    elsewhere."""
+    for client in list(_clients.values()):
+        if client is not None:
+            try:
+                client.flush()
+            except Exception:  # noqa: BLE001
+                pass

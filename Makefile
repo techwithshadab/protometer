@@ -66,7 +66,7 @@ docs:
 #       stops everything together. Do NOT also start those stacks from docker/* or
 #       vendor-de/* — this project owns them (clashing container names otherwise).
 # The app entrypoint waits for Postgres and loads the corpus mirror, so both are one command to a
-# working UI at http://localhost:8600.
+# working UI at http://localhost:8000.
 # Category profiles: vendor-de + observability are profiled so they can be started selectively; the
 # app group has no profile (always starts). COMPOSE_PROFILES activates both for the "everything"
 # targets, and is passed to `down` too so it tears the profiled services down as well.
@@ -79,29 +79,47 @@ ENVFILE := $(if $(wildcard .env),--env-file .env,)
 FULL := docker compose $(ENVFILE) -f docker/app/ui/compose.full.yml
 ALL_PROFILES := --profile vendor-de --profile observability
 
-.PHONY: docker-up docker-full docker-vendor docker-observability docker-down docker-ps docker-logs
-docker-up:
-	docker compose $(ENVFILE) -f docker/app/ui/compose.yml up -d --build
-	@echo "AMLGuard UI → http://localhost:8600"
+# ── Shared infrastructure: decoupled Protegrity DE + observability (bring up FIRST) ───────────
+# Two independent shared projects, each on its own external network, so AMLGuard and BOTOX run at the
+# SAME time against ONE tokenizer and ONE observability platform. See docs/adr/shared-infra-decoupling.md.
+SHARED_PTY := docker compose $(ENVFILE) -f docker/shared/protegrity/compose.yml
+SHARED_OBS := docker compose $(ENVFILE) -f docker/shared/observability/compose.yml
+APP        := docker compose $(ENVFILE) -f docker/app/ui/compose.yml
 
-docker-full:   ## app + vendor-de + observability (all 20 services, one project)
-	$(FULL) $(ALL_PROFILES) up -d --build
-	@echo "One project up. UI → http://localhost:8600 · MLflow → :5001 · Langfuse → :3000 · Grafana → :3001"
-	@echo "(vendor DE images are amd64; they run under emulation on Apple Silicon)"
+.PHONY: shared-up shared-protegrity-up shared-observability-up shared-down \
+        docker-up docker-down docker-ps docker-logs docker-full
 
-docker-vendor: ## app + the Protegrity Developer-Edition services only (no observability)
-	$(FULL) --profile vendor-de up -d --build
-	@echo "app + vendor-de up. UI → http://localhost:8600"
+shared-protegrity-up: ## shared Protegrity DE tier only (project: protegrity-shared)
+	$(SHARED_PTY) up -d
+	@echo "Shared Protegrity DE up. classification → :6000 · guardrail → :6001"
 
-docker-observability: ## app + the observability planes only (no vendor DE)
-	$(FULL) --profile observability up -d --build
-	@echo "app + observability up. UI → :8600 · MLflow → :5001 · Langfuse → :3000 · Grafana → :3001"
+shared-observability-up: ## shared observability platform only (project: observability-shared)
+	$(SHARED_OBS) up -d
+	@echo "Shared observability up. Langfuse → :5006 · MLflow → :5001 · Grafana → :5002 · Prometheus → :5003"
 
-docker-down:   ## stop EVERYTHING in the project (all profiles)
-	$(FULL) $(ALL_PROFILES) down
+shared-up: shared-protegrity-up shared-observability-up ## BOTH shared tiers — run before any demo
+	@echo "Shared tiers up. Now: make docker-up (AMLGuard) and/or (cd botox_demo && docker compose up -d --build)"
+
+shared-down: ## stop BOTH shared tiers (stop the demos first)
+	-$(SHARED_OBS) down
+	-$(SHARED_PTY) down
+
+# ── AMLGuard demo (shared-by-default: needs `make shared-up` first) ────────────────────────────
+docker-up:     ## AMLGuard on the shared tiers → http://localhost:8000  (run `make shared-up` first)
+	$(APP) up -d --build
+	@echo "AMLGuard UI → http://localhost:8000  (DE: protegrity-shared · obs: observability-shared)"
+
+docker-down:   ## stop the AMLGuard demo (leaves the shared tiers up)
+	$(APP) down
 
 docker-ps:     ## print the running stack as a tree (project → group → subgroup → services)
 	@sh scripts/docker_tree.sh
 
 docker-logs:
-	$(FULL) logs -f amlguard_app
+	$(APP) logs -f amlguard_app
+
+# Legacy self-contained all-in-one (app + bundled DE + bundled observability in ONE project). Kept as
+# an escape hatch for a machine that can't run the shared tiers; prefer `make shared-up && make docker-up`.
+docker-full:   ## LEGACY: everything bundled in one project (no shared tiers)
+	$(FULL) $(ALL_PROFILES) up -d --build
+	@echo "Legacy all-in-one up (bundled ports differ from the shared map). UI → :8600"

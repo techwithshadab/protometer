@@ -1,0 +1,16 @@
+# Keep the backend build context lean and free of local secrets/caches.
+.venv
+__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+.mypy_cache
+tests
+data
+.env
+.env.*
+.git
+.gitignore
+.DS_Store
+Dockerfile
+.dockerignore

@@ -47,9 +47,8 @@ def test_save_prompt_writes_and_is_idempotent(tmp_path, monkeypatch):
 
 def test_managed_prompt_falls_back_to_file_when_tracing_off(monkeypatch):
     monkeypatch.setenv("AMLGUARD_NO_TRACING", "1")
-    # force a fresh client decision
+    # force a fresh client decision (per-project client cache; clear it)
     from amlguard import observability
-    monkeypatch.setattr(observability, "_initialised", False)
-    monkeypatch.setattr(observability, "_client", None)
+    monkeypatch.setattr(observability, "_clients", {})
     text = observability.managed_prompt("amlguard-judge-system")
     assert text == prompts.load_prompt("amlguard-judge-system")

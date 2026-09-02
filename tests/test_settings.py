@@ -28,8 +28,12 @@ def test_defaults_resolve_without_env(monkeypatch):
         monkeypatch.delenv(name, raising=False)
     assert settings.discovery_threshold() == 0.6
     assert settings.max_spend_usd() == 5.0
-    assert "8580" in settings.discovery_url()
-    assert "8581" in settings.guardrail_url()
+    # Host-side DE defaults point at the shared protegrity-shared tier's 6xxx host ports (containers
+    # get pty-* names from compose). Synthetic is remapped OFF :8000 (the AMLGuard UI port) to :6005.
+    assert ":6000" in settings.discovery_url()
+    assert ":6001" in settings.guardrail_url()
+    assert ":6004" in settings.anonymization_url()
+    assert ":6005" in settings.synthetic_url() and ":8000" not in settings.synthetic_url()
     assert settings.langfuse_timeout() == 20
     assert not settings.no_tracing()
 

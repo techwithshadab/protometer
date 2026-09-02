@@ -17,8 +17,9 @@ Two use cases, each with a Replay (committed run) and a Live (real, billed) mode
 The app + its Postgres are dockerised; the container's entrypoint waits for Postgres and loads the
 corpus mirror, so this is the whole setup:
 
-    make docker-up                 # build + start app + Postgres
-    open http://localhost:8600     # Replay + healthcare/support demos work immediately
+    make shared-up                 # bring up the shared Protegrity + observability tiers first
+    make docker-up                 # build + start app + Postgres (on the shared tiers)
+    open http://localhost:8000     # Replay + healthcare/support demos work immediately
 
 `make docker-up` (= `docker compose -f docker/app/ui/compose.yml up -d --build`) gives you a working
 UI with **no manual corpus load**. Replay mode and the healthcare/support batch demos need nothing
@@ -60,9 +61,9 @@ start the corpus mirror and load it BEFORE the server, or the parties view and c
 503:
 
     pip install -r requirements.txt                     # includes fastapi/uvicorn
-    cd docker/app/postgres && docker compose up -d    # start the corpus mirror (port 5433)
+    cd docker/app/postgres && docker compose up -d    # start the corpus mirror (host port 8001)
     python scripts/load_corpus_db.py --domain aml        # load the AML corpus into Postgres
-    uvicorn ui.api.app:app --port 8600
+    uvicorn ui.api.app:app --port 8600                   # bare-uvicorn binds :8600 directly (no Docker port map)
     open http://localhost:8600
 
 One server serves both the API (`/api/*`) and the single-page frontend (`/`).

@@ -11,7 +11,8 @@ scans a conversation in both directions:
   * **user → ai** with a semantic processor, scoring the prompt for manipulation;
   * **ai → user** with the `pii` processor, scoring the response for identifiers.
 
-    POST http://localhost:8581/pty/semantic-guardrail/v1.1/conversations/messages/scan
+    POST http://localhost:6001/pty/semantic-guardrail/v1.1/conversations/messages/scan
+    (shared protegrity-shared tier; in-container: pty-guardrail:8001)
 
 Scores run 0..1 where higher is riskier, and the service returns per-message outcomes plus a
 conversation-level verdict.
@@ -360,7 +361,8 @@ class Guardrail:
             guard.scan_response("readiness probe")
         return guard
 
-    def _scan(self, content: str, processor: str, direction: tuple[str, str]) -> ScanResult:
+    def _scan(self, content: str, processor: str, direction: tuple[str, str],
+              extra_tokens: "frozenset[str] | None" = None) -> ScanResult:
         sender, recipient = direction
         payload = {
             "messages": [
@@ -394,7 +396,8 @@ class Guardrail:
                     score=float(entry.get("score", 0.0)),
                     explanation=explanation,
                     entities=entities,
-                    surrogate_only=self._is_surrogate_only(content, entities, explanation),
+                    surrogate_only=self._is_surrogate_only(
+                        content, entities, explanation, extra_tokens=extra_tokens),
                 )
             )
 
@@ -409,7 +412,8 @@ class Guardrail:
         )
 
     def _is_surrogate_only(
-        self, content: str, entities: tuple[str, ...], explanation: str = ""
+        self, content: str, entities: tuple[str, ...], explanation: str = "",
+        extra_tokens: "frozenset[str] | None" = None,
     ) -> bool:
         """True when every flagged **span** is itself a surrogate key.
 
@@ -448,12 +452,13 @@ class Guardrail:
             # corpus value, so broadening the discount to protection tokens cannot pass a leak.
             if SURROGATE_KEY_PATTERN.fullmatch(flagged):
                 continue
-            if self._is_protection_token(flagged):
+            if self._is_protection_token(flagged, extra_tokens=extra_tokens):
                 continue
             return False
         return True
 
-    def _is_protection_token(self, span: str) -> bool:
+    def _is_protection_token(self, span: str,
+                             extra_tokens: "frozenset[str] | None" = None) -> bool:
         """True when `span` is one of the pipeline's own protection tokens (not a real value).
 
         Authoritative, not heuristic: a token is safe iff it appears in the protected corpus's
@@ -461,15 +466,64 @@ class Guardrail:
         conservative NO (do not discount) if that set is unavailable, so an unverifiable span
         still fails closed. Never matches a real clear value, those live in `forbidden_values`
         and drive the hard `leaked_values` block regardless of this method.
+
+        `extra_tokens` are caller-supplied protection tokens for THIS turn (live-chat surrogates
+        the caller just minted, absent from the on-disk set the container ships without). They go
+        through the SAME Rail 2 as the on-disk set — every forbidden clear value (and each of its
+        words) is subtracted — so a live token can never be a real clear value, and per-word spans
+        of a multi-word surrogate still match.
         """
+        needle = _normalize_for_match(span)
         tokens = self._protection_tokens()
-        return bool(tokens) and _normalize_for_match(span) in tokens
+        if tokens and needle in tokens:
+            return True
+        if extra_tokens:
+            safe_extra = self._sanitize_tokens(extra_tokens)
+            if needle in safe_extra:
+                return True
+        return False
+
+    def _sanitize_tokens(self, raw: "frozenset[str]") -> frozenset[str]:
+        """Apply Rail 2 to a caller-supplied token set: normalize, expand to words (len>=3), and
+        SUBTRACT every forbidden clear value (and its words). Identical treatment to the on-disk
+        set in `_protection_tokens`, so a live token can never be a real clear value. Cached per
+        input identity to avoid rebuilding the forbidden index on every span."""
+        cache = getattr(self, "_extra_tok_cache", None)
+        if cache is not None and cache[0] is raw:
+            return cache[1]
+        toks: set[str] = set()
+        for v in raw:
+            if not isinstance(v, str) or len(v) < 5:
+                continue
+            toks.add(_normalize_for_match(v))
+            for word in v.split():
+                if len(word) >= 3:
+                    toks.add(_normalize_for_match(word))
+        forbidden_norm = {_normalize_for_match(v) for v in self.forbidden_values}
+        for fv in self.forbidden_values:
+            for word in str(fv).split():
+                if len(word) >= 3:
+                    forbidden_norm.add(_normalize_for_match(word))
+        result = frozenset(toks - forbidden_norm)
+        object.__setattr__(self, "_extra_tok_cache", (raw, result))
+        return result
 
     # Scopes whose structured artifacts hold CLEAR or partially-clear values, never a source of
     # protection tokens: `none` is the cleartext baseline, `_anon-monetary` is a verbatim copy of
-    # `none`, and `quasi-yearclear` keeps the year in the clear. Reading these was a real defect,
-    # it put real clear names/addresses into the "token" set and could discount a genuine leak.
-    _NON_TOKEN_SCOPES = frozenset({"none", "_anon-monetary", "quasi-yearclear"})
+    # `none`, and `quasi-yearclear` / `quasi` keep some quasi-identifiers in the clear. Reading
+    # these was a real defect: it put real clear names/addresses into the "token" set and could
+    # discount a genuine leak. `quasi` is the actual on-disk scope name (the older `quasi-yearclear`
+    # is kept for back-compat); the field allow-list below is the real safety regardless.
+    _NON_TOKEN_SCOPES = frozenset({"none", "_anon-monetary", "quasi-yearclear", "quasi"})
+
+    # Free-text / categorical fields that are CLEAR by construction (business memos, enums, currency
+    # codes) — never tokenized identifiers. Harvesting them would put generic words ("consulting",
+    # "management" from a `memo`) into the token set. Skip them so the token set holds only
+    # protection tokens. (Rail 2 below still subtracts forbidden clear values as a second guard.)
+    _CLEAR_TEXT_FIELDS = frozenset({
+        "memo", "party_type", "jurisdiction", "channel", "currency", "risk_rating", "is_pep",
+        "city", "amount", "value_date",
+    })
 
     def _protection_tokens(self) -> frozenset[str]:
         """Normalized protection tokens of this corpus, lazily loaded and cached.
@@ -496,25 +550,42 @@ class Guardrail:
         toks: set[str] = set()
         try:
             base = Path(__file__).resolve().parents[2] / "data" / "protected"
-            for scope_dir in base.glob("*"):
-                if scope_dir.name in self._NON_TOKEN_SCOPES:
-                    continue  # cleartext / year-clear scopes are not token sources
-                for fname in ("parties.json", "transactions.json"):
-                    fp = scope_dir / fname
-                    if not fp.exists():
-                        continue
-                    for rec in json.loads(fp.read_text()):
-                        for v in rec.values():
-                            if isinstance(v, str) and len(v) >= 5:
-                                toks.add(_normalize_for_match(v))
-                                # The guardrail service flags a MULTI-WORD token (e.g. a tokenized
-                                # PERSON `2S3y A47Vmilfi`) as separate per-word spans, neither of
-                                # which equals the whole token. Add each word (len >= 3) so those
-                                # per-word spans also match. Rail 2 below still subtracts every real
-                                # clear value, so a word that is a real name-part can never enter.
-                                for word in v.split():
-                                    if len(word) >= 3:
-                                        toks.add(_normalize_for_match(word))
+            # PREFERRED: a compact, token-only manifest that the serving IMAGE ships. The full
+            # per-scope parties.json/transactions.json are `.dockerignore`d (large, and they hold
+            # partially-clear scopes), so in the container the glob below finds nothing and the
+            # surrogate-discount silently dies — a live `[PERSON]` surrogate the model echoes from
+            # retrieved context gets mislabelled PASSWORD and a safe reply is rejected. The manifest
+            # (built by scripts/build_token_manifest.py from the tokenizing scopes only, ~1.9MB) is
+            # already normalized token strings, no clear values. Rail 2 below still subtracts the
+            # forbidden clear values, so this can never discount a real leak.
+            manifest = base / "token-manifest.json"
+            if manifest.exists():
+                for t in json.loads(manifest.read_text()):
+                    if isinstance(t, str) and t:
+                        toks.add(t)
+            else:
+                for scope_dir in base.glob("*"):
+                    if scope_dir.name in self._NON_TOKEN_SCOPES:
+                        continue  # cleartext / year-clear scopes are not token sources
+                    for fname in ("parties.json", "transactions.json"):
+                        fp = scope_dir / fname
+                        if not fp.exists():
+                            continue
+                        for rec in json.loads(fp.read_text()):
+                            for k, v in rec.items():
+                                if k in self._CLEAR_TEXT_FIELDS:
+                                    continue  # free-text/categorical: clear, not a token
+                                if isinstance(v, str) and len(v) >= 5:
+                                    toks.add(_normalize_for_match(v))
+                                    # The guardrail service flags a MULTI-WORD token (e.g. a
+                                    # tokenized PERSON `2S3y A47Vmilfi`) as separate per-word spans,
+                                    # neither of which equals the whole token. Add each word
+                                    # (len >= 3) so those per-word spans also match. Rail 2 below
+                                    # still subtracts every real clear value, so a word that is a
+                                    # real name-part can never enter.
+                                    for word in v.split():
+                                        if len(word) >= 3:
+                                            toks.add(_normalize_for_match(word))
         except Exception:  # noqa: BLE001, unavailable -> conservative empty set (no discount)
             toks = set()
         # Rail 2: a real clear value can never be a "protection token". Subtract every forbidden
@@ -639,13 +710,25 @@ class Guardrail:
             return ScanResult(outcome="skipped", score=0.0)
         return self._scan(content, self.injection_processor, ("user", "ai"))
 
-    def scan_response(self, content: str) -> ScanResult:
+    def scan_response(self, content: str,
+                      extra_tokens: "frozenset[str] | None" = None) -> ScanResult:
         """Score a model response for identifiers before it reaches a human.
 
         This is the check the architecture lacked. A rationale is generated from tokenized
         evidence, but nothing verified that the model had not reconstructed, guessed, or been
         induced to emit something identifying.
+
+        `extra_tokens` are protection tokens the CALLER minted this turn (e.g. the live-chat
+        surrogates produced by tokenizing the user's own message) that may not be on disk in
+        `data/protected/`. The serving container ships without the protected artifacts
+        (`.dockerignore` strips `data/protected/`), so the on-disk token set is empty there and
+        the surrogate-discount could never recognise a freshly-tokenized name — the service then
+        rejects a safe reply (a `[PERSON]` surrogate mislabelled PASSWORD). Unioning the turn's
+        own tokens restores the discount without shipping the artifacts. Rail 2 still subtracts
+        every forbidden clear value, and `blocked` consults `leaked_values` first, so this cannot
+        discount a real leak.
         """
         if not self.enabled:
             return ScanResult(outcome="skipped", score=0.0)
-        return self._scan(content, self.pii_processor, ("ai", "user"))
+        return self._scan(content, self.pii_processor, ("ai", "user"),
+                          extra_tokens=extra_tokens)

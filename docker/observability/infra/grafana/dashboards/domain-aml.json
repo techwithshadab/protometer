@@ -1,0 +1,945 @@
+{
+  "title": "AML",
+  "uid": "amlguard-domain-aml",
+  "tags": [
+    "domain",
+    "aml"
+  ],
+  "schemaVersion": 39,
+  "editable": true,
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "refresh": "30s",
+  "templating": {
+    "list": []
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "row",
+      "collapsed": false,
+      "title": "Live serving \u2014 protected chat turns",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "id": 2,
+      "title": "Turn rate by outcome (per min)",
+      "description": "Live chat turns for the AML domain, split by outcome (ok / egress_blocked / error). Rate over 5m.",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 16,
+        "x": 0,
+        "y": 1
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "cpm",
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "stacking": {
+              "mode": "normal"
+            }
+          }
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "sum"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (outcome) (rate(amlguard_serving_turns_total{domain=\"aml\"}[5m])) * 60",
+          "legendFormat": "{{outcome}}"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Turns total (by outcome)",
+      "description": "Cumulative AML turns by outcome since the server started.",
+      "type": "piechart",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 1
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "values": [
+            "value"
+          ]
+        },
+        "pieType": "donut"
+      },
+      "targets": [
+        {
+          "expr": "sum by (outcome) (amlguard_serving_turns_total{domain=\"aml\"})",
+          "legendFormat": "{{outcome}}",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "0"
+        }
+      }
+    },
+    {
+      "id": 4,
+      "title": "Turn latency (p50 / p90 / p99)",
+      "description": "End-to-end AML turn latency percentiles from the histogram (protect -> reason -> egress -> reveal).",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 16,
+        "x": 0,
+        "y": 9
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10
+          }
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(amlguard_serving_turn_latency_seconds_bucket{domain=\"aml\"}[5m])))",
+          "legendFormat": "p50"
+        },
+        {
+          "expr": "histogram_quantile(0.90, sum by (le) (rate(amlguard_serving_turn_latency_seconds_bucket{domain=\"aml\"}[5m])))",
+          "legendFormat": "p90"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(amlguard_serving_turn_latency_seconds_bucket{domain=\"aml\"}[5m])))",
+          "legendFormat": "p99"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Egress blocks (total)",
+      "description": "AML replies withheld by the egress guard. A guard action, not necessarily a failure.",
+      "type": "stat",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 16,
+        "y": 9
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          },
+          "noValue": "0"
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "area"
+      },
+      "targets": [
+        {
+          "expr": "sum(amlguard_serving_egress_blocks_total{domain=\"aml\"}) or vector(0)",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Canary hits",
+      "description": "Reveals that tripped the canary tripwire. Should stay 0.",
+      "type": "stat",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 9
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "noValue": "0"
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "targets": [
+        {
+          "expr": "sum(amlguard_serving_canary_hits_total{domain=\"aml\"}) or vector(0)",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Entities protected (total)",
+      "description": "PII entities tokenized on inbound AML turns.",
+      "type": "stat",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 16,
+        "y": 13
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "purple"
+          },
+          "noValue": "0"
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      },
+      "targets": [
+        {
+          "expr": "sum(amlguard_serving_entities_protected_total{domain=\"aml\"}) or vector(0)",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Reveals (total)",
+      "description": "Identifiers re-identified for the entitled role.",
+      "type": "stat",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 13
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "noValue": "0"
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      },
+      "targets": [
+        {
+          "expr": "sum(amlguard_serving_revealed_total{domain=\"aml\"}) or vector(0)",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Turns by role",
+      "description": "Live turns for this domain, grouped by the effective (domain-constrained) role.",
+      "type": "barchart",
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 17
+      },
+      "options": {
+        "orientation": "horizontal",
+        "xField": "role",
+        "showValue": "auto",
+        "legend": {
+          "showLegend": true,
+          "placement": "bottom"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "\u2014"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (role) (amlguard_serving_turns_total{domain=\"aml\"})",
+          "legendFormat": "{{role}}",
+          "instant": true,
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "title": "Errors by kind",
+      "description": "Turns that ended in a genuine error (excludes egress blocks), by kind. Empty = no errors.",
+      "type": "table",
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 17
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "red"
+          },
+          "noValue": "No errors"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (kind) (amlguard_serving_errors_total{domain=\"aml\"})",
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true
+            },
+            "renameByName": {
+              "Value": "errors",
+              "kind": "error kind"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "title": "LLM tokens (per min, by direction)",
+      "description": "Estimated LLM token throughput on the AML serving path.",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 24
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10
+          }
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (direction) (rate(amlguard_serving_llm_tokens_total{domain=\"aml\"}[5m])) * 60",
+          "legendFormat": "{{direction}}"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "type": "row",
+      "collapsed": false,
+      "title": "Batch ingest \u2014 8-scope protection sweep (AML measurement harness)",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 32
+      }
+    },
+    {
+      "id": 13,
+      "title": "Ingest duration by scope (s)",
+      "description": "Per-scope wall-clock of the last ingest run. One bar per protection scope; the gauge is a snapshot, not a time series.",
+      "type": "barchart",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 34
+      },
+      "options": {
+        "orientation": "horizontal",
+        "xField": "scope",
+        "showValue": "always",
+        "legend": {
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": {
+            "mode": "continuous-BlPu"
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "amlguard_ingest_seconds{domain=\"aml\"}",
+          "instant": true,
+          "format": "table",
+          "legendFormat": "{{scope}}"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "corpus_fingerprint": true,
+              "instance": true,
+              "job": true
+            },
+            "renameByName": {
+              "Value": "seconds"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "title": "Discovery share of wall-clock by scope (s)",
+      "description": "Seconds spent in the discovery/classification stage per scope.",
+      "type": "barchart",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 34
+      },
+      "options": {
+        "orientation": "horizontal",
+        "xField": "scope",
+        "showValue": "always",
+        "legend": {
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": {
+            "mode": "continuous-GrYlRd"
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "amlguard_ingest_seconds_in_discovery{domain=\"aml\"}",
+          "instant": true,
+          "format": "table",
+          "legendFormat": "{{scope}}"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "corpus_fingerprint": true,
+              "instance": true,
+              "job": true
+            },
+            "renameByName": {
+              "Value": "seconds_in_discovery"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "title": "Entities found vs protected by scope",
+      "description": "How many PII entities discovery FOUND vs how many were successfully PROTECTED, per scope. A gap indicates no-ops or failures.",
+      "type": "barchart",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 43
+      },
+      "options": {
+        "orientation": "horizontal",
+        "xField": "scope",
+        "showValue": "auto",
+        "groupWidth": 0.7,
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "amlguard_ingest_entities_found{domain=\"aml\"}",
+          "instant": true,
+          "format": "table",
+          "refId": "found"
+        },
+        {
+          "expr": "amlguard_ingest_entities_protected{domain=\"aml\"}",
+          "instant": true,
+          "format": "table",
+          "refId": "protected"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "Time 1": true,
+              "Time 2": true,
+              "__name__": true,
+              "__name__ 1": true,
+              "__name__ 2": true,
+              "corpus_fingerprint": true,
+              "corpus_fingerprint 1": true,
+              "corpus_fingerprint 2": true,
+              "instance": true,
+              "instance 1": true,
+              "instance 2": true,
+              "job": true,
+              "job 1": true,
+              "job 2": true,
+              "domain 1": true,
+              "domain 2": true,
+              "scope 2": true
+            },
+            "renameByName": {
+              "Value #found": "found",
+              "Value #protected": "protected",
+              "scope 1": "scope"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "title": "Protect API call rate by scope (calls/s)",
+      "description": "Protegrity protect() calls per second during ingest, per scope. Batching keeps this low.",
+      "type": "barchart",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 43
+      },
+      "options": {
+        "orientation": "horizontal",
+        "xField": "scope",
+        "showValue": "always",
+        "legend": {
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "color": {
+            "mode": "continuous-BlPu"
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "amlguard_ingest_api_rate{domain=\"aml\"}",
+          "instant": true,
+          "format": "table",
+          "legendFormat": "{{scope}}"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "corpus_fingerprint": true,
+              "instance": true,
+              "job": true
+            },
+            "renameByName": {
+              "Value": "calls_per_sec"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "title": "Protection failures (total)",
+      "description": "Total protect() failures across all scopes for the selected domain(s). Non-zero means some entities could not be tokenized (they are redacted, never passed clear).",
+      "type": "stat",
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 0,
+        "y": 53
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 50
+              }
+            ]
+          },
+          "noValue": "0"
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name"
+      },
+      "targets": [
+        {
+          "expr": "sum(amlguard_ingest_failures{domain=\"aml\"}) or vector(0)",
+          "instant": true,
+          "legendFormat": "failures"
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "title": "No-ops (total)",
+      "description": "Values the API returned unchanged (redacted, never trusted). Distinct from failures.",
+      "type": "stat",
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 6,
+        "y": 53
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          },
+          "noValue": "0"
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name"
+      },
+      "targets": [
+        {
+          "expr": "sum(amlguard_ingest_noops{domain=\"aml\"}) or vector(0)",
+          "instant": true,
+          "legendFormat": "no-ops"
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "title": "Protect retries (total)",
+      "description": "Transient-failure retries during protection across all scopes.",
+      "type": "stat",
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 12,
+        "y": 53
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 5
+              }
+            ]
+          },
+          "noValue": "0"
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name"
+      },
+      "targets": [
+        {
+          "expr": "sum(amlguard_ingest_retries{domain=\"aml\"}) or vector(0)",
+          "instant": true,
+          "legendFormat": "retries"
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "title": "Entities protected (total)",
+      "description": "Total PII entities tokenized across all scopes.",
+      "type": "stat",
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 18,
+        "y": 53
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "purple"
+          },
+          "noValue": "0"
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value_and_name"
+      },
+      "targets": [
+        {
+          "expr": "sum(amlguard_ingest_entities_protected{domain=\"aml\"}) or vector(0)",
+          "instant": true,
+          "legendFormat": "protected"
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "title": "Token cache hit rate by scope",
+      "description": "Fraction of protect() lookups served from the deterministic cache, per scope (0-100%).",
+      "type": "bargauge",
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 59
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": true,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "max": 1,
+          "unit": "percentunit",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.3
+              },
+              {
+                "color": "green",
+                "value": 0.6
+              }
+            ]
+          },
+          "noValue": "\u2014"
+        }
+      },
+      "targets": [
+        {
+          "expr": "amlguard_ingest_cache_hit_rate{domain=\"aml\"}",
+          "instant": true,
+          "legendFormat": "{{scope}}"
+        }
+      ]
+    }
+  ]
+}

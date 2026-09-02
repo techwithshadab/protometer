@@ -1,0 +1,85 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_design.css">
+<style>body{width:1460px;height:410px}
+  .bcard{background:#FBFAF8;border:1px solid var(--line);border-radius:12px;box-shadow:0 6px 16px rgba(7,29,73,.07);padding:12px 14px}
+  .bcard .bt{font-size:13.5px;font-weight:700;color:var(--ink)}
+  .bcard .bd{font-size:10.5px;color:var(--soft);margin-top:4px;line-height:1.4}
+  .picon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;margin-bottom:8px}
+  .picon svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  svg.edge{position:absolute;overflow:visible;pointer-events:none}
+</style>
+</head>
+<body>
+
+<div class="abs" style="left:0;right:0;top:22px;text-align:center;font-family:var(--font);font-size:20px;font-weight:700;letter-spacing:.2px;color:var(--ink)">
+  The Protection Boundary: Tokenize, Reason, Guard, Reveal</div>
+<div class="abs" style="left:0;right:0;top:52px;text-align:center;font-size:11px;color:var(--soft2)">
+  Detected PII is tokenized before it reaches retrieval, the model, logs, or the trace. Only tokens cross the boundary.</div>
+
+<svg class="edge" style="left:0;top:0" width="1460" height="410">
+  <defs><marker id="ah" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><polygon points="0,0 6,3 0,6" fill="#23417b"/></marker></defs>
+  <!-- Four flow arrows at y=166 (the box vertical centres, cards now start at top:120), in the GAPS
+       between cards. Each arrowhead stops JUST BEFORE its target box's left edge (never inside it).
+       Box left edges: 378, 700, 1004, 1306; each arrow ends ~6px short so the head sits in the gap. -->
+  <path d="M348 166 H 372" fill="none" stroke="#23417b" stroke-width="2.2" marker-end="url(#ah)"/>
+  <path d="M648 166 H 694" fill="none" stroke="#23417b" stroke-width="2.2" marker-end="url(#ah)"/>
+  <path d="M968 166 H 998" fill="none" stroke="#23417b" stroke-width="2.2" marker-end="url(#ah)"/>
+  <path d="M1278 166 H 1300" fill="none" stroke="#23417b" stroke-width="2.2" marker-end="url(#ah)"/>
+</svg>
+
+<!-- cleartext zone (left) -->
+<div class="szone abs" style="left:30px;top:120px;width:306px;height:250px">
+  <div class="zlab">Cleartext Zone</div>
+  <div class="bcard" style="box-shadow:none">
+    <div class="bt">Visitor Message</div>
+    <div class="bd">"my name is …", an email, a phone number, "my doctor is Dr. X"</div>
+  </div>
+  <div class="bcard" style="box-shadow:none;background:#fff">
+    <div class="bt">Detect PII Spans</div>
+    <div class="bd">Protegrity Discovery (ML/NER) finds the PII spans</div>
+  </div>
+  <div class="colnote">The emergency check runs here, on the RAW message, before tokenization, so a tokenized word can't hide a symptom.</div>
+</div>
+
+<!-- boundary line -->
+<div class="bline" style="left:356px;top:120px;height:250px"></div>
+<!-- pill sits LOW on the boundary (y ~296+), clear of the y=238 flow arrow that crosses it -->
+<div class="vpill" style="left:343px;top:186px">only tokens cross</div>
+
+<!-- tokenize (on boundary, first protected step) -->
+<div class="bcard abs" style="left:378px;top:120px;width:262px">
+  <div class="picon ic4"><svg viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="9.5" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15" r="1.4"/></svg></div>
+  <div class="bt">Tokenize: protect()</div>
+  <div class="bd">each span becomes a Protegrity surrogate: [EMAIL]rmKd@TXE…[/EMAIL]. A value that can't be protected is redacted, never trusted.</div>
+</div>
+
+<!-- reason over tokens -->
+<div class="bcard abs" style="left:700px;top:120px;width:262px">
+  <div class="picon ic3"><svg viewBox="0 0 24 24"><path d="M4 5.5h2M4 12h2M4 18.5h2"/><path d="M9 5.5h11M9 12h11M9 18.5h7"/></svg></div>
+  <div class="bt">Reason Over Tokens</div>
+  <div class="bd">retrieval, the model, logs, and the Langfuse trace see ONLY tokens, never the cleartext value.</div>
+</div>
+
+<!-- egress guard -->
+<div class="bcard abs" style="left:1004px;top:120px;width:266px">
+  <div class="picon ic1"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 8.5-7 10-4-1.5-7-5.5-7-10V6z"/><path d="M9 11.5l2.2 2.2L15.5 9.5"/></svg></div>
+  <div class="bt">Egress Guard</div>
+  <div class="bd">blocks any reply that leaked a token or the visitor's PII, before a human sees it.</div>
+</div>
+
+<!-- reveal (right): the terminal step, styled as a filled endpoint so it reads as the result. -->
+<div class="afeat abs" style="left:1306px;top:120px;width:118px;padding:14px 14px">
+  <div class="ft" style="font-size:14px">Reveal</div>
+  <div class="fc" style="margin-top:3px">public = nothing revealed. Support-role unprotect only, via /api/support/reveal</div>
+</div>
+
+<!-- honest scope banner: its BOTTOM aligns with the Cleartext Zone bottom (y=370). -->
+<div class="afeat abs" style="left:382px;top:278px;width:1026px;padding:12px 16px">
+  <div class="fk">Honest Scope: What Is and Isn't Protected</div>
+  <div class="fc" style="margin-top:3px;font-size:11px">Protection is Protegrity, and mandatory: Discovery (ML/NER) detects the PII, the appython SDK tokenizes it. There is no mock and no regex fallback. If Discovery or the tokenizer is unreachable the bot fails closed, health reports not-ready and every turn refuses, so unprotected PII never reaches the model or the trace. Coverage is Discovery's coverage at the configured score threshold; a value it does not flag is not tokenized.</div>
+</div>
+
+</body></html>

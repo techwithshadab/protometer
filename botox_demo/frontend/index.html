@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BOTOX® Information &amp; Assistant: Demo</title>
+    <meta
+      name="description"
+      content="Demo landing page with an informational assistant for general BOTOX® questions. Not medical advice; not the official site."
+    />
+    <!-- Inline SVG favicon: a navy rounded-square "B" wordmark. Self-contained (no external file),
+         so nginx never has to serve /favicon.ico and the brand mark shows in the tab. -->
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23071d49'/%3E%3Ctext x='32' y='45' font-family='Helvetica,Arial,sans-serif' font-size='40' font-weight='800' fill='%23ffffff' text-anchor='middle'%3EB%3C/text%3E%3C/svg%3E"
+    />
+    <!-- Basic Open Graph / Twitter cards for a realistic demo link preview. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="BOTOX® Information &amp; Assistant: Demo" />
+    <meta
+      property="og:description"
+      content="Demo landing page with an informational assistant for general BOTOX® questions. Not medical advice; not the official site."
+    />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="BOTOX® Information &amp; Assistant: Demo" />
+    <meta
+      name="twitter:description"
+      content="Demo assistant for general BOTOX® questions. Not medical advice; not the official site."
+    />
+  </head>
+  <body>
+    <!--
+      The React app renders the demo landing page here as the backdrop, plus the floating chat
+      widget on top. Everything mounts into #botox-widget-root.
+    -->
+    <div id="botox-widget-root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

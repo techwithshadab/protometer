@@ -588,10 +588,19 @@ class InvestigationPipeline:
         # Resolve the system prompt from the Langfuse registry (editable/versioned in the UI),
         # falling back to the code constant when the registry is unreachable or unseeded.
         from amlguard.domains import get_domain
-        from amlguard.observability import managed_prompt
+        from amlguard.observability import domain_project, managed_prompt
 
-        prompt_name = (self.domain or get_domain()).investigation_prompt
-        system = managed_prompt(prompt_name)
+        dom = self.domain or get_domain()
+        project = domain_project(dom.name)
+        prompt_name = dom.investigation_prompt
+        system = managed_prompt(prompt_name, project=project)
+        # Route this domain's batch generations into ITS Langfuse project and LINK them to the
+        # investigation prompt version (the version-provenance the results docs cite).
+        try:
+            self.llm.trace_project = project or ""
+            self.llm.trace_prompt_name = prompt_name
+        except Exception:  # noqa: BLE001, telemetry attributes must never break a run
+            pass
         try:
             completion = self.llm.complete(system, full_prompt, max_tokens=max_tokens)
         except Exception as exc:  # noqa: BLE001, a failed call is a scored outcome

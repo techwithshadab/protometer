@@ -145,7 +145,7 @@ def test_turn_fails_closed_on_egress_block(monkeypatch):
             return "here is a leaked value"
 
     class BlockingGuard:
-        def scan_response(self, content):
+        def scan_response(self, content, extra_tokens=None):
             class V:
                 blocked = True
                 leaked_values = ("secret",)
@@ -198,7 +198,7 @@ def test_turn_fails_closed_when_egress_scan_raises(monkeypatch):
             return "some reply"
 
     class ExplodingGuard:
-        def scan_response(self, content):
+        def scan_response(self, content, extra_tokens=None):
             raise RuntimeError("guardrail unreachable")
 
     sess = ConversationSession(
@@ -316,7 +316,7 @@ def test_turn_captures_egress_detail(monkeypatch):
         leaked_values = (); findings = [Finding()]
 
     class FakeGuard:
-        def scan_response(self, content): return Verdict()
+        def scan_response(self, content, extra_tokens=None): return Verdict()
 
     sess = ConversationSession(protector=FakeProtector(), llm=FakeLLM(),
                                conversation_id="c-egress-detail", system_prompt="sys",

@@ -1,0 +1,438 @@
+{
+  "title": "Healthcare",
+  "uid": "amlguard-domain-healthcare",
+  "tags": [
+    "domain",
+    "healthcare"
+  ],
+  "schemaVersion": 39,
+  "editable": true,
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "refresh": "30s",
+  "templating": {
+    "list": []
+  },
+  "panels": [
+    {
+      "id": 11,
+      "type": "row",
+      "collapsed": false,
+      "title": "Live serving \u2014 protected chat turns (live-chat demo; no batch measurement)",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "id": 1,
+      "title": "Turn rate by outcome (per min)",
+      "description": "Live chat turns for the AML domain, split by outcome (ok / egress_blocked / error). Rate over 5m.",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 16,
+        "x": 0,
+        "y": 1
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "cpm",
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "stacking": {
+              "mode": "normal"
+            }
+          }
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "sum"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (outcome) (rate(amlguard_serving_turns_total{domain=\"healthcare\"}[5m])) * 60",
+          "legendFormat": "{{outcome}}"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Turns total (by outcome)",
+      "description": "Cumulative AML turns by outcome since the server started.",
+      "type": "piechart",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 1
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "values": [
+            "value"
+          ]
+        },
+        "pieType": "donut"
+      },
+      "targets": [
+        {
+          "expr": "sum by (outcome) (amlguard_serving_turns_total{domain=\"healthcare\"})",
+          "legendFormat": "{{outcome}}",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "0"
+        }
+      }
+    },
+    {
+      "id": 3,
+      "title": "Turn latency (p50 / p90 / p99)",
+      "description": "End-to-end AML turn latency percentiles from the histogram (protect -> reason -> egress -> reveal).",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 16,
+        "x": 0,
+        "y": 9
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10
+          }
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(amlguard_serving_turn_latency_seconds_bucket{domain=\"healthcare\"}[5m])))",
+          "legendFormat": "p50"
+        },
+        {
+          "expr": "histogram_quantile(0.90, sum by (le) (rate(amlguard_serving_turn_latency_seconds_bucket{domain=\"healthcare\"}[5m])))",
+          "legendFormat": "p90"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(amlguard_serving_turn_latency_seconds_bucket{domain=\"healthcare\"}[5m])))",
+          "legendFormat": "p99"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Egress blocks (total)",
+      "description": "AML replies withheld by the egress guard. A guard action, not necessarily a failure.",
+      "type": "stat",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 16,
+        "y": 9
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          },
+          "noValue": "0"
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "area"
+      },
+      "targets": [
+        {
+          "expr": "sum(amlguard_serving_egress_blocks_total{domain=\"healthcare\"}) or vector(0)",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Canary hits",
+      "description": "Reveals that tripped the canary tripwire. Should stay 0.",
+      "type": "stat",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 9
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "noValue": "0"
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "targets": [
+        {
+          "expr": "sum(amlguard_serving_canary_hits_total{domain=\"healthcare\"}) or vector(0)",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Entities protected (total)",
+      "description": "PII entities tokenized on inbound AML turns.",
+      "type": "stat",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 16,
+        "y": 13
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "purple"
+          },
+          "noValue": "0"
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      },
+      "targets": [
+        {
+          "expr": "sum(amlguard_serving_entities_protected_total{domain=\"healthcare\"}) or vector(0)",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Reveals (total)",
+      "description": "Identifiers re-identified for the entitled role.",
+      "type": "stat",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 13
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "noValue": "0"
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      },
+      "targets": [
+        {
+          "expr": "sum(amlguard_serving_revealed_total{domain=\"healthcare\"}) or vector(0)",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Turns by role",
+      "description": "Live turns for this domain, grouped by the effective (domain-constrained) role.",
+      "type": "barchart",
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 17
+      },
+      "options": {
+        "orientation": "horizontal",
+        "xField": "role",
+        "showValue": "auto",
+        "legend": {
+          "showLegend": true,
+          "placement": "bottom"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "\u2014"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (role) (amlguard_serving_turns_total{domain=\"healthcare\"})",
+          "legendFormat": "{{role}}",
+          "instant": true,
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Errors by kind",
+      "description": "Turns that ended in a genuine error (excludes egress blocks), by kind. Empty = no errors.",
+      "type": "table",
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 17
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "red"
+          },
+          "noValue": "No errors"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (kind) (amlguard_serving_errors_total{domain=\"healthcare\"})",
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true
+            },
+            "renameByName": {
+              "Value": "errors",
+              "kind": "error kind"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "title": "LLM tokens (per min, by direction)",
+      "description": "Estimated LLM token throughput on the AML serving path.",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 24
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10
+          }
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (direction) (rate(amlguard_serving_llm_tokens_total{domain=\"healthcare\"}[5m])) * 60",
+          "legendFormat": "{{direction}}"
+        }
+      ]
+    }
+  ]
+}

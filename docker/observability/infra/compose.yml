@@ -5,8 +5,23 @@ services:
   pushgateway:
     image: prom/pushgateway:v1.11.0
     restart: unless-stopped
+    # PERSIST pushed metrics to disk. Without this the gateway is purely in-memory, so a restart
+    # (docker restart, host reboot, `compose up` recreate) silently WIPES every ingest metric and
+    # the Grafana dashboard goes blank until the next ingest run pushes again. The batch-job pattern
+    # means pushes are infrequent, so a lost push is invisible for a long time — persistence is what
+    # keeps the operational plane populated between ingest runs.
+    # The image runs as `nobody` (uid 65534); a fresh named-volume mount is root-owned, so writing the
+    # store there is "permission denied". `user: root` lets the persistence file be created and owned
+    # correctly. (Pushgateway holds only operational gauges, no secrets, so running it as root on a
+    # loopback-only port is acceptable; the alternative is an init container to chown the volume.)
+    user: root
+    command:
+      - --persistence.file=/data/pushgateway.store
+      - --persistence.interval=1m
+    volumes:
+      - pushgateway_data:/data
     ports:
-      - "127.0.0.1:9093:9091"
+      - "127.0.0.1:5004:9091"
     healthcheck:
       test: ["CMD", "wget", "-q", "-O-", "http://localhost:9091/-/healthy"]
       interval: 30s
@@ -21,8 +36,10 @@ services:
       - --config.file=/etc/prometheus/prometheus.yml
       - --storage.tsdb.path=/prometheus
       - --storage.tsdb.retention.time=${AMLGUARD_PROM_RETENTION:-30d}
+      # Allow `POST /-/reload` so a scrape-config change (new demo target) applies without a restart.
+      - --web.enable-lifecycle
     ports:
-      - "127.0.0.1:9092:9090"
+      - "127.0.0.1:5003:9090"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prom_data:/prometheus
@@ -38,7 +55,7 @@ services:
     image: grafana/grafana:11.6.0
     restart: unless-stopped
     ports:
-      - "127.0.0.1:3001:3000"
+      - "127.0.0.1:5002:3000"
     environment:
       # Credentials are env-driven (defaults kept for the loopback-only dev stack). Set
       # GF_ADMIN_USER/GF_ADMIN_PASSWORD in the environment for anything beyond localhost, and
@@ -62,3 +79,4 @@ services:
 volumes:
   prom_data:
   grafana_data:
+  pushgateway_data:

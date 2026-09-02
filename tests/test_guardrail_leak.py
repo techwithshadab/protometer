@@ -100,6 +100,44 @@ def test_protection_token_flagged_as_pii_is_discounted_not_blocked():
     assert g._leaked(content2) == ("Leila Rahman",)  # real value -> hard block regardless
 
 
+def test_live_turn_tokens_discount_when_on_disk_set_is_empty():
+    """SERVING-CONTAINER FIX: the surrogate the LIVE chat turn just minted is NOT on disk
+    (`.dockerignore` strips `data/protected/`, so `_protection_tokens()` is EMPTY in the deployed
+    container). Without help, the guardrail cannot recognise a freshly-tokenized name and rejects a
+    safe reply (a `[PERSON]` surrogate mislabelled PASSWORD → ~half of live turns withheld). The
+    caller now hands the scan THIS turn's own tokens via `extra_tokens`; the discount must then fire
+    — while a real forbidden value handed in as an 'extra token' must NOT be discounted (rail 2)."""
+    from amlguard.guardrail import Guardrail, _normalize_for_match
+
+    # Empty on-disk token set (the container's reality), and a real forbidden name.
+    g = Guardrail(enabled=False, forbidden_values=frozenset({"Kwame Adeyemi"}))
+    object.__setattr__(g, "_token_cache", frozenset())  # nothing on disk
+    assert g._protection_tokens() == frozenset()
+
+    # The model echoed a live-minted PERSON surrogate the service typed as PASSWORD.
+    live_surrogate = "y9w2t zqu89XR"
+    content = f"Reviewing party {live_surrogate} for the case."
+    i = content.index("zqu89XR")
+    expl = f"['PASSWORD : [{i}, {i + 7}]']"
+
+    # Without extra_tokens: NOT discounted (empty on-disk set) -> the false-positive that blocked.
+    assert g._is_surrogate_only(content, ("PASSWORD",), expl) is False
+    # With the turn's own tokens supplied: DISCOUNTED (per-word span 'zqu89XR' recognised).
+    live_tokens = frozenset({_normalize_for_match(live_surrogate)}) | \
+        frozenset(_normalize_for_match(w) for w in live_surrogate.split())
+    assert g._is_surrogate_only(content, ("PASSWORD",), expl, extra_tokens=live_tokens) is True
+
+    # SAFETY: a real forbidden value smuggled in as an 'extra token' is still NOT discounted —
+    # rail 2 subtracts every forbidden clear value (and its words) from the caller's set too.
+    real = "Kwame Adeyemi"
+    content_r = f"The subject is {real}."
+    pr = content_r.index("Kwame")
+    expl_r = f"['PERSON : [{pr}, {pr + 5}]']"  # flags the word 'Kwame'
+    smuggled = frozenset({_normalize_for_match(real)}) | \
+        frozenset(_normalize_for_match(w) for w in real.split())
+    assert g._is_surrogate_only(content_r, ("PERSON",), expl_r, extra_tokens=smuggled) is False
+
+
 def test_leakable_typed_tokens_discount_and_per_word_real_names_do_not():
     """The discount is decided by the SPANS, not the entity TYPES. The service labels a
     protection token by the type of the value it replaced (a tokenized SSN is still typed
@@ -163,6 +201,33 @@ def test_protection_tokens_never_contain_a_real_clear_value():
         )
     # the cleartext baseline's first party name is not a token
     assert _normalize_for_match(parties[0]["full_name"]) not in tokens
+
+
+def test_free_text_field_words_do_not_enter_the_token_set():
+    """SECURITY REGRESSION GUARD: free-text / categorical fields (a transaction `memo`, `risk_rating`,
+    `party_type`, …) are CLEAR by construction — harvesting them put generic words like 'consulting'
+    (from a 'consulting fee' memo) into the token set, which then also carried WORDS shared with real
+    org names. The loader (and the manifest builder) must skip `_CLEAR_TEXT_FIELDS`. Pins that a
+    memo word never becomes a discountable 'token'."""
+    import json
+    from pathlib import Path
+
+    from amlguard.guardrail import Guardrail, _normalize_for_match
+
+    # A protected artifact whose memo carries generic business words that must NOT become tokens.
+    all_txns = Path("data/protected/all/transactions.json")
+    if not all_txns.exists():
+        import pytest
+        pytest.skip("requires an ingested corpus")
+
+    g = Guardrail(enabled=False, forbidden_values=frozenset())  # no Rail-2 masking: isolate the field filter
+    tokens = g._protection_tokens()
+    # Words that only ever appear in a `memo` (free text) must be absent from the token set.
+    for memo_word in ("consulting", "advisory", "subscription", "equity"):
+        assert _normalize_for_match(memo_word) not in tokens, (
+            f"free-text memo word {memo_word!r} leaked into the token set")
+    # `_CLEAR_TEXT_FIELDS` is the guard; confirm the two we rely on are listed.
+    assert "memo" in Guardrail._CLEAR_TEXT_FIELDS and "risk_rating" in Guardrail._CLEAR_TEXT_FIELDS
 
 
 def test_aml_high_sensitivity_fields_single_source_of_truth():

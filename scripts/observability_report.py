@@ -54,8 +54,11 @@ def _langfuse(run_id: str) -> dict:
     import os
 
     import requests
+
+    from amlguard import settings
     pk, sk = os.getenv("LANGFUSE_PUBLIC_KEY"), os.getenv("LANGFUSE_SECRET_KEY")
-    host = os.getenv("LANGFUSE_HOST", "http://127.0.0.1:3000")
+    # Single source of truth for the host default (shared tier host :5006, not the old :3000).
+    host = settings.langfuse_host()
     if not pk or not sk:
         return {"available": False}
     try:

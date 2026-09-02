@@ -29,8 +29,13 @@ GATEWAY = _settings.pushgateway()
 JOB = "amlguard_ingest"
 
 
-def push_from_report(scope_slug: str, report: dict) -> None:
+def push_from_report(scope_slug: str, report: dict, domain: str = "aml") -> None:
     """Push a scope's operational metrics from its ingestion-report dict.
+
+    `domain` labels the series by use case (aml / healthcare / customer-support), so a future
+    multi-domain ingest keeps each domain's operational metrics distinguishable in one Prometheus /
+    Grafana (the idiomatic per-tenant approach: a bounded label, not a separate instance). Defaults
+    to "aml" — the only domain whose ingest currently pushes metrics.
 
     Works from the persisted `ingestion_report.json` shape, so the Prometheus plane is
     rebuildable from artifacts at $0 the same way the MLflow and Langfuse dashboards are
@@ -62,15 +67,16 @@ def push_from_report(scope_slug: str, report: dict) -> None:
     # The report stamps the corpus it was produced from as `source_fingerprint`. Carry it onto the
     # Prometheus series as the cross-plane join key (documented below), so the operational plane can
     # actually be joined to MLflow/Langfuse by (corpus_fingerprint, scope) rather than only by scope.
-    push_ingest_metrics(scope_slug, values, corpus_fingerprint=report.get("source_fingerprint"))
+    push_ingest_metrics(scope_slug, values, corpus_fingerprint=report.get("source_fingerprint"),
+                        domain=domain)
 
 
 def push_ingest_metrics(scope: str, values: dict[str, float],
-                        corpus_fingerprint: str | None = None) -> None:
-    """Push one scope's ingest operational metrics, labelled by scope (and corpus_fingerprint).
+                        corpus_fingerprint: str | None = None, domain: str = "aml") -> None:
+    """Push one scope's ingest operational metrics, labelled by domain, scope, corpus_fingerprint.
 
     Gauges, not counters: each is the measured value for this scope's run, and Grafana
-    graphs them over time (the pushgateway keeps the last push per {job, scope}). A push
+    graphs them over time (the pushgateway keeps the last push per {job, domain, scope}). A push
     failure is logged and swallowed, never raised.
     """
     if os.getenv("AMLGUARD_NO_METRICS") == "1":
@@ -95,17 +101,18 @@ def push_ingest_metrics(scope: str, values: dict[str, float],
             gauge = Gauge(
                 f"amlguard_ingest_{name}",
                 f"AMLGuard ingest {name.replace('_', ' ')}",
-                ["scope", "corpus_fingerprint"],
+                ["domain", "scope", "corpus_fingerprint"],
                 registry=registry,
             )
-            gauge.labels(scope=scope, corpus_fingerprint=fp).set(float(value))
+            gauge.labels(domain=domain, scope=scope, corpus_fingerprint=fp).set(float(value))
         # run_id provenance is NOT put on Prometheus at all: it would be either a
-        # cardinality-exploding label or a churning series. The operational plane joins to the
-        # MLflow/Langfuse planes through `corpus_fingerprint` + `scope` (now both real labels on the
-        # series; see the Observability section of docs/architecture.md and observability_report.py, which reads run_id from those
-        # planes, not from here). Both go into the grouping_key so the pushgateway keeps one series
-        # per (scope, corpus) rather than overwriting across corpora.
+        # cardinality-exploding label or a churning series. `domain` is a BOUNDED label (3 values),
+        # so it segments cleanly per use case without cardinality risk. The operational plane joins to
+        # the MLflow/Langfuse planes through `corpus_fingerprint` + `scope`; `domain` further isolates
+        # each use case. All three go into the grouping_key so the pushgateway keeps one series per
+        # (domain, scope, corpus) rather than overwriting across domains/corpora.
         push_to_gateway(GATEWAY, job=JOB,
-                        grouping_key={"scope": scope, "corpus_fingerprint": fp}, registry=registry)
+                        grouping_key={"domain": domain, "scope": scope, "corpus_fingerprint": fp},
+                        registry=registry)
     except Exception as exc:  # noqa: BLE001, metrics must never break ingest
         _log.warning("pushgateway export failed: %s: %s", type(exc).__name__, str(exc)[:100])

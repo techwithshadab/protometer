@@ -264,9 +264,11 @@ def _score_judge(checkpoint: Checkpoint, actual: Any, judge: Any) -> tuple[bool,
     if not text:
         return False, "empty reasoning"
 
-    from amlguard.observability import managed_prompt
+    from amlguard.observability import domain_project, managed_prompt
 
-    judge_system = managed_prompt("amlguard-judge-system")
+    # The eval harness is AML-only (the runner has no domain), so the AML judge prompt + project are
+    # correct here. A future multi-domain eval would thread the domain's judge_prompt/project through.
+    judge_system = managed_prompt("amlguard-judge-system", project=domain_project("aml"))
     try:
         verdict = extract_json(
             judge.complete(

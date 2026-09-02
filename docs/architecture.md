@@ -146,7 +146,7 @@ The choices that define the system, the alternatives we weighed, and why we chos
 | Decision | Alternatives | Why |
 |---|---|---|
 | MLflow (self-hosted Docker, SQLite-backed) for experiments + model registry | W&B; flat files | Every run stamped with the parameters that determine comparability (scope, model, corpus fingerprint, detection ledger, cache state); classifiers logged with signatures as `amlguard-<scope>`; server-first with same-store SQLite fallback so a down server never loses a run |
-| Langfuse (self-hosted v4) for prompt-level traces | MLflow GenAI tracing; log files | The reviewable unit of an LLM pipeline is the generation: prompt, completion, model, tokens, cost, cache state, latency. Captured at the one seam every call crosses (`LLMClient`), with run verdicts as scores. One tool per job. Loopback-bound and memory-capped because traces store prompts at rest |
+| Langfuse (self-hosted v4, one shared instance) for prompt-level traces | MLflow GenAI tracing; log files | The reviewable unit of an LLM pipeline is the generation: prompt, completion, model, tokens, cost, cache state, latency. Captured at the one seam every call crosses (`LLMClient`), with run verdicts as scores. One tool per job, and one instance shared by both demos with a project per domain so traces + versioned prompts stay isolated. Loopback-bound and memory-capped because traces store prompts at rest |
 | SHAP TreeExplainer, interventional mode, real background, probability units | Default path-dependent mode | Our features are heavily correlated (origin/beneficiary mirrors, degree family), exactly where path-dependent attribution spreads credit along correlations. With a training-fold background and probability output, "raises the score by 0.034" is literally in score units (additivity verified to 1e-6), and cross-scope reliance shift is what turns "AP dropped 10%" into "the model stopped using amounts" |
 | ChromaDB + local MiniLM embeddings | Hosted embedding APIs | Nothing leaves the machine during indexing; that is the point |
 | Config-driven model layer (12 models, 4 providers, YAML) | Hard-coded client | The architecture's claims must not depend on a vendor, and a reviewer must be able to reproduce on whatever they have. Swapping is a flag |
@@ -339,18 +339,35 @@ Two self-hosted planes with a deliberate division of labour, both optional by co
 * **MLflow** (`http://localhost:5001`) is the experiment ledger: every run with the
   parameters that determine comparability, metrics, artifacts, and the fitted classifiers
   logged with signatures into the registry as `amlguard-<scope>`.
-* **Langfuse** (`http://127.0.0.1:3000`) is the prompt-level record: every LLM call (eval
+* **Langfuse v4** (`http://127.0.0.1:5006`) is the prompt-level record: every LLM call (eval
   task, judge grade, rationale, preflight) captured as a generation with prompt,
   completion, model, tokens, cost, cache state, latency; run-level verdicts (grounded rate,
-  egress outcomes, queue precision) attached as scores. Because traces store prompts at
-  rest, every port in the stack is loopback-bound, services are memory-capped, and volumes
-  stay out of git.
-* **Prometheus + Grafana** (`http://localhost:3001`) is the operational plane for
-  ingestion, the one batch stage whose health is a time-series: rate, per-scope
-  duration, discovery share of wall-clock, no-op and failure counts. The job pushes
-  to a Pushgateway (the batch pattern: a scraped endpoint would be empty between
-  runs), Prometheus scrapes it, Grafana dashboards it. This is deliberately NOT in
-  MLflow, which is for experiment comparison, not operational time-series.
+  egress outcomes, queue precision) attached as scores. One shared instance (org
+  **Protegrity**) hosts a separate project per domain, so each domain's traces and versioned
+  prompts stay isolated (AML → the default keys; healthcare/support/botox → their own key
+  pairs). Because traces store prompts at rest, every port in the stack is loopback-bound,
+  services are memory-capped, and volumes stay out of git.
+* **Prometheus + Grafana** (Prometheus `http://localhost:5003`, Grafana `http://localhost:5002`,
+  admin/amlguard) is the operational plane. Grafana has **one dashboard per domain** — *AML*,
+  *Healthcare*, *Customer Support*, *Botox* — and each domain's metrics land on its own dashboard
+  regardless of whether they came from a batch run or a live turn. A domain's dashboard has a **Live
+  serving** section always, and a **Batch ingest** section where that mode applies (only AML runs the
+  8-scope sweep; healthcare/support/botox are live-chat only). Two metric SOURCES feed them, each
+  using the right Prometheus pattern:
+  * **Batch ingest — PUSHED.** Ingest is a batch job (a scraped endpoint would be empty between
+    runs), so it pushes per-scope rate, duration, discovery share of wall-clock, no-op and failure
+    counts to a **Pushgateway** (persistent, so a restart never blanks the dashboard); Prometheus
+    scrapes the gateway. `amlguard_ingest_*`, each series carrying a bounded `domain` label. Feeds
+    the AML dashboard's *Batch ingest* section.
+  * **Live serving — SCRAPED.** Each app exposes a `/metrics` endpoint (`serving_metrics.py` for
+    AMLGuard, `app/obs/metrics.py` for botox) that Prometheus scrapes every 15s — the idiomatic
+    pattern for a long-running server, where counters/histograms accumulate. Per turn: turn count by
+    `(domain, role, outcome)`, end-to-end latency histogram, entities protected, reveals, egress
+    blocks, canary hits, out-of-scope, errors by kind, and LLM tokens by direction; botox adds
+    protection-down (fail-closed), emergency short-circuits, and a grounding-score histogram. An
+    egress block is classified as a guard action (`outcome=egress_blocked`), never an error. Feeds
+    each domain dashboard's *Live serving* section. This is deliberately NOT in MLflow, which is for
+    experiment comparison, not operational time-series.
 
 All three are optional (kill switches `AMLGUARD_NO_TRACKING` / `_NO_TRACING` / `_NO_METRICS`,
 each with a no-op degrade path); the pipeline never depends on any of them.
@@ -480,8 +497,14 @@ network-level analytics detect what account-level monitoring misses.
 - **Data layer**: Postgres is the app's source of truth (relational corpus mirror); the file corpus is
   the offline/reproducibility source of truth. MLflow's backend stays on SQLite.
 - **Observability**: MLflow, Langfuse, Prometheus + Grafana (see above).
-- **Packaging**: fully dockerised as one Compose project (app + Postgres + the vendor DE services +
-  every observability plane); see [SETUP.md](SETUP.md).
+- **Packaging**: fully dockerised. The Protegrity DE services and the observability planes are
+  **decoupled shared tiers** (`protegrity-shared` + `observability-shared`, each on its own network),
+  brought up first (`make shared-up`) so AMLGuard and the BOTOX chatbot share one tokenizer and one
+  observability platform; the app + Postgres attach with `make docker-up`. A legacy `make docker-full`
+  bundles everything into one project for a single-demo machine. Ports follow a banded map (first digit
+  = tier: 5xxx observability, 6xxx Protegrity DE, 8xxx AMLGuard, 9xxx BOTOX). See
+  [SETUP.md](SETUP.md), [docker/README.md](../docker/README.md), and
+  [adr/shared-infra-decoupling.md](adr/shared-infra-decoupling.md).
 
 ## Key invariants (don't relearn these)
 

@@ -68,6 +68,24 @@ app.add_middleware(
     allow_headers=["Content-Type"],
 )
 
+# Prometheus SCRAPE endpoint for live-serving operational metrics (turn volume/outcome, latency,
+# PII-protection counters, model/token usage — see serving_metrics.py). A long-running server is
+# scraped, not push-based like batch ingest. Served as an explicit GET route (NOT app.mount): the
+# SPA is mounted at "/" via StaticFiles, which greedily matches bare "/metrics" and 404s it before a
+# sub-mount's trailing-slash redirect can fire — an explicit route for the exact path wins. No-op /
+# empty body if prometheus_client is absent or AMLGUARD_NO_METRICS=1, so serving never depends on it.
+@app.get("/metrics")
+def _prometheus_metrics():
+    from starlette.responses import Response
+    try:
+        from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+        from amlguard.serving_metrics import _disabled
+        if _disabled():
+            return Response(status_code=404)
+        return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+    except Exception:  # noqa: BLE001, telemetry must never break; report unavailable
+        return Response(status_code=404)
+
 
 # ── The architecture flow: the batch stepper's source of truth, PER DOMAIN ────────────────────
 # Each stage names the artifact the Replay panel reveals, a one-line "what it measures", and
@@ -619,14 +637,21 @@ def chat_turn(
     # request's role is used, which is the frictionless local-demo default that lets a judge switch
     # roles to see the contrast.
     from amlguard import settings
-    role_name = settings.ui_role_tokens().get(x_amlguard_token or "", req.role)
+    requested_role = settings.ui_role_tokens().get(x_amlguard_token or "", req.role)
+    # Constrain the role to ones VALID FOR THIS DOMAIN, defaulting to the domain's low-privilege
+    # role. Without this an AML `investigator` role on a customer-support turn would re-identify the
+    # customer in full — the inversion of the "agent masked, supervisor full" story. role_for()
+    # returns the domain default for any role not in the domain's live_roles.
+    role_name = domain.role_for(requested_role)
     role = ROLES.get(role_name)
     if role is None:
         raise HTTPException(400, f"unknown role {role_name!r}; known: {sorted(ROLES)}")
 
+    from amlguard import serving_metrics
+    _llm = _get_llm()
     try:
         session = ConversationSession(
-            protector=_get_protector(), llm=_get_llm(),
+            protector=_get_protector(), llm=_llm,
             conversation_id=req.conversation_id, role=role, domain=domain,
             guardrail=_get_guardrail(domain),
             # roster is load-bearing: the serving path protects EVERYTHING detected, and discovery
@@ -642,7 +667,20 @@ def chat_turn(
             ledger=_get_reveal_ledger(),
             tripwire=_get_tripwire(domain.name),
         )
-        result = session.turn(req.message)
+        # Measure the whole turn's latency; record the per-turn counters after it returns. Both are
+        # best-effort no-ops when metrics are off (serving_metrics), so a turn is never blocked on
+        # telemetry. `domain.name` is the canonical domain label (matches the batch `domain` label).
+        with serving_metrics.time_turn(domain.name):
+            result = session.turn(req.message)
+        # Last LLM call's usage for the model/token counters (Langfuse has per-generation detail;
+        # this is the aggregate time-series). A cached/absent call leaves the record at 0 tokens.
+        _last = _llm.stats.records[-1] if getattr(_llm, "stats", None) and _llm.stats.records else None
+        serving_metrics.record_turn(
+            domain.name, role_name, result,
+            model=(_last.model if _last else getattr(_llm, "name", "")) or "",
+            input_tokens=(_last.input_tokens if _last else 0),
+            output_tokens=(_last.output_tokens if _last else 0),
+        )
     except HTTPException:
         # An intentional, already-shaped HTTP error (e.g. DataUnavailable's 503 with its precise
         # corpus/loader message) must reach the UI with ITS OWN status and message, not be
@@ -650,6 +688,7 @@ def chat_turn(
         # become a 502.
         raise
     except Exception as exc:  # noqa: BLE001, surface a genuinely-unexpected failure cleanly
+        serving_metrics.record_error_turn(domain.name, role_name, type(exc).__name__)
         raise HTTPException(502, f"{type(exc).__name__}: {exc}") from exc
     return {
         "reply": result.reply,
@@ -664,7 +703,7 @@ def chat_turn(
             "egress_blocked": result.egress_blocked,
             "egress_detail": result.egress_detail,   # per-processor + conversation-level verdict
             "guardrail_model": domain.injection_processor,
-            "role": req.role,
+            "role": role_name,   # the EFFECTIVE role enforced (domain-constrained), not the requested one
             "domain": req.domain,
         },
         "ok": result.ok,

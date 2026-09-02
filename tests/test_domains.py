@@ -79,17 +79,39 @@ def test_every_domain_entity_type_is_tokenizable():
             )
 
 
+def test_billing_can_reveal_the_mrn_entity_type_it_bills_against():
+    """The healthcare `billing` role's default story is 'sees name + MRN to bill'. The MRN
+    tokenizes as HEALTH_CARE_ID (domains.py maps `mrn` -> HEALTH_CARE_ID), so billing MUST permit
+    that exact entity type — otherwise it sees the name but never the MRN (fails closed, breaks the
+    demo beat). SSN / insurance_id stay masked (distinct entity types), so this is minimum-necessary,
+    not over-reveal."""
+    from amlguard.domains import get_domain
+    from amlguard.reidentify import ROLES
+
+    billing = ROLES["billing"]
+    hc = get_domain("healthcare")
+    mrn_type = hc.record_fields["mrn"]
+    assert billing.permits(mrn_type), (
+        f"billing cannot reveal the MRN's actual entity type {mrn_type!r}")
+    # minimum-necessary: SSN and insurance_id are NOT revealable by billing
+    assert not billing.permits(hc.record_fields["ssn"])
+    assert not billing.permits(hc.record_fields["insurance_id"])
+
+
 def test_forbidden_values_use_domain_fields():
     """The egress backstop must forbid a NON-AML domain's identifiers, not only AML party
     fields, or a healthcare/support corpus's names/MRNs pass the check (cross-domain leak)."""
     from amlguard.guardrail import forbidden_values_from_parties
 
     hc = get_domain("healthcare")
-    records = [{"patient_name": "Jane Roe", "mrn": "MRN0012345", "amount": "unused"}]
-    # default (AML fields) does NOT know patient_name -> misses it
+    # Real corpus rows store the name under `full_name` (NOT patient_name); the domain's
+    # record_fields must use that same key or the backstop misses the name (the cross-domain leak
+    # this test guards). `mrn` is the healthcare-specific identifier.
+    records = [{"full_name": "Jane Roe", "mrn": "MRN0012345", "amount": "unused"}]
+    # default (AML fields) knows full_name but NOT the mrn -> misses the healthcare identifier
     aml_default = forbidden_values_from_parties(records)
-    assert "Jane Roe" not in aml_default
-    # domain fields DO forbid it
+    assert "MRN0012345" not in aml_default
+    # domain fields DO forbid both the name and the domain-specific mrn
     with_domain = forbidden_values_from_parties(records, tuple(hc.record_fields))
     assert "Jane Roe" in with_domain and "MRN0012345" in with_domain
 

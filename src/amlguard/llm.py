@@ -580,6 +580,13 @@ class LLMClient:
     # the process RUN_ID; a serving layer sets it to a conversation id so each conversation is
     # its own session in the UI. Purely observational.
     trace_session: str = ""
+    # Optional Langfuse Prompt-Management name of the SYSTEM prompt this client is running. When set,
+    # record_generation resolves the managed prompt object and LINKS the generation to its version
+    # (UI lineage: "this generation used prompt vN"). Empty -> no link. Purely observational.
+    trace_prompt_name: str = ""
+    # Optional Langfuse PROJECT this client's generations trace into (an AMLGuard domain's own
+    # project: aml/healthcare/support). Empty -> the default project. Purely observational.
+    trace_project: str = ""
     stats: LLMStats = field(default_factory=LLMStats)
 
     _provider: Any = field(default=None, repr=False)
@@ -725,7 +732,9 @@ class LLMClient:
                 component=self.trace_component or "llm",
                 model=self.name, system=system, prompt=prompt, completion=cached,
                 input_tokens=0, output_tokens=0, cost_usd=0.0, latency_s=0.0,
-                cached=True, metadata={"namespace": self.cache_namespace,
+                cached=True, prompt_name=self.trace_prompt_name or None,
+                project=self.trace_project or None,
+                metadata={"namespace": self.cache_namespace,
                           **({"langfuse_session_id": self.trace_session}
                              if self.trace_session else {})},
             )
@@ -833,7 +842,8 @@ class LLMClient:
                     system=system, prompt=prompt, completion=content,
                     input_tokens=input_tokens, output_tokens=output_tokens,
                     cost_usd=call_cost, latency_s=elapsed, cached=False,
-                    attempts=attempt,
+                    attempts=attempt, prompt_name=self.trace_prompt_name or None,
+                    project=self.trace_project or None,
                     metadata={"namespace": self.cache_namespace,
                           **({"langfuse_session_id": self.trace_session}
                              if self.trace_session else {})},

@@ -46,9 +46,10 @@ docker login ghcr.io      # username = your GitHub username; password = a GH tok
 #    Install: https://ollama.com/download  — then:
 make setup-local-model    # pulls llama3.2 (~2GB). Skip this if you only want Replay mode.
 
-# 5. Bring up the whole stack as one project and open the UI
-make docker-full          # app + Postgres + Protegrity services + observability, one lifecycle
-open http://localhost:8600
+# 5. Bring up the shared infrastructure FIRST, then the AMLGuard demo, and open the UI
+make shared-up            # shared Protegrity DE tier + shared observability platform (bring up first)
+make docker-up            # the AMLGuard app + its Postgres, attached to the shared tiers
+open http://localhost:8000
 ```
 
 That's it. In the UI:
@@ -59,8 +60,20 @@ That's it. In the UI:
 - Switch domains (AML / Clinical / Customer-Support) and views (Batch Analysis / Live Assistant) from
   the top bar.
 
-**Lighter option:** `make docker-up` starts just the app + Postgres (Replay + the healthcare/support
-batch demos work; live chat and paid batch stages need the full stack).
+**Why two commands.** The Protegrity DE services and the observability platform are **decoupled shared
+tiers** (`protegrity-shared` and `observability-shared`, each on its own Docker network), so AMLGuard
+*and* the BOTOX chatbot can run at the same time against one tokenizer and one observability platform.
+`make shared-up` is idempotent — run it once and leave it up; then `make docker-up` (AMLGuard) and
+`cd botox_demo && docker compose up -d --build` (BOTOX) attach to it. See
+[docs/adr/shared-infra-decoupling.md](adr/shared-infra-decoupling.md).
+
+**Lighter option:** for a **Replay-only** look you can skip `make shared-up` and just `make docker-up`
+— the app + Postgres come up and Replay plus the healthcare/support batch demos work. Live chat, the
+egress guardrail, and paid batch stages need the shared Protegrity tier (`make shared-up`).
+
+**Legacy all-in-one:** `make docker-full` bundles everything into ONE project (app + Postgres + vendor
+DE + observability, UI on **:8600**) for a machine that can't run the shared tiers side by side. Its
+ports differ from the banded shared map; prefer `make shared-up && make docker-up`.
 
 ### Live chat: the model, explained
 
@@ -118,7 +131,7 @@ You can also run the eval on a **local** model at $0 (lower quality, but free):
 ## Verify it's working
 
 ```bash
-curl -s http://localhost:8600/api/health | python3 -m json.tool
+curl -s http://localhost:8000/api/health | python3 -m json.tool
 ```
 
 You should see `"ok": true` and a `"live_chat"` block naming the resolved model and whether it's
@@ -134,9 +147,10 @@ Run the test suite anytime: `make test` (or `python -m pytest tests/ -q`).
 |---|---|
 | UI loads but **live chat fails** with "Ollama not reachable" | Ollama isn't running → install from [ollama.com](https://ollama.com/download), start it, then `make setup-local-model`. |
 | Live banner says **model "not downloaded yet"** | run `make setup-local-model` once, or set `AMLGUARD_AUTO_PULL_MODEL=true` in `.env`. |
-| Vendor services **fail to pull** | `docker login ghcr.io` with a GitHub token (read:packages). The app + Postgres + observability still come up and Replay mode works without them. |
-| Parties view / chat returns **503** | the Postgres corpus mirror isn't loaded → `make docker-full` loads it automatically; for local dev run `python scripts/load_corpus_db.py --all`. |
-| `make docker-full` **out of memory** (guardrail 500s) | the full stack is memory-heavy (Langfuse's ClickHouse alone caps at 3g). Use `make docker-up` (app + Postgres only) or start observability selectively. |
+| Vendor services **fail to pull** | `docker login ghcr.io` with a GitHub token (read:packages). The AMLGuard app + Postgres still come up and Replay mode works without them. |
+| Live chat / batch guardrail returns **connection refused** to Protegrity | the shared Protegrity tier isn't up → `make shared-up` (or `make shared-protegrity-up`) before `make docker-up`. Bring shared observability up **before** the app too, or the app's OTel exporter caches a failed DNS lookup — restart the app if it started first. |
+| Parties view / chat returns **503** | the Postgres corpus mirror isn't loaded → `make docker-up` loads it automatically on start; for local dev run `python scripts/load_corpus_db.py --all`. |
+| Stack **out of memory** (guardrail 500s) | the shared observability tier is memory-heavy (Langfuse's ClickHouse alone caps at 3g) and the Docker VM is ~7.65GB. Don't run a guardrail-dependent paid run beside a full observability tier — `make shared-down` frees it, or start only `make shared-protegrity-up`. |
 | Credentials in `.env` **not reaching the container** | the make targets pass `--env-file .env`; if you run raw `docker compose`, add `--env-file .env` yourself. |
 
 More operational detail: [docker/README.md](../docker/README.md), [ui/README.md](../ui/README.md).

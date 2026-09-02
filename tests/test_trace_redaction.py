@@ -39,7 +39,7 @@ class _FakeClient:
 
 def _record(monkeypatch, **over):
     fake = _FakeClient()
-    monkeypatch.setattr(obs, "_get_client", lambda: fake)
+    monkeypatch.setattr(obs, "_get_client", lambda project=None: fake)
     obs.record_generation(
         component="eval", model="m",
         system="grade this", prompt="Leila Rahman moved 712000.00",
@@ -58,7 +58,7 @@ def test_installed_values_are_scrubbed_from_bodies(monkeypatch):
         assert "712000.00" not in blob
         assert "[REDACTED-PII]" in blob
     finally:
-        obs.set_trace_redaction(None)
+        obs.reset_trace_redaction()
 
 
 def test_redaction_catches_case_and_homoglyph_variants(monkeypatch):
@@ -78,10 +78,10 @@ def test_redaction_catches_case_and_homoglyph_variants(monkeypatch):
         # a clean body is returned unchanged (not needlessly canonicalized)
         assert obs._redact("nothing sensitive here") == "nothing sensitive here"
     finally:
-        obs.set_trace_redaction(None)
+        obs.reset_trace_redaction()
 
 
 def test_redaction_is_off_by_default(monkeypatch):
-    obs.set_trace_redaction(None)
+    obs.reset_trace_redaction()
     cap = _record(monkeypatch)
     assert "Leila Rahman" in str(cap.get("input", ""))

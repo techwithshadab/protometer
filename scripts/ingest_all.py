@@ -80,6 +80,22 @@ def _write_manifest(reports: list[dict], status: str, error: str = "") -> None:
         "reports": reports,
     })
 
+    # Rebuild the compact protection-token manifest the serving guardrail's surrogate-discount
+    # ships with (data/protected/ is .dockerignore'd, so the container relies on this manifest, not
+    # the bulk artifacts). Best-effort: a manifest failure must never fail an otherwise-good ingest.
+    if status == "ok":
+        try:
+            import importlib.util
+            _spec = importlib.util.spec_from_file_location(
+                "build_token_manifest", Path(__file__).resolve().parent / "build_token_manifest.py")
+            _mod = importlib.util.module_from_spec(_spec)
+            _spec.loader.exec_module(_mod)
+            _mod.main()
+        except Exception as exc:  # noqa: BLE001
+            from amlguard.log import get_logger
+            get_logger("ingest").warning(
+                "token-manifest rebuild skipped: %s: %s", type(exc).__name__, exc)
+
 
 def _index(scope_slug: str, protected_dir: Path) -> None:
     """Embed the protected narratives for one scope.
@@ -205,7 +221,7 @@ def main(argv: list[str]) -> int:
             # could only ever be refreshed by re-paying for a full protect run.
             from amlguard.metrics_export import push_from_report
 
-            push_from_report(scope.slug, persisted)
+            push_from_report(scope.slug, persisted, domain="aml")
             # Still index: protection and indexing are separate steps, and an interrupted
             # run can leave a fully protected scope with no index at all.
             try:
@@ -240,7 +256,7 @@ def main(argv: list[str]) -> int:
         # and it is the wrong shape for MLflow's experiment-comparison model.
         from amlguard.metrics_export import push_from_report
 
-        push_from_report(scope.slug, report.to_dict())
+        push_from_report(scope.slug, report.to_dict(), domain="aml")
         print(
             f"[{scope.name}] done in {report.seconds:.0f}s, "
             f"entities found={report.entities_found} protected={report.entities_protected}"

@@ -24,10 +24,16 @@ deck/node_modules/
 node_modules/
 
 # The protected corpus is regenerated per scope on the host from the clear corpus; it is large and
-# the app does not serve the bulk of it. Exclude it, but RE-INCLUDE the small summary the Ingest
-# stage reveals (ingestion_summary.json) so the batch view's Ingest metrics render in-container.
+# the app does not serve the bulk of it. Exclude it, but RE-INCLUDE (a) the small summary the Ingest
+# stage reveals (ingestion_summary.json) so the batch view's Ingest metrics render in-container, and
+# (b) the compact token-only manifest (token-manifest.json, ~1.9MB) the egress guardrail's
+# surrogate-discount needs — WITHOUT it the container's token set is empty and the guard rejects
+# safe live-chat replies (a `[PERSON]` surrogate mislabelled PASSWORD). The manifest holds only
+# protection tokens, never clear values (built by scripts/build_token_manifest.py from the
+# tokenizing scopes; Rail 2 still subtracts forbidden clear values at runtime).
 data/protected/
 !data/protected/ingestion_summary.json
+!data/protected/token-manifest.json
 data/.amlguard.lock
 data/eval/_live/
 

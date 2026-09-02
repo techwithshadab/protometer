@@ -1,0 +1,90 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_design.css">
+<style>body{width:1440px;height:520px}
+  .drow{background:#FBFAF8;border:1px solid var(--line);border-radius:12px;box-shadow:0 6px 16px rgba(7,29,73,.07);padding:12px 15px;display:flex;align-items:center;gap:14px}
+  .drow .dq{font-size:13.5px;font-weight:700;color:var(--ink)}
+  .drow .dqk{font-family:var(--mono);font-size:9.5px;color:var(--soft2);margin-top:2px}
+  .pick{border-radius:11px;padding:11px 14px;flex:none;width:300px}
+  .pick .pt{font-size:13px;font-weight:700}
+  .pick .pd{font-size:10px;margin-top:2px;line-height:1.35}
+  .p-alt{background:#eaf0f9;border:1px solid #9fb6dd}
+  .p-alt .pt{color:#071d49}.p-alt .pd{color:#3f5a86}
+  .p-default{background:linear-gradient(120deg,#071d49,#23417b);color:#fff}
+  .p-default .pd{color:rgba(245,243,239,.8)}
+  svg.edge{position:absolute;overflow:visible;pointer-events:none}
+  .ylbl{position:absolute;font-family:var(--mono);font-size:9px;font-weight:600;color:var(--purple)}
+  .nlbl{position:absolute;font-family:var(--mono);font-size:9px;font-weight:600;color:var(--soft2)}
+</style>
+</head>
+<body>
+
+<div class="abs" style="left:0;right:0;top:22px;text-align:center;font-family:var(--font);font-size:20px;font-weight:700;letter-spacing:.2px;color:var(--ink)">
+  Model Tiering: One Model Chosen at Startup</div>
+<div class="abs" style="left:0;right:0;top:52px;text-align:center;font-size:11px;color:var(--soft2)">
+  resolve_model() picks a single model at process start. It never fallback-chains mid-call.</div>
+
+<svg class="edge" style="left:0;top:0" width="1440" height="520">
+  <defs><marker id="ah" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><polygon points="0,0 6,3 0,6" fill="#23417b"/></marker>
+  <marker id="ahp" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><polygon points="0,0 6,3 0,6" fill="#23417b"/></marker></defs>
+  <!-- down the ladder -->
+  <line x1="120" y1="152" x2="120" y2="184" stroke="#23417b" stroke-width="2.2" marker-end="url(#ah)"/>
+  <line x1="120" y1="240" x2="120" y2="272" stroke="#23417b" stroke-width="2.2" marker-end="url(#ah)"/>
+  <line x1="120" y1="328" x2="120" y2="360" stroke="#23417b" stroke-width="2.2" marker-end="url(#ah)"/>
+  <!-- yes branches -->
+  <line x1="800" y1="120" x2="1000" y2="120" stroke="#23417b" stroke-width="2" marker-end="url(#ah)"/>
+  <line x1="800" y1="208" x2="1000" y2="208" stroke="#23417b" stroke-width="2" marker-end="url(#ah)"/>
+  <line x1="800" y1="296" x2="1000" y2="296" stroke="#23417b" stroke-width="2" marker-end="url(#ah)"/>
+  <line x1="800" y1="392" x2="1000" y2="392" stroke="#23417b" stroke-width="2" marker-end="url(#ah)"/>
+</svg>
+
+<div class="nlbl" style="left:130px;top:196px">no</div>
+<div class="nlbl" style="left:130px;top:284px">no</div>
+<div class="nlbl" style="left:130px;top:372px">no</div>
+<div class="ylbl" style="left:880px;top:104px">set</div>
+<div class="ylbl" style="left:880px;top:192px">yes</div>
+<div class="ylbl" style="left:880px;top:280px">yes</div>
+<div class="ylbl" style="left:876px;top:376px">default</div>
+
+<!-- decision rows -->
+<div class="drow abs" style="left:30px;top:92px;width:770px">
+  <div style="font-family:var(--mono);font-size:18px;color:var(--peri)">?</div>
+  <div><div class="dq">BOTOX_MODEL set?</div><div class="dqk">explicit override, wins unconditionally</div></div>
+</div>
+<div class="drow abs" style="left:30px;top:180px;width:770px">
+  <div style="font-family:var(--mono);font-size:18px;color:var(--peri)">?</div>
+  <div><div class="dq">ANTHROPIC_API_KEY present?</div><div class="dqk">hosted, better quality, real cost</div></div>
+</div>
+<div class="drow abs" style="left:30px;top:268px;width:770px">
+  <div style="font-family:var(--mono);font-size:18px;color:var(--peri)">?</div>
+  <div><div class="dq">AWS credentials present?</div><div class="dqk">hosted via Bedrock</div></div>
+</div>
+<div class="drow abs" style="left:30px;top:360px;width:770px;background:#eef3fb">
+  <div style="font-family:var(--mono);font-size:18px;color:var(--purple)">↓</div>
+  <div><div class="dq">No cloud credentials</div><div class="dqk">the $0 default path</div></div>
+</div>
+
+<!-- picks -->
+<div class="pick p-alt abs" style="left:1000px;top:96px">
+  <div class="pt">Use It (Override)</div><div class="pd">whatever BOTOX_MODEL names</div>
+</div>
+<div class="pick p-alt abs" style="left:1000px;top:184px">
+  <div class="pt">Anthropic</div><div class="pd">claude-3-5-haiku</div>
+</div>
+<div class="pick p-alt abs" style="left:1000px;top:272px">
+  <div class="pt">Bedrock</div><div class="pd">claude-3-5-haiku</div>
+</div>
+<div class="pick p-default abs" style="left:1000px;top:366px">
+  <div class="pt">Local Ollama, $0</div><div class="pd">llama3.2, host-run via host.docker.internal</div>
+</div>
+
+<!-- footnote strip -->
+<div class="ctrlplane abs" style="left:30px;top:456px;width:1380px;height:44px">
+  <div class="cpi">$0 by default, no cloud account needed</div>
+  <div class="cpi">Hosted-ready: the rest of the pipeline is identical whichever model answers</div>
+  <div class="cpi">Streaming supported per provider, temperature 0.1 for consistency</div>
+</div>
+
+</body></html>

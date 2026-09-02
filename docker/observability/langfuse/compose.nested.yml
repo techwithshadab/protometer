@@ -14,8 +14,9 @@
 #   compose + this project's loopback/memory override (docker/observability/langfuse/compose.override.yml),
 #   so behaviour is identical — only the service/DNS names differ.
 #
-# All services join `protegrity-network` so langfuse-web is reachable at http://langfuse-web:3000
-# from the app and, via the host port map, at http://localhost:3000.
+# Under the shared observability project these services are named obs-* and join the
+# `observability-shared` network, so Langfuse is reachable at http://obs-langfuse:3000 from other
+# containers and, via the host port map, at http://localhost:5006.
 
 networks:
   protegrity-network:
@@ -46,7 +47,7 @@ services:
       TZ: UTC
       PGTZ: UTC
     ports:
-      - "127.0.0.1:5434:5432"   # 5434: our app Postgres owns 5433, vendor default 5432 may be taken
+      - "127.0.0.1:5010:5432"   # 5434: our app Postgres owns 5433, vendor default 5432 may be taken
     volumes:
       - langfuse_postgres_data:/var/lib/postgresql/data
     networks: [protegrity-network]
@@ -65,8 +66,8 @@ services:
       - langfuse_clickhouse_data:/var/lib/clickhouse
       - langfuse_clickhouse_logs:/var/log/clickhouse-server
     ports:
-      - "127.0.0.1:8123:8123"
-      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:5012:8123"
+      - "127.0.0.1:5013:9000"
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://localhost:8123/ping || exit 1
       interval: 5s
@@ -86,8 +87,8 @@ services:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minio}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-miniosecret}
     ports:
-      - "127.0.0.1:9090:9000"
-      - "127.0.0.1:9091:9001"
+      - "127.0.0.1:5014:9000"
+      - "127.0.0.1:5015:9001"
     volumes:
       - langfuse_minio_data:/data
     healthcheck:
@@ -107,7 +108,7 @@ services:
       --requirepass ${REDIS_AUTH:-myredissecret}
       --maxmemory-policy noeviction
     ports:
-      - "127.0.0.1:6379:6379"
+      - "127.0.0.1:5011:6379"
     volumes:
       - langfuse_redis_data:/data
     healthcheck:
@@ -128,7 +129,7 @@ services:
       langfuse-redis: {condition: service_healthy}
       langfuse-clickhouse: {condition: service_healthy}
     ports:
-      - "127.0.0.1:3030:3030"
+      - "127.0.0.1:5005:3030"
     environment: &lf-env
       LANGFUSE_LOG_LEVEL: ${LANGFUSE_LOG_LEVEL:-info}
       # v4 events-table architecture (ADR / Langfuse v3->v4 migration guide): a v4 SDK (>=4.7.0, we
@@ -138,7 +139,7 @@ services:
       # write use the new tables (correct for a fresh install with no v3 legacy data to migrate).
       LANGFUSE_MIGRATION_V4_WRITE_MODE: ${LANGFUSE_MIGRATION_V4_WRITE_MODE:-events_only}
       LANGFUSE_MIGRATION_V4_NATIVE_OTEL_BEHAVIOUR: ${LANGFUSE_MIGRATION_V4_NATIVE_OTEL_BEHAVIOUR:-direct}
-      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:5006}
       # renamed host: postgres -> langfuse-postgres
       DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@langfuse-postgres:5432/postgres}
       SALT: ${SALT:-mysalt}
@@ -179,23 +180,26 @@ services:
     mem_limit: 2g
     depends_on: *lf-depends
     ports:
-      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:5006:3000"
     environment:
       <<: *lf-env
       NODE_OPTIONS: --max-old-space-size=1536
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-mysecret}
-      LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: ${LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT:-http://localhost:9090}
-      # Auto-seed an org/project/user on a FRESH database, with API keys that MATCH the app's .env
-      # (LANGFUSE_PUBLIC_KEY / LANGFUSE_SECRET_KEY). Without this, a fresh Langfuse has no keys and the
-      # app's traces 401. Values come from .env so the two can never drift; init only runs when the
-      # project doesn't already exist, so it's safe on every boot.
-      LANGFUSE_INIT_ORG_ID: ${LANGFUSE_INIT_ORG_ID:-amlguard}
-      LANGFUSE_INIT_ORG_NAME: ${LANGFUSE_INIT_ORG_NAME:-AMLGuard}
+      LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: ${LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT:-http://langfuse-minio:9000}
+      # Auto-seed the org + the FIRST project + admin user on a FRESH database. The shared instance
+      # hosts ONE org ("Protegrity") with a project per demo: AMLGuard (seeded here, keys from .env)
+      # and Botox. Langfuse's headless init only provisions ONE project, and its Organizations
+      # Management API (create-project) is Enterprise-only — so the SECOND project (Botox) is created
+      # ONCE in the UI (Settings -> New Project), its keys put in .env as BOTOX_LANGFUSE_*. See
+      # docs/adr/shared-infra-decoupling.md. Init only runs when the project doesn't exist, so it's
+      # safe on every boot; it does NOT retro-rename an existing org/project (change those in the UI).
+      LANGFUSE_INIT_ORG_ID: ${LANGFUSE_INIT_ORG_ID:-protegrity}
+      LANGFUSE_INIT_ORG_NAME: ${LANGFUSE_INIT_ORG_NAME:-Protegrity}
       LANGFUSE_INIT_PROJECT_ID: ${LANGFUSE_INIT_PROJECT_ID:-amlguard}
       LANGFUSE_INIT_PROJECT_NAME: ${LANGFUSE_INIT_PROJECT_NAME:-AMLGuard}
       LANGFUSE_INIT_PROJECT_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}
       LANGFUSE_INIT_PROJECT_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}
-      LANGFUSE_INIT_USER_EMAIL: ${LANGFUSE_INIT_USER_EMAIL:-admin@amlguard.local}
-      LANGFUSE_INIT_USER_NAME: ${LANGFUSE_INIT_USER_NAME:-AMLGuard Admin}
-      LANGFUSE_INIT_USER_PASSWORD: ${LANGFUSE_INIT_USER_PASSWORD:-amlguard-admin}
+      LANGFUSE_INIT_USER_EMAIL: ${LANGFUSE_INIT_USER_EMAIL:-admin@protegrity.local}
+      LANGFUSE_INIT_USER_NAME: ${LANGFUSE_INIT_USER_NAME:-Protegrity Admin}
+      LANGFUSE_INIT_USER_PASSWORD: ${LANGFUSE_INIT_USER_PASSWORD:-protegrity-admin}
     networks: [protegrity-network]

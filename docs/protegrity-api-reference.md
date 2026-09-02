@@ -151,8 +151,9 @@ above it.
 
 - **Hosted (needs credentials):** tokenization, `protect`, `unprotect`, `reprotect`.
 - **Local (Docker, no key):** Data Discovery, Semantic Guardrail, Anonymization, Synthetic
-  Data. Discovery endpoint here is `POST http://localhost:8580/pty/data-discovery/v2/classify/text`,
-  overridable with `AMLGUARD_DISCOVERY_URL`.
+  Data — all in the shared `protegrity-shared` tier (6xxx band). Discovery classification is
+  `POST http://localhost:6000/pty/data-discovery/v2/classify/text` on the host (in-container
+  it is `pty-classification:8050`), overridable with `AMLGUARD_DISCOVERY_URL`.
 
 There is no local tokenization service in any shipped `docker-compose.yml`, which is what
 bounds corpus size for this project.
@@ -196,9 +197,21 @@ is therefore **application-enforced**, labelled everywhere it appears.
   Protegrity protection **token** (e.g. `4oB93 T7MdI3`) as `PASSWORD` and rejects an otherwise
   safe reply (score ~0.95). PASSWORD is not in `LEAKABLE_ENTITIES`, but the block came from the
   service's `outcome: rejected`, not our leak check. Fixed by extending the surrogate-key
-  discount to recognise the corpus's own protection tokens (loaded from the protected
-  artifacts); the `leaked_values` hard block on real clear values is unchanged, so this cannot
-  pass a real leak.
+  discount to recognise the corpus's own protection tokens; the `leaked_values` hard block on
+  real clear values is unchanged, so this cannot pass a real leak.
+  - **Serving-container regression (fixed):** the discount learned its token set by reading the
+    per-scope `data/protected/*/parties.json` — but the serving image `.dockerignore`s those
+    (large, partially-clear), so IN THE CONTAINER the set was EMPTY and the discount silently died:
+    ~half of live chat turns were withheld when the model echoed a `[PERSON]` name-surrogate the
+    service typed PASSWORD. Fixed two ways: (1) `scripts/build_token_manifest.py` distills the
+    tokenizing scopes into ONE compact, token-only `data/protected/token-manifest.json` (~1.9MB,
+    no clear values) that IS shipped (whitelisted in `.dockerignore`, rebuilt at the end of
+    ingest), and `Guardrail._protection_tokens` prefers it; (2) `serving.py` hands `scan_response`
+    the surrogates THIS turn just minted (`extra_tokens=`) so a freshly-tokenized name is
+    discounted even without the manifest. Both paths still run Rail 2 (subtract every forbidden
+    clear value) and `blocked` consults `leaked_values` first, so neither can discount a real leak.
+    Model-**hallucinated** identifiers (a phone the small local model invents, absent from every
+    artifact) are correctly NOT discounted — the guard still blocks them, as intended.
 
 ## Anonymization risk engine (measured)
 

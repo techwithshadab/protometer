@@ -1,0 +1,83 @@
+# SHARED Protegrity Developer-Edition tier — one tokenizer, many demos.
+#
+# The Protegrity DE services (classification/pattern/context discovery, semantic-guardrail,
+# anonymization, synthetic-data) are heavy amd64 images, identical across every demo, and hold no
+# per-demo state (tokenization is deterministic and keyed server-side). So we run ONE shared instance
+# here and let each demo (AMLGuard, BOTOX) reach it over a shared external network, instead of every
+# demo bundling its own copy (which forced sequential-only runs and duplicate warm-ups).
+#
+#   docker compose -f docker/shared/protegrity/compose.yml up -d       # (or: make shared-protegrity-up)
+#   open http://localhost:6000   # classification (loopback; in-container pty-classification:8050)
+#   docker compose -f docker/shared/protegrity/compose.yml down        # stops the shared DE tier
+#
+# NETWORK: this file creates `protegrity-shared` (via DOCKER_NETWORK_NAME below). Each demo compose
+# joins it as an EXTERNAL network and points its PROTEGRITY_*_URL / AMLGUARD_*_URL env at the service
+# names here (pty-classification, pty-guardrail, ...). Bring THIS up first, then the demos.
+#
+# SOURCE OF TRUTH: it reuses the vendored DE composes under vendor-de/* (parameterized images/tags)
+# plus this repo's platform/loopback overrides — the same ones AMLGuard's compose.full.yml applies —
+# so the shared tier is byte-for-byte the DE tier the demos already trust. Nothing is duplicated.
+#
+# PREREQS: `docker login ghcr.io` once with a Developer-Edition token; images are amd64 (emulated on
+# Apple Silicon). See docs/adr/shared-infra-decoupling.md for the topology.
+
+name: protegrity-shared
+
+include:
+  - path:
+      - ../../../vendor-de/data-discovery/docker-compose.yml
+      - ../../vendor/discovery.override.yml
+  - path:
+      - ../../../vendor-de/semantic-guardrail/docker-compose.yml
+      - ../../vendor/guardrail.override.yml
+  - ../../../vendor-de/anonymization/docker-compose.yml
+  - ../../../vendor-de/synthetic-data/docker-compose.yml
+
+# Path-style container + DNS names, stable and shared-scoped (pty-*), so demos reach the tier by a
+# clean name regardless of which demo is up. The service KEYS come from the vendored composes and are
+# overridden here (container_name + network alias), exactly as AMLGuard's compose.full.yml does.
+services:
+  # Every DE service published on the 6xxx band (loopback-only), sequentially:
+  #   6000 classification · 6001 guardrail · 6002 pattern · 6003 context · 6004 anon · 6005 synthetic
+  #   6010 anon-db · 6011 synthetic-db
+  # Host access is for debugging/direct calls; the apps reach these IN-NETWORK by name (pty-*). The
+  # vendored composes publish anon/synthetic/dbs on 0.0.0.0 (and anon+synthetic BOTH default to :8000,
+  # which collides), so we `!override` those with explicit loopback 6xxx mappings.
+  classification-service:
+    container_name: pty-classification
+    networks: {protegrity-network: {aliases: [pty-classification]}}   # host :6000 (set in discovery.override.yml)
+  semantic-guardrail-service:
+    container_name: pty-guardrail
+    networks: {protegrity-network: {aliases: [pty-guardrail]}}        # host :6001 (set in guardrail.override.yml)
+  pattern-provider-service:
+    container_name: pty-pattern
+    ports: !override ["127.0.0.1:6002:8051"]
+    networks: {protegrity-network: {aliases: [pty-pattern]}}
+  context-provider-service:
+    container_name: pty-context
+    ports: !override ["127.0.0.1:6003:8052"]
+    networks: {protegrity-network: {aliases: [pty-context]}}
+  anon-service:
+    container_name: pty-anon
+    ports: !override ["127.0.0.1:6004:8085"]
+    networks: {protegrity-network: {aliases: [pty-anon]}}
+  synthetic-data-service:
+    container_name: pty-synthetic
+    ports: !override ["127.0.0.1:6005:8000"]
+    networks: {protegrity-network: {aliases: [pty-synthetic]}}
+  pty-anondb-service:
+    container_name: pty-anon-db
+    ports: !override ["127.0.0.1:6010:5432"]
+    networks: {protegrity-network: {aliases: [pty-anon-db]}}
+  pty-syndb-service:
+    container_name: pty-synthetic-db
+    ports: !override ["127.0.0.1:6011:5432"]
+    networks: {protegrity-network: {aliases: [pty-synthetic-db]}}
+
+# The vendored composes declare `protegrity-network` with name ${DOCKER_NETWORK_NAME:-protegrity-network}.
+# We pin it to `protegrity-shared` so this project OWNS it and demos attach as external. Override the
+# default here; a demo sets `external: true` with the same name.
+networks:
+  protegrity-network:
+    name: protegrity-shared
+    external: false
