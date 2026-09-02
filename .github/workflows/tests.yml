@@ -21,8 +21,8 @@ jobs:
       - run: ruff check src scripts tests ui
       - name: invariant tests
         env:
-          AMLGUARD_NO_TRACKING: "1"
-          AMLGUARD_NO_TRACING: "1"
+          PROTOMETER_NO_TRACKING: "1"
+          PROTOMETER_NO_TRACING: "1"
         run: python -m pytest tests/ -q
 
   docs-in-sync:
@@ -40,8 +40,8 @@ jobs:
       - name: regenerate derived docs from artifacts (only if artifacts are committed)
         env:
           PYTHON: python
-          AMLGUARD_NO_TRACKING: "1"
-          AMLGUARD_NO_TRACING: "1"
+          PROTOMETER_NO_TRACKING: "1"
+          PROTOMETER_NO_TRACING: "1"
         run: |
           # The docs derive from committed eval artifacts. On a checkout without them (they may
           # be absent on a fork or before a run is committed), skip regeneration rather than

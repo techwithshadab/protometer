@@ -25,12 +25,12 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 # README step 2 is `cp .env.example .env`; make that instruction true.
-from amlguard.env import load_dotenv  # noqa: E402
+from protometer.env import load_dotenv  # noqa: E402
 
 load_dotenv(ROOT)
 
-from amlguard.ingest import PARTY_FIELDS  # noqa: E402
-from amlguard.scopes import CURVE_ORDER, get_scope  # noqa: E402
+from protometer.ingest import PARTY_FIELDS  # noqa: E402
+from protometer.scopes import CURVE_ORDER, get_scope  # noqa: E402
 
 CORPUS_DIR = ROOT / "data" / "corpus"
 PROTECTED_DIR = ROOT / "data" / "protected"

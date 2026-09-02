@@ -31,7 +31,7 @@ immediately; live chat works too, on a local model, once you do the one Ollama s
 
 ```bash
 # 1. Clone, and fetch the Protegrity Developer-Edition images repo (gitignored here)
-git clone https://github.com/techwithshadab/amlguard.git && cd amlguard
+git clone https://github.com/techwithshadab/protometer.git && cd protometer
 git clone https://github.com/Protegrity-AI-Developer-Edition/protegrity-ai-developer-edition.git vendor-de
 
 # 2. Credentials — copy the template and fill in DEV_EDITION_* (see .env.example for every option)
@@ -46,9 +46,9 @@ docker login ghcr.io      # username = your GitHub username; password = a GH tok
 #    Install: https://ollama.com/download  — then:
 make setup-local-model    # pulls llama3.2 (~2GB). Skip this if you only want Replay mode.
 
-# 5. Bring up the shared infrastructure FIRST, then the AMLGuard demo, and open the UI
+# 5. Bring up the shared infrastructure FIRST, then the Protometer demo, and open the UI
 make shared-up            # shared Protegrity DE tier + shared observability platform (bring up first)
-make docker-up            # the AMLGuard app + its Postgres, attached to the shared tiers
+make docker-up            # the Protometer app + its Postgres, attached to the shared tiers
 open http://localhost:8000
 ```
 
@@ -61,9 +61,9 @@ That's it. In the UI:
   the top bar.
 
 **Why two commands.** The Protegrity DE services and the observability platform are **decoupled shared
-tiers** (`protegrity-shared` and `observability-shared`, each on its own Docker network), so AMLGuard
+tiers** (`protegrity-shared` and `observability-shared`, each on its own Docker network), so Protometer
 *and* the BOTOX chatbot can run at the same time against one tokenizer and one observability platform.
-`make shared-up` is idempotent — run it once and leave it up; then `make docker-up` (AMLGuard) and
+`make shared-up` is idempotent — run it once and leave it up; then `make docker-up` (Protometer) and
 `cd botox_demo && docker compose up -d --build` (BOTOX) attach to it. See
 [docs/adr/shared-infra-decoupling.md](adr/shared-infra-decoupling.md).
 
@@ -79,14 +79,14 @@ ports differ from the banded shared map; prefer `make shared-up && make docker-u
 
 The live assistant picks its model automatically:
 
-1. `AMLGUARD_UI_MODEL` in `.env` — forces a specific model (wins over everything).
+1. `PROTOMETER_UI_MODEL` in `.env` — forces a specific model (wins over everything).
 2. Hosted model (`bedrock-sonnet-5`) — used when AWS credentials are present.
 3. Local model (`llama3.2`) via Ollama — used when there are no cloud credentials.
 
 One-time model download, two ways:
 
 - **Explicit:** `make setup-local-model` (override with `make setup-local-model MODEL=qwen2.5:7b`).
-- **Automatic:** put `AMLGUARD_AUTO_PULL_MODEL=true` in `.env` and it pulls on the first live turn.
+- **Automatic:** put `PROTOMETER_AUTO_PULL_MODEL=true` in `.env` and it pulls on the first live turn.
 
 By default the app reaches Ollama on your **host** (`host.docker.internal:11434`). To run Ollama
 *inside* the Docker stack instead (no host install), add `OLLAMA_URL=http://ollama:11434` to `.env`
@@ -151,8 +151,8 @@ Run the test suite anytime: `make test` (or `python -m pytest tests/ -q`).
 | Symptom | Cause → fix |
 |---|---|
 | UI loads but **live chat fails** with "Ollama not reachable" | Ollama isn't running → install from [ollama.com](https://ollama.com/download), start it, then `make setup-local-model`. |
-| Live banner says **model "not downloaded yet"** | run `make setup-local-model` once, or set `AMLGUARD_AUTO_PULL_MODEL=true` in `.env`. |
-| Vendor services **fail to pull** | `docker login ghcr.io` with a GitHub token (read:packages). The AMLGuard app + Postgres still come up and Replay mode works without them. |
+| Live banner says **model "not downloaded yet"** | run `make setup-local-model` once, or set `PROTOMETER_AUTO_PULL_MODEL=true` in `.env`. |
+| Vendor services **fail to pull** | `docker login ghcr.io` with a GitHub token (read:packages). The Protometer app + Postgres still come up and Replay mode works without them. |
 | Live chat / batch guardrail returns **connection refused** to Protegrity | the shared Protegrity tier isn't up → `make shared-up` (or `make shared-protegrity-up`) before `make docker-up`. Bring shared observability up **before** the app too, or the app's OTel exporter caches a failed DNS lookup — restart the app if it started first. |
 | Parties view / chat returns **503** | the Postgres corpus mirror isn't loaded → `make docker-up` loads it automatically on start; for local dev run `python scripts/load_corpus_db.py --all`. |
 | Stack **out of memory** (guardrail 500s) | the shared observability tier is memory-heavy (Langfuse's ClickHouse alone caps at 3g) and the Docker VM is ~7.65GB. Don't run a guardrail-dependent paid run beside a full observability tier — `make shared-down` frees it, or start only `make shared-protegrity-up`. |

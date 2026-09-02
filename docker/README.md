@@ -15,7 +15,7 @@ docker/
 │   │   ├── compose.yml                 app + Postgres (standalone: make docker-up)
 │   │   └── compose.full.yml            the whole stack, one project (make docker-full)
 │   └── postgres/
-│       ├── compose.yml                 app corpus mirror (container amlguard_postgres, :5433)
+│       ├── compose.yml                 app corpus mirror (container protometer_postgres, :5433)
 │       └── init/01_schemas.sql         per-domain schemas (aml / healthcare / support)
 ├── observability/                      the three telemetry planes
 │   ├── infra/
@@ -63,8 +63,8 @@ own directories — that clashes on the path-style container names (`app-*`, `ve
 `mlflow/store/` holds the backend SQLite db (`mlflow.db`) and logged artifacts (the SHAP/PR/ROC
 plots the demo UI serves). It is **gitignored** — at scope `none` those artifacts include model
 reasoning over clear narratives, which must never enter the repository. The app reads it via
-`amlguard.tracking.DEFAULT_TRACKING_DIR` (`docker/observability/mlflow/store`, override with
-`AMLGUARD_MLFLOW_STORE_DIR`); the full-stack app container mounts it read-only so `/api/plot` can
+`protometer.tracking.DEFAULT_TRACKING_DIR` (`docker/observability/mlflow/store`, override with
+`PROTOMETER_MLFLOW_STORE_DIR`); the full-stack app container mounts it read-only so `/api/plot` can
 serve the plots. It is NOT baked into the image (`.dockerignore` excludes `docker/`).
 
 ## App data layer: Postgres

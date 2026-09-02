@@ -23,14 +23,14 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from amlguard.eval.scoring import (  # noqa: E402
+from protometer.eval.scoring import (  # noqa: E402
     _score_ranked,
     normalise_identifier,
     normalise_number,
 )
-from amlguard.eval.statistics import compare_scopes  # noqa: E402
-from amlguard.eval.tasks import Checkpoint, Scoring, Stratum  # noqa: E402
-from amlguard.protect import Protector  # noqa: E402
+from protometer.eval.statistics import compare_scopes  # noqa: E402
+from protometer.eval.tasks import Checkpoint, Scoring, Stratum  # noqa: E402
+from protometer.protect import Protector  # noqa: E402
 
 
 class TestScoringCorrectness:
@@ -94,7 +94,7 @@ class TestStatisticalHonesty:
         """
         import dataclasses
 
-        from amlguard.eval.statistics import Interval, PairedComparison, adjust_family
+        from protometer.eval.statistics import Interval, PairedComparison, adjust_family
 
         def mk(p):
             return PairedComparison(
@@ -124,7 +124,7 @@ class TestStatisticalHonesty:
         0.024 [0.000, 0.070] with p=1.000). This fixture builds a consistent directional
         effect (A strictly better on many tasks) and asserts the CI and the p-value agree.
         """
-        from amlguard.eval.statistics import compare_scopes
+        from protometer.eval.statistics import compare_scopes
 
         a = {"scope": "a", "tasks": [{"task_id": f"T{i}", "checkpoints": [
             {"checkpoint_id": "c", "score": 1.0, "passed": True}]} for i in range(30)]}
@@ -166,7 +166,7 @@ class TestProtectionInvariants:
         """
         import appython
 
-        import amlguard.protect as protect_module
+        import protometer.protect as protect_module
 
         constructions = {"count": 0}
         logins = {"count": 0}
@@ -217,7 +217,7 @@ class TestProtectionInvariants:
         """
         import appython
 
-        import amlguard.protect as protect_module
+        import protometer.protect as protect_module
 
         attempts = {"count": 0}
 
@@ -252,7 +252,7 @@ class TestProtectionInvariants:
         catches it, and it is this project's contribution to the control rather than the
         vendor's.
         """
-        from amlguard.guardrail import Guardrail, ScanResult
+        from protometer.guardrail import Guardrail, ScanResult
 
         guard = Guardrail(forbidden_values=frozenset({"Sablefield Management GmbH"}))
         # Stub the service to its measured behaviour: approves, scores zero, finds nothing.
@@ -275,7 +275,7 @@ class TestProtectionInvariants:
         with entity `USER_NAME`. Discounting that is what keeps the control deployable, but
         the discount must not extend to a genuine identifier appearing alongside a key.
         """
-        from amlguard.guardrail import Finding, Guardrail, ScanResult
+        from protometer.guardrail import Finding, Guardrail, ScanResult
 
         guard = Guardrail()
 
@@ -343,7 +343,7 @@ class TestProtectionInvariants:
         silently restore the determinism the ablation exists to remove, and the run would
         still look successful.
         """
-        from amlguard.protect import Protector
+        from protometer.protect import Protector
 
         protector = Protector.__new__(Protector)
         protector.rotate_iv = True
@@ -379,7 +379,7 @@ class TestProtectionInvariants:
         """
         import numpy as np
 
-        from amlguard.alert_queue import rank_alerts
+        from protometer.alert_queue import rank_alerts
 
         transactions = [
             {"transaction_id": f"TXN{i:06d}", "origin_party_id": f"P{i % 3:05d}",
@@ -414,7 +414,7 @@ class TestProtectionInvariants:
 
         Among alerts that are all equally late, the evidence is the discriminator, not the age.
         """
-        from amlguard.alert_queue import _priority
+        from protometer.alert_queue import _priority
 
         fresh_strong = _priority(model_score=0.9, days_remaining=25, prior_alerts=0)
         due_weak = _priority(model_score=0.4, days_remaining=1, prior_alerts=0)
@@ -442,7 +442,7 @@ class TestProtectionInvariants:
         """
         import threading
 
-        import amlguard.llm as llm_module
+        import protometer.llm as llm_module
 
         class HonestProvider:
             def generate(self, spec, system, prompt, budget):
@@ -497,7 +497,7 @@ class TestProtectionInvariants:
         protect/unprotect loop was the least-guarded code in the pipeline. Stubbed protector:
         no credentials, no network.
         """
-        from amlguard.reidentify import ANALYST, AUDITOR, INVESTIGATOR, reidentify
+        from protometer.reidentify import ANALYST, AUDITOR, INVESTIGATOR, reidentify
 
         text = (
             "Note on [PERSON]tok_person[/PERSON] of "
@@ -543,7 +543,7 @@ class TestProtectionInvariants:
         `failed` counter hides the one fault an operator most needs to see, and every
         subsequent document would fail identically. So it is re-raised, not swallowed.
         """
-        from amlguard.reidentify import INVESTIGATOR, reidentify
+        from protometer.reidentify import INVESTIGATOR, reidentify
 
         text = "[PERSON]tok_person[/PERSON]"
 
@@ -563,7 +563,7 @@ class TestProtectionInvariants:
         three codes is documented; this test pins the observed contract so a silent vendor
         change surfaces as a failure rather than as rejected-but-successful migrations.
         """
-        from amlguard.protect import Protector
+        from protometer.protect import Protector
 
         protector = Protector.__new__(Protector)
         protector.batch_size = 200
@@ -594,7 +594,7 @@ class TestProtectionInvariants:
         28 test rows scored mean 0.329 against 0.086 for the rest, on phantom guilt. A
         comment cannot pin column order; this test does.
         """
-        from amlguard.graph_features import (
+        from protometer.graph_features import (
             _NO_WALK_SIGNAL,
             GUILTY_WALK_NAMES,
             MAX_WALK_LENGTH,
@@ -612,7 +612,7 @@ class TestProtectionInvariants:
         # And the real walk function must use the same sentinel for the same meaning.
         import random
 
-        from amlguard.graph_features import _guilty_walk_stats, build_graph
+        from protometer.graph_features import _guilty_walk_stats, build_graph
 
         graph = build_graph([
             {"origin_party_id": "A", "beneficiary_party_id": "B"},
@@ -631,7 +631,7 @@ class TestProtectionInvariants:
         description is wrong about its own behaviour is the model-risk failure mode this
         project exists to avoid.
         """
-        from amlguard.hybrid import ungrounded_terms
+        from protometer.hybrid import ungrounded_terms
 
         evidence = "P02583 -> P00721 | 707078.56 | hit rate 0.9821 | 6 prior alerts"
 
@@ -656,7 +656,7 @@ class TestProtectionInvariants:
         verified exploit or the legitimate rendering closest to one, the pairs are the
         point, since a tolerance loose enough to pass one side fails the other.
         """
-        from amlguard.hybrid import ungrounded_terms
+        from protometer.hybrid import ungrounded_terms
 
         evidence = "707078.56 | 1200000 | 0.9821"
 
@@ -683,8 +683,8 @@ class TestProtectionInvariants:
         egress check. The set is now derived from PARTY_FIELDS; this pins that it stays a
         superset, so adding a protected field can never silently leave the egress check blind.
         """
-        from amlguard.guardrail import forbidden_values_from_parties
-        from amlguard.ingest import PARTY_FIELDS
+        from protometer.guardrail import forbidden_values_from_parties
+        from protometer.ingest import PARTY_FIELDS
 
         # A party record with a distinctive, long-enough value in every protected field.
         party = {f: f"value-{f}-xyz" for f in PARTY_FIELDS}
@@ -705,7 +705,7 @@ class TestProtectionInvariants:
         """
         from protegrity_developer_python.utils.constants import DATA_ELEMENT_MAPPING
 
-        from amlguard.ingest import ENTITY_TO_ELEMENT
+        from protometer.ingest import ENTITY_TO_ELEMENT
 
         deliberate = {"EMAIL_ADDRESS"}
         drifted = {
@@ -730,8 +730,8 @@ class TestProtectionInvariants:
         `skipif`-gated on a gitignored directory, so on a fresh clone it silently skipped -
         the project's most severe defect was protected by a test that did not run.
         """
-        from amlguard.ingest import IngestionReport, protect_narratives
-        from amlguard.scopes import get_scope
+        from protometer.ingest import IngestionReport, protect_narratives
+        from protometer.scopes import get_scope
 
         narratives = [
             {
@@ -768,7 +768,7 @@ class TestProtectionInvariants:
                 }
             ]
 
-        import amlguard.ingest as ingest_module
+        import protometer.ingest as ingest_module
 
         original = ingest_module.detect_entities
         ingest_module.detect_entities = stub_detect
@@ -804,12 +804,12 @@ class TestProtectionInvariants:
         test asserts the plaintext amount never reaches the protected record and the no-op is
         counted on the report.
         """
-        from amlguard.ingest import (
+        from protometer.ingest import (
             TRANSACTION_FIELDS,
             IngestionReport,
             protect_structured,
         )
-        from amlguard.scopes import get_scope
+        from protometer.scopes import get_scope
 
         leaked_amount = "712000.00"
 
@@ -859,7 +859,7 @@ class TestProtectionInvariants:
         No credentials, no Docker, no network: this is a coverage property of the roster
         against the corpus, not a property of the API.
         """
-        from amlguard.roster import roster_from_parties
+        from protometer.roster import roster_from_parties
 
         parties = json.loads((ROOT / "data" / "corpus" / "parties.json").read_text())
         narratives = json.loads((ROOT / "data" / "corpus" / "narratives.json").read_text())
@@ -922,7 +922,7 @@ class TestCorpusDifficulty:
         """
         from sklearn.metrics import roc_auc_score
 
-        from amlguard.training import extract_features
+        from protometer.training import extract_features
 
         transactions = json.loads(
             (ROOT / "data" / "corpus" / "transactions.json").read_text()
@@ -1167,9 +1167,9 @@ class TestGraphFeatureCache:
     def test_round_trip_returns_identical_features(self, tmp_path, monkeypatch):
         import numpy as np
 
-        from amlguard import graph_features as gf
+        from protometer import graph_features as gf
 
-        monkeypatch.setenv("AMLGUARD_GRAPH_CACHE", str(tmp_path))
+        monkeypatch.setenv("PROTOMETER_GRAPH_CACHE", str(tmp_path))
         ledger = self._tiny_ledger()
         first = gf.extract(ledger, {"PA"})
         assert list(tmp_path.glob("*.npz")), "extract did not write a cache entry"
@@ -1179,9 +1179,9 @@ class TestGraphFeatureCache:
 
     def test_key_covers_feature_shaping_parameters(self, tmp_path, monkeypatch):
         """Changing any tuning knob must change the key, no hand-bumped version strings."""
-        from amlguard import graph_features as gf
+        from protometer import graph_features as gf
 
-        monkeypatch.setenv("AMLGUARD_GRAPH_CACHE", str(tmp_path))
+        monkeypatch.setenv("PROTOMETER_GRAPH_CACHE", str(tmp_path))
         ledger = self._tiny_ledger()
         baseline = gf._cache_path(ledger, {"PA"}, None)
         for knob in ("WALKS_PER_NODE", "MAX_WALK_LENGTH", "CYCLE_LENGTH_BOUND",
@@ -1191,13 +1191,13 @@ class TestGraphFeatureCache:
                 f"cache key ignores {knob}, stale features would be served after a change"
             )
             monkeypatch.undo()
-            monkeypatch.setenv("AMLGUARD_GRAPH_CACHE", str(tmp_path))
+            monkeypatch.setenv("PROTOMETER_GRAPH_CACHE", str(tmp_path))
 
     def test_corrupt_entry_recomputes_instead_of_crashing(self, tmp_path, monkeypatch):
         """A half-written zip (concurrent scope runs share one path) must self-heal."""
-        from amlguard import graph_features as gf
+        from protometer import graph_features as gf
 
-        monkeypatch.setenv("AMLGUARD_GRAPH_CACHE", str(tmp_path))
+        monkeypatch.setenv("PROTOMETER_GRAPH_CACHE", str(tmp_path))
         ledger = self._tiny_ledger()
         path = gf._cache_path(ledger, {"PA"}, None)
         path.write_bytes(b"PK\x03\x04 definitely not a complete zip")
@@ -1208,9 +1208,9 @@ class TestGraphFeatureCache:
         assert healed.names == result.names
 
     def test_no_partial_files_left_behind(self, tmp_path, monkeypatch):
-        from amlguard import graph_features as gf
+        from protometer import graph_features as gf
 
-        monkeypatch.setenv("AMLGUARD_GRAPH_CACHE", str(tmp_path))
+        monkeypatch.setenv("PROTOMETER_GRAPH_CACHE", str(tmp_path))
         gf.extract(self._tiny_ledger(), {"PA"})
         assert not list(tmp_path.glob("*.tmp.npz")), "atomic write left a temp file"
 
@@ -1219,7 +1219,7 @@ class TestResponseCacheProbe:
     """`is_cached` must agree with `complete` about what counts as a hit."""
 
     def test_probe_matches_completion_key(self, tmp_path):
-        from amlguard.llm import LLMClient, ModelRegistry, ModelSpec
+        from protometer.llm import LLMClient, ModelRegistry, ModelSpec
 
         registry = ModelRegistry(
             specs={"fake": ModelSpec(name="fake", provider="ollama", model_id="fake")},
@@ -1243,7 +1243,7 @@ class TestResponseCacheProbe:
         header. The gate's contract is 'no basis in what the model was shown', so the
         basis must include everything shown.
         """
-        from amlguard.hybrid import ungrounded_terms
+        from protometer.hybrid import ungrounded_terms
 
         assert ungrounded_terms("transfer of ~$135.9k", "135934.60") == []
         assert ungrounded_terms("value (~$90.8k)", "90791.12") == []
@@ -1267,8 +1267,8 @@ class TestReviewHead:
         import numpy as np
         from sklearn.ensemble import RandomForestClassifier
 
-        from amlguard.hybrid import TriageDecision
-        from amlguard.training import ClassifierBundle
+        from protometer.hybrid import TriageDecision
+        from protometer.training import ClassifierBundle
 
         rng = np.random.default_rng(7)
         features = rng.normal(size=(40, 4))
@@ -1303,7 +1303,7 @@ class TestReviewHead:
         was marked as the model's invention. The gate's contract is 'no basis in what
         the model was shown', and the model was shown the score.
         """
-        from amlguard.review import review_head
+        from protometer.review import review_head
 
         bundle, item_ids, decision = self._bundle_and_decision()
 
@@ -1326,7 +1326,7 @@ class TestReviewHead:
         assert decision.provenance.get("prompt"), "provenance must retain the prompt"
 
     def test_invented_figures_still_flag_and_egress_counts_land(self):
-        from amlguard.review import review_head
+        from protometer.review import review_head
 
         bundle, item_ids, decision = self._bundle_and_decision()
 
@@ -1362,7 +1362,7 @@ class TestEgressHardening:
     def test_leak_matching_is_normalized(self):
         """Case variants and zero-width insertions must not defeat the leak check,
         and numeric values must not match inside unrelated decimals."""
-        from amlguard.guardrail import Guardrail
+        from protometer.guardrail import Guardrail
 
         guard = Guardrail(forbidden_values=frozenset({"Meridian Holdings", "78024684"}))
         assert guard._leaked("routed via MERIDIAN HOLDINGS Ltd"), "case bypass"
@@ -1378,9 +1378,9 @@ class TestEgressHardening:
         import numpy as np
         from sklearn.ensemble import RandomForestClassifier
 
-        from amlguard.hybrid import TriageDecision
-        from amlguard.review import review_head
-        from amlguard.training import ClassifierBundle
+        from protometer.hybrid import TriageDecision
+        from protometer.review import review_head
+        from protometer.training import ClassifierBundle
 
         rng = np.random.default_rng(3)
         X = rng.normal(size=(30, 3)); y = (X[:, 0] > 0).astype(int)
@@ -1423,8 +1423,8 @@ class TestEgressHardening:
         """A call site that forgets the role must reveal nothing."""
         import inspect
 
-        from amlguard.pipeline import InvestigationPipeline
-        from amlguard.reidentify import AUDITOR, reidentify
+        from protometer.pipeline import InvestigationPipeline
+        from protometer.reidentify import AUDITOR, reidentify
 
         assert inspect.signature(reidentify).parameters["role"].default is AUDITOR
         assert (
@@ -1437,7 +1437,7 @@ class TestRoundSixHardening:
     """Fixes from the deep expert review: leak-match normalization, MDE feasibility."""
 
     def test_leak_matching_normalization_and_perf_index(self):
-        from amlguard.guardrail import Guardrail
+        from protometer.guardrail import Guardrail
 
         g = Guardrail(forbidden_values=frozenset({"Meridian Holdings", "78024684"}))
         # case, format-char (soft hyphen U+00AD), and fullwidth-of-the-value all caught
@@ -1452,7 +1452,7 @@ class TestRoundSixHardening:
         assert g._needle_index() is first
 
     def test_mde_capped_at_feasible_effect(self):
-        from amlguard.eval.statistics import _minimum_detectable_effect
+        from protometer.eval.statistics import _minimum_detectable_effect
 
         # With low discordance, an MDE above p_d is infeasible and must be capped at p_d.
         p_d = 2 / 60
@@ -1461,7 +1461,7 @@ class TestRoundSixHardening:
 
     def test_equivalence_requires_enough_discordance(self):
         """A near-identical comparison cannot be certified 'equivalent' from one flipped pair."""
-        from amlguard.eval.statistics import compare_scopes
+        from protometer.eval.statistics import compare_scopes
 
         # Two scopes differing on a single checkpoint out of many: discordance far below the
         # margin, so the verdict must be inconclusive, never 'equivalent'.

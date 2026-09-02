@@ -153,7 +153,7 @@ above it.
 - **Local (Docker, no key):** Data Discovery, Semantic Guardrail, Anonymization, Synthetic
   Data — all in the shared `protegrity-shared` tier (6xxx band). Discovery classification is
   `POST http://localhost:6000/pty/data-discovery/v2/classify/text` on the host (in-container
-  it is `pty-classification:8050`), overridable with `AMLGUARD_DISCOVERY_URL`.
+  it is `pty-classification:8050`), overridable with `PROTOMETER_DISCOVERY_URL`.
 
 There is no local tokenization service in any shipped `docker-compose.yml`, which is what
 bounds corpus size for this project.
@@ -186,7 +186,7 @@ is therefore **application-enforced**, labelled everywhere it appears.
 - `POST /pty/semantic-guardrail/v1.1/conversations/messages/scan` returns, per message:
   `outcome` ∈ {approved, rejected, skipped}, `score` ∈ [0,1] (higher = riskier), and
   `processors[]` each with `name`, `score`, `explanation`. The batch object adds a
-  **conversation-level** `outcome`, `score`, and `rejected_messages[]`. AMLGuard now captures
+  **conversation-level** `outcome`, `score`, and `rejected_messages[]`. Protometer now captures
   the per-processor explanation and the batch score (previously discarded).
 - `GET /domain-models/` returns `healthcare`, `financial`, `customer-support`, each with a
   `threshold` of 0.5. Verified live: the `healthcare` model flags an injection
@@ -217,6 +217,6 @@ is therefore **application-enforced**, labelled everywhere it appears.
 
 `calculate_risk` returns three attacker models: **prosecutor** (worst-case, 0.5 on the AML
 KYC metadata), **journalist** (0.5), and **marketer** (average-case, **0.0067**) — plus
-`k_anonymity` (2), `highest_risk_level`, and equivalence-class counts. AMLGuard now records all
+`k_anonymity` (2), `highest_risk_level`, and equivalence-class counts. Protometer now records all
 three attacker models (marketer was dropped before). The service also exposes Differential
 Privacy (`DPComputeResult`, budget tracking) which the frontier comparison does not yet use.

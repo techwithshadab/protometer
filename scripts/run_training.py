@@ -17,17 +17,17 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from amlguard.explain import basis_shift
-from amlguard.scopes import CURVE_ORDER, get_scope
-from amlguard.tracking import Tracker
-from amlguard.training import train_scope
+from protometer.explain import basis_shift
+from protometer.scopes import CURVE_ORDER, get_scope
+from protometer.tracking import Tracker
+from protometer.training import train_scope
 
 
 def main() -> int:
     corpus = ROOT / "data" / "corpus"
-    tracker = Tracker("amlguard-training")
-    from amlguard.persist import RUN_ID
-    from amlguard.tracking import corpus_source_fingerprint
+    tracker = Tracker("protometer-training")
+    from protometer.persist import RUN_ID
+    from protometer.tracking import corpus_source_fingerprint
 
     corpus_fp = corpus_source_fingerprint(corpus)
     # Explicit scope names on argv override CURVE_ORDER, so an opt-in scope can be trained on its
@@ -81,8 +81,8 @@ def main() -> int:
                 # from the same bundle and the same interventional explainer, so a plot and a
                 # metric can never disagree. Failures here never abort a training run.
                 try:
-                    from amlguard.explain import explanation_for
-                    from amlguard.plotting import evaluation_figures, shap_figures
+                    from protometer.explain import explanation_for
+                    from protometer.plotting import evaluation_figures, shap_figures
 
                     b = r.bundle
                     for fname, fig in evaluation_figures(
@@ -97,7 +97,7 @@ def main() -> int:
                     for fname, fig in shap_figures(explanation, name).items():
                         tracker.log_figure(fig, fname)
                 except Exception as exc:  # noqa: BLE001, plots are illustrative, not the result
-                    from amlguard.log import get_logger
+                    from protometer.log import get_logger
 
                     get_logger("run_training").warning(
                         "plotting failed for %s: %s: %s", name, type(exc).__name__, exc
@@ -106,16 +106,16 @@ def main() -> int:
                 # identify it, and move the `champion` alias to it ONLY IF its AP is at least the
                 # incumbent champion's (champion_if_best). "champion" means the best build for the
                 # scope, not merely the newest, so a regressed retrain never silently demotes a
-                # better model. `models:/amlguard-<slug>@champion` resolves to the best version.
+                # better model. `models:/protometer-<slug>@champion` resolves to the best version.
                 # Use the version log_model returned; fall back to a "latest" lookup only if
                 # the registry did not report one. The promote script archives superseded ones.
                 ver = registered_version
                 if not ver:
-                    from amlguard.tracking import _latest_model_version
+                    from protometer.tracking import _latest_model_version
 
-                    ver = _latest_model_version(tracker, f"amlguard-{slug}")
+                    ver = _latest_model_version(tracker, f"protometer-{slug}")
                 if ver:
-                    tracker.govern_model(f"amlguard-{slug}", ver, {
+                    tracker.govern_model(f"protometer-{slug}", ver, {
                         "classifier_hash": r.bundle.model_hash,
                         "corpus_fingerprint": corpus_fp,
                         "average_precision": round(r.average_precision, 4),
@@ -147,7 +147,7 @@ def main() -> int:
 
     out = ROOT / "data" / "eval" / "training.json"
     out.parent.mkdir(parents=True, exist_ok=True)
-    from amlguard.persist import RUN_ID, atomic_write_json
+    from protometer.persist import RUN_ID, atomic_write_json
 
     # Stamp lineage per row: the classifier hash (ties each row to its MLflow training run
     # and to the hybrid artifact scored by the same model) and the run id. training.json was

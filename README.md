@@ -1,4 +1,4 @@
-# AMLGuard: measuring what data protection costs an AI pipeline
+# Protometer: measuring what data protection costs an AI pipeline
 
 **Protegrity 2026 AI Pipeline Security Hackathon submission.**
 
@@ -15,7 +15,7 @@ pipeline actually costs it**, stage by stage, with statistics a model-validation
 sign off on. Every number below is generated from committed artifacts by a script in this
 repo; nothing is hand-entered.
 
-![AMLGuard pipeline: plaintext sources, ingest-time protection, a tokens-only pipeline band, and role-gated presentation](docs/diagrams/pipeline-strip.png)
+![Protometer pipeline: plaintext sources, ingest-time protection, a tokens-only pipeline band, and role-gated presentation](docs/diagrams/pipeline-strip.png)
 
 ## Contents
 
@@ -56,7 +56,7 @@ tier that `make shared-up` starts; see [ui/README.md](ui/README.md).
 
 The Protegrity DE services and the observability platform are **decoupled shared tiers**, so this same
 boundary also runs a second product — a public GraphRAG chatbot (`botox_demo/`, `docker compose up -d
---build`) that protects the visitor and fails closed without Protegrity — side by side with AMLGuard
+--build`) that protects the visitor and fails closed without Protegrity — side by side with Protometer
 against one tokenizer.
 
 ![Live assistant with the protection boundary panel: the inbound message tokenized, the model seeing tokens only, and a reply held at the egress gate](docs/img/ui-live-egress.jpg)
@@ -69,9 +69,9 @@ notice, never the leak.</sub>
 live turns on an open-source model served locally by [Ollama](https://ollama.com) (default
 `llama3.2`, ~2GB, laptop-friendly) instead of the hosted model — same protected pipeline, tokenization
 still via Protegrity, $0 per turn. One-time setup: install Ollama, then `make setup-local-model`
-(or set `AMLGUARD_AUTO_PULL_MODEL=true` to pull it on first use). The Live-mode banner in the UI shows
-which model is active. Selection is env-driven (`AMLGUARD_UI_MODEL` forces a model;
-`AMLGUARD_LOCAL_MODEL` picks the fallback; hosted wins automatically when credentials exist) — see
+(or set `PROTOMETER_AUTO_PULL_MODEL=true` to pull it on first use). The Live-mode banner in the UI shows
+which model is active. Selection is env-driven (`PROTOMETER_UI_MODEL` forces a model;
+`PROTOMETER_LOCAL_MODEL` picks the fallback; hosted wins automatically when credentials exist) — see
 [ui/README.md](ui/README.md#running-live-chat-without-cloud-credentials).
 
 **Where to go next:** **[docs/SETUP.md](docs/SETUP.md)** (clone → running demo, step by step) ·
@@ -199,13 +199,13 @@ measurement rather than dressing it up as a control.
 The measurement is AML-specific; the protection boundary is not. Two seams make the same
 pipeline reusable:
 
-- **Domain config** ([`amlguard.domains`](src/amlguard/domains.py)). The domain-coupling
+- **Domain config** ([`protometer.domains`](src/protometer/domains.py)). The domain-coupling
   surface, schema field→entity map, Semantic-Guardrail prompt model, prompt set, and
   high-sensitivity fields, is one `Domain` object selected by name. AML is the default and
   reproduces the shipped behaviour exactly; `healthcare` and `customer-support` ship as
   first-class alternatives. Adding a domain is data (a registry entry + three prompt files),
   not a fork.
-- **Turn-based serving** ([`amlguard.serving`](src/amlguard/serving.py)). `ConversationSession`
+- **Turn-based serving** ([`protometer.serving`](src/protometer/serving.py)). `ConversationSession`
   composes the tested primitives, discover+tokenize inbound, reason over tokens, egress-scan,
   role-gated re-identify, into one protected turn, so a **chatbot** reuses the measured
   guarantees instead of reimplementing them. Because tokens are stable, a value tokenized by
@@ -527,7 +527,7 @@ decision in [docs/architecture.md](docs/architecture.md).
 **Tools** (one telemetry home per kind of fact)
 - **MLflow (self-hosted) as the experiment ledger**: every run stamped with the parameters
   that determine comparability (scope, model, corpus fingerprint, detection ledger); models
-  logged with signatures into the registry as `amlguard-<scope>`. Scores and models only, no
+  logged with signatures into the registry as `protometer-<scope>`. Scores and models only, no
   LLM cost/latency (those belong in Langfuse) and no operational ingest metrics (those belong
   in Prometheus).
 - **Langfuse (self-hosted) as the prompt-level record**: every LLM call (eval, judge,
@@ -557,7 +557,7 @@ and `classifier_hash`. [`docs/architecture.md`](docs/architecture.md) (the Obser
 [`scripts/observability_report.py`](scripts/observability_report.py) prints the consolidated
 cross-tool view for any `run_id`. Prompts are **managed in the Langfuse registry** (editable and
 versioned in the UI, resolved by `managed_prompt` with a code-constant fallback), and models are
-**governed by alias** — `models:/amlguard-<scope>@champion`, superseded versions archived, each
+**governed by alias** — `models:/protometer-<scope>@champion`, superseded versions archived, each
 tagged with its provenance — reconciled idempotently by `scripts/govern_models.py`.
 
 ## Verification culture
@@ -603,12 +603,12 @@ scope-binding withholds every other subject. Blast radius: one subject the analy
 entitled to.
 
 Role can also be bound to the caller's token rather than chosen in the request
-(`AMLGUARD_UI_ROLE_TOKENS=auditor:tok-a,investigator:tok-i`), so an injected client cannot
+(`PROTOMETER_UI_ROLE_TOKENS=auditor:tok-a,investigator:tok-i`), so an injected client cannot
 self-elevate; unset by default so the local demo lets a judge switch roles freely.
 
 ## Guardrails on ourselves
 
-Spend is capped hard (`AMLGUARD_MAX_SPEND_USD`, default $5), checked **before** each call
+Spend is capped hard (`PROTOMETER_MAX_SPEND_USD`, default $5), checked **before** each call
 using the request's actual prompt length, reserved under a process-wide ledger lock, and
 raises a distinct `SpendCapExceeded` that can never enter a fallback path. Responses are
 cached to disk, so re-running an unchanged evaluation costs nothing. The full eight-scope
@@ -678,7 +678,7 @@ cd ../semantic-guardrail
 docker compose -f docker-compose.yml -f ../../docker/vendor/guardrail.override.yml up -d
 cd ../..
 # The overrides pin linux/amd64 (Protegrity publishes amd64-only images) and set
-# restart: unless-stopped. Override endpoints via AMLGUARD_DISCOVERY_URL if needed.
+# restart: unless-stopped. Override endpoints via PROTOMETER_DISCOVERY_URL if needed.
 
 # 2. Credentials (free at protegrity.com/developers/dev-edition-api)
 cp .env.example .env   # fill in DEV_EDITION_* (every script reads .env automatically)
@@ -705,7 +705,7 @@ python scripts/generate_results.py --domain aml > docs/results-aml.md
 #    One command brings up MLflow + Prometheus/Grafana/Pushgateway + Langfuse v4 together:
 make shared-observability-up
 #    MLflow (experiment ledger + model registry):  http://localhost:5001
-#    Grafana (one dashboard per domain, admin/amlguard):  http://localhost:5002  · Prometheus: :5003
+#    Grafana (one dashboard per domain, admin/protometer):  http://localhost:5002  · Prometheus: :5003
 #    Langfuse v4 (per-generation LLM traces, one shared instance, a project per domain,
 #    loopback-only because prompts are stored at rest):  http://127.0.0.1:5006
 ```
@@ -740,7 +740,7 @@ Every top-level directory has one job:
 
 | Path | What it is |
 |---|---|
-| `src/amlguard/` | **The library** — all pipeline logic (ingest, protect, retrieval, training, graph features, hybrid, guardrail, reidentify, llm, serving, observability). Imported by both the scripts and the UI; nothing is re-implemented. |
+| `src/protometer/` | **The library** — all pipeline logic (ingest, protect, retrieval, training, graph features, hybrid, guardrail, reidentify, llm, serving, observability). Imported by both the scripts and the UI; nothing is re-implemented. |
 | `scripts/` | **CLI entry points** — one thin command per claim; every number has a script that regenerates it. Each just wires up the library. |
 | `ui/` | **The demo app** — `ui/api/` (FastAPI seam over the library) + `ui/web/` (single-page frontend). |
 | `docs/` | **Documentation** — see [docs/README.md](docs/README.md) for the map. Product, architecture, setup, results, diagrams. |

@@ -19,13 +19,13 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 # README step 2 is `cp .env.example .env`; make that instruction true.
-from amlguard.env import load_dotenv  # noqa: E402
+from protometer.env import load_dotenv  # noqa: E402
 
 load_dotenv(ROOT)
 
-from amlguard.eval.cost import estimate_run  # noqa: E402
-from amlguard.eval.runner import run_evaluation  # noqa: E402
-from amlguard.scopes import CURVE_ORDER  # noqa: E402
+from protometer.eval.cost import estimate_run  # noqa: E402
+from protometer.eval.runner import run_evaluation  # noqa: E402
+from protometer.scopes import CURVE_ORDER  # noqa: E402
 
 
 def main() -> int:
@@ -64,7 +64,7 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    from amlguard.persist import acquire_run_lock
+    from protometer.persist import acquire_run_lock
 
     try:
         _lock = acquire_run_lock(ROOT / "data")  # held for process lifetime  # noqa: F841
@@ -79,7 +79,7 @@ def main() -> int:
 
     # The resolved provider must answer before anything is estimated or spent. A recorded incident: a
     # silently-dead provider once routed an entire "Sonnet 5" curve to a local 14B model.
-    from amlguard.llm import preflight
+    from protometer.llm import preflight
 
     resolved = preflight(args.model)
     print(f"preflight OK, {resolved} answers")

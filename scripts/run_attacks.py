@@ -12,11 +12,11 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 # README step 2 is `cp .env.example .env`; make that instruction true.
-from amlguard.env import load_dotenv  # noqa: E402
+from protometer.env import load_dotenv  # noqa: E402
 
 load_dotenv(ROOT)
-from amlguard.attacks import run_all
-from amlguard.scopes import CURVE_ORDER, get_scope
+from protometer.attacks import run_all
+from protometer.scopes import CURVE_ORDER, get_scope
 
 
 def main(argv: list[str]) -> int:
@@ -51,7 +51,7 @@ def main(argv: list[str]) -> int:
         sys.exit("Every scope was skipped, no results to write.")
     dest = ROOT/"data"/"eval"/"attacks.json"
     dest.parent.mkdir(parents=True, exist_ok=True)  # absent on a fresh clone
-    from amlguard.persist import atomic_write_json
+    from protometer.persist import atomic_write_json
 
     atomic_write_json(dest, out)
     print(f"\nwrote {dest}")

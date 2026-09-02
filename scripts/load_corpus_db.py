@@ -23,12 +23,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from amlguard.env import load_dotenv  # noqa: E402
+from protometer.env import load_dotenv  # noqa: E402
 
 load_dotenv(ROOT)
 
-from amlguard import db  # noqa: E402
-from amlguard.tracking import corpus_source_fingerprint  # noqa: E402
+from protometer import db  # noqa: E402
+from protometer.tracking import corpus_source_fingerprint  # noqa: E402
 
 
 def _load_one(domain: str, corpus_dir: Path) -> bool:
@@ -62,7 +62,7 @@ def main() -> int:
         sys.exit(
             "Postgres is not reachable. Start it with:\n"
             "  cd docker/app/postgres && docker compose up -d\n"
-            f"(expected at {__import__('amlguard.settings', fromlist=['postgres_url']).postgres_url()})"
+            f"(expected at {__import__('protometer.settings', fromlist=['postgres_url']).postgres_url()})"
         )
 
     # The AML corpus lives in data/corpus; the non-AML live-chat domains carry a party master under

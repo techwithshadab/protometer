@@ -7,7 +7,7 @@ Botox has **two observability planes**, each for a different question:
   (org *Protegrity* → project *Botox*). Most of this file documents it.
 - **Prometheus + Grafana** (operational time-series) — the "how is the service behaving over time"
   plane. The backend exposes a scraped `/metrics` endpoint; Grafana has a **Botox** domain
-  dashboard (`http://localhost:5002`, admin/amlguard). See *Live-serving metrics* below.
+  dashboard (`http://localhost:5002`, admin/protometer). See *Live-serving metrics* below.
 
 This file is the reference for what is captured and how to turn it into dashboards. The per-turn
 numbers live in Langfuse; the aggregate operational series live in Prometheus.
@@ -16,7 +16,7 @@ Sign in to the shared Langfuse with the operator login: `admin@protegrity.local`
 (set in the shared observability tier; change it for anything beyond local). The **Botox** project is
 created once in the UI (the project-provisioning API is Enterprise-only), and its key pair goes into
 `.env` as `BOTOX_LANGFUSE_PUBLIC_KEY` / `BOTOX_LANGFUSE_SECRET_KEY` — read first in the compose so
-botox traces stay in the Botox project, never in AMLGuard's.
+botox traces stay in the Botox project, never in Protometer's.
 
 ## What a trace looks like
 
@@ -133,7 +133,7 @@ curl -s -u "$BOTOX_LANGFUSE_PUBLIC_KEY:$BOTOX_LANGFUSE_SECRET_KEY" \
 
 The backend exposes a Prometheus **`/metrics`** endpoint (`app/obs/metrics.py`), scraped every 15s
 by the shared Prometheus. This is the operational time-series plane — a long-running server is
-scraped, not push-based like the AMLGuard batch ingest. Reachable on the backend loopback port only
+scraped, not push-based like the Protometer batch ingest. Reachable on the backend loopback port only
 (nginx does not proxy it publicly, like the other operator endpoints). Turn it off with
 `BOTOX_NO_METRICS=1`; a missing `prometheus_client` also degrades it to a no-op, so serving never
 depends on it.
@@ -152,6 +152,6 @@ depends on it.
 | `botox_serving_llm_tokens_total{direction}` | counter | estimated LLM tokens (~4 chars/token; Ollama does not report usage uniformly) |
 | `botox_serving_errors_total{kind}` | counter | genuine errors by kind (excludes egress blocks) |
 
-**Dashboard:** the **Botox** dashboard in Grafana (`http://localhost:5002`, admin/amlguard) —
+**Dashboard:** the **Botox** dashboard in Grafana (`http://localhost:5002`, admin/protometer) —
 turn-rate-by-outcome, latency percentiles, the protection/emergency stats, grounding histogram, and
 token throughput. Provisioned from `docker/observability/infra/grafana/dashboards/domain-botox.json`.

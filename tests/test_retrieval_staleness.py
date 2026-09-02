@@ -19,7 +19,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 pytest.importorskip("chromadb")
 
-from amlguard.retrieval import (  # noqa: E402
+from protometer.retrieval import (  # noqa: E402
     NarrativeIndex,
     StaleIndexError,
     corpus_fingerprint,
@@ -39,7 +39,7 @@ def test_eval_narrative_fingerprint_matches_index_guard(tmp_path):
     """The fingerprint the eval runner logs to MLflow / the artifact (`index_fingerprint`) MUST
     equal the value the index staleness guard stores, or the tracked number could not be used to
     detect drift. This pins that `_narrative_fingerprint` and the index guard agree."""
-    from amlguard.eval.runner import _narrative_fingerprint
+    from protometer.eval.runner import _narrative_fingerprint
 
     # lay out data/protected/<scope>/narratives.json under a temp protected_root
     scope = "none"

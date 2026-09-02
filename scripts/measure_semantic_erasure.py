@@ -24,8 +24,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from amlguard.retrieval import NarrativeIndex  # noqa: E402
-from amlguard.scopes import CURVE_ORDER, get_scope  # noqa: E402
+from protometer.retrieval import NarrativeIndex  # noqa: E402
+from protometer.scopes import CURVE_ORDER, get_scope  # noqa: E402
 
 # Queries about *behaviour*, one per typology, each paired with the documents that genuinely
 # describe it. Their signal lives in prose that protection never touches, so they should
@@ -226,7 +226,7 @@ def main() -> int:
 
     out = ROOT / "data" / "eval" / "semantic_erasure.json"
     out.parent.mkdir(parents=True, exist_ok=True)
-    from amlguard.persist import atomic_write_json
+    from protometer.persist import atomic_write_json
 
     atomic_write_json(out, results)
     print(f"written to {out.relative_to(ROOT)}")

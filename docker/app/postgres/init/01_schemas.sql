@@ -1,4 +1,4 @@
--- AMLGuard Postgres bootstrap. Runs once on an empty data dir.
+-- Protometer Postgres bootstrap. Runs once on an empty data dir.
 --
 -- Per-domain schemas keep the corpus tables namespaced by domain (the same domain seam the code
 -- uses): the AML corpus lives in `aml.*`, and healthcare/support get their own schemas so the
@@ -17,5 +17,5 @@ CREATE SCHEMA IF NOT EXISTS healthcare;
 CREATE SCHEMA IF NOT EXISTS support;
 
 -- The single app role owns everything; grants are explicit so a future read-only role is easy.
-GRANT ALL ON SCHEMA aml, healthcare, support TO amlguard;
-ALTER ROLE amlguard SET search_path = aml, public;
+GRANT ALL ON SCHEMA aml, healthcare, support TO protometer;
+ALTER ROLE protometer SET search_path = aml, public;

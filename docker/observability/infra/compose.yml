@@ -1,4 +1,4 @@
-# Operational observability for AMLGuard's batch stages: Pushgateway receives metrics from
+# Operational observability for Protometer's batch stages: Pushgateway receives metrics from
 # the ingest job, Prometheus scrapes the gateway, Grafana dashboards it. Loopback-bound, in
 # keeping with every other sidecar in this project.
 services:
@@ -35,7 +35,7 @@ services:
     command:
       - --config.file=/etc/prometheus/prometheus.yml
       - --storage.tsdb.path=/prometheus
-      - --storage.tsdb.retention.time=${AMLGUARD_PROM_RETENTION:-30d}
+      - --storage.tsdb.retention.time=${PROTOMETER_PROM_RETENTION:-30d}
       # Allow `POST /-/reload` so a scrape-config change (new demo target) applies without a restart.
       - --web.enable-lifecycle
     ports:
@@ -61,7 +61,7 @@ services:
       # GF_ADMIN_USER/GF_ADMIN_PASSWORD in the environment for anything beyond localhost, and
       # set GF_ANON_ENABLED=false to require login.
       GF_SECURITY_ADMIN_USER: ${GF_ADMIN_USER:-admin}
-      GF_SECURITY_ADMIN_PASSWORD: ${GF_ADMIN_PASSWORD:-amlguard}
+      GF_SECURITY_ADMIN_PASSWORD: ${GF_ADMIN_PASSWORD:-protometer}
       GF_AUTH_ANONYMOUS_ENABLED: ${GF_ANON_ENABLED:-true}
       GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
     volumes:

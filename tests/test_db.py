@@ -17,7 +17,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from amlguard import db  # noqa: E402
+from protometer import db  # noqa: E402
 
 
 def test_schema_mapping_is_per_domain():

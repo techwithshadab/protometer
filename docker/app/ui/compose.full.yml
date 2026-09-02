@@ -1,10 +1,10 @@
-# AMLGuard FULL STACK as ONE project: the app + its Postgres, the vendor Protegrity
+# Protometer FULL STACK as ONE project: the app + its Postgres, the vendor Protegrity
 # Developer-Edition services (Discovery, Guardrail, Anonymization, Synthetic-Data), AND the
 # observability planes (MLflow, Prometheus/Grafana/Pushgateway, Langfuse) — all nested under a
 # single Compose project on one shared `protegrity-network`, one lifecycle.
 #
 #   docker compose -f docker-compose.full.yml up -d --build      # (or: make docker-full)
-#   open http://localhost:8600           # AMLGuard UI
+#   open http://localhost:8600           # Protometer UI
 #   open http://localhost:5001           # MLflow
 #   open http://localhost:3000           # Langfuse
 #   open http://localhost:3001           # Grafana
@@ -80,10 +80,10 @@ services:
   # Names, aliases, and neighbour URLs are set in docker-compose.app.yml (path-style, identical in
   # standalone and full modes). Here we only ADD the group label and, since MLflow is in-project
   # now, override its URL from the standalone host.docker.internal to the in-network name.
-  amlguard_app:
+  protometer_app:
     labels: {com.docker.compose.group: app}
     environment:
-      AMLGUARD_MLFLOW_URI: http://observability-mlflow:5000
+      PROTOMETER_MLFLOW_URI: http://observability-mlflow:5000
       # Langfuse is in-project now, reach it by its in-network name, NOT the host's 127.0.0.1:3000
       # (which inside the app container is the app itself → connection-refused, then ~15s of OTel
       # export + managed-prompt retries on the live-turn path). The app derives both the SDK host and
@@ -99,11 +99,11 @@ services:
   # only starts when you ask for it, and you must also point the app at it:
   #
   #   OLLAMA_URL=http://ollama:11434 \
-  #   docker compose -f docker/app/ui/compose.full.yml --profile local-model up -d ollama amlguard_app
+  #   docker compose -f docker/app/ui/compose.full.yml --profile local-model up -d ollama protometer_app
   #
   # CPU inference only (no GPU passthrough here) — fine for the demo, slower than a host GPU. Pull
   # the model into it once: `docker exec ollama ollama pull llama3.2` (or set
-  # AMLGUARD_AUTO_PULL_MODEL=true so the app pulls it on first use). The named volume persists it.
+  # PROTOMETER_AUTO_PULL_MODEL=true so the app pulls it on first use). The named volume persists it.
   # The app reaches it by the in-network name `ollama:11434`, so no host port is published by
   # default — that also avoids a clash with a host Ollama already on :11434. Uncomment the `ports`
   # block to reach this container's Ollama from the host too (only if the host's own :11434 is free).

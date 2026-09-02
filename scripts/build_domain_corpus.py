@@ -19,7 +19,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from amlguard.corpus.domain_parties import DOMAIN_PARTY_GENERATORS, generate_domain_parties
+from protometer.corpus.domain_parties import DOMAIN_PARTY_GENERATORS, generate_domain_parties
 
 # Fixed seeds, one per domain, so each corpus is reproducible and independent of the others.
 DOMAIN_SEEDS = {"customer-support": 4187, "healthcare": 9302}

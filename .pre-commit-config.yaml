@@ -26,7 +26,7 @@ repos:
         name: docs consistency + invariant tests
         # pre-commit local hooks don't take an `env:` key; set the telemetry kill-switches
         # inline in the command instead.
-        entry: bash -c 'AMLGUARD_NO_TRACKING=1 AMLGUARD_NO_TRACING=1 python -m pytest tests/test_docs_consistency.py -q'
+        entry: bash -c 'PROTOMETER_NO_TRACKING=1 PROTOMETER_NO_TRACING=1 python -m pytest tests/test_docs_consistency.py -q'
         language: system
         pass_filenames: false
         always_run: true

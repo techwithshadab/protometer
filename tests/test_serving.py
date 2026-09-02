@@ -39,12 +39,12 @@ class FakeProtector:
 
 
 def _fake_discovery(monkeypatch, entities):
-    import amlguard.ingest as ingest
+    import protometer.ingest as ingest
     monkeypatch.setattr(ingest, "discover_entities", lambda text, **kw: entities)
 
 
 def test_protect_text_tokenizes_inbound_pii(monkeypatch):
-    from amlguard.serving import protect_text
+    from protometer.serving import protect_text
     text = "Contact John Smith about the case."
     start = text.index("John Smith")
     _fake_discovery(monkeypatch, [
@@ -61,8 +61,8 @@ def test_protect_text_redacts_unmapped_pii_type_never_leaks_it(monkeypatch):
 
     Leaving it clear (the old `continue`) was a serving-path leak: discovery flagged it as PII,
     so it must never reach the model verbatim. Fail closed."""
-    from amlguard.ingest import ENTITY_TO_ELEMENT
-    from amlguard.serving import protect_text
+    from protometer.ingest import ENTITY_TO_ELEMENT
+    from protometer.serving import protect_text
     assert ENTITY_TO_ELEMENT.get("MADE_UP_TYPE") is None  # precondition: truly unmapped
     text = "The secret code is BANANA-42 today."
     start = text.index("BANANA-42")
@@ -80,8 +80,8 @@ def test_protect_text_uses_roster_for_organization_discovery_misses(monkeypatch)
 
     Discovery's ORGANIZATION recall is ~0. Without the roster the org name is left in
     the clear and reaches the model / Langfuse — the exact serving-path leak this fix closes."""
-    from amlguard.roster import roster_from_parties
-    from amlguard.serving import protect_text
+    from protometer.roster import roster_from_parties
+    from protometer.serving import protect_text
 
     text = "Look into Sablefield Advisory Services about the wire."
     # Discovery finds NOTHING (its real behaviour for organizations).
@@ -102,8 +102,8 @@ def test_protect_text_uses_roster_for_organization_discovery_misses(monkeypatch)
 
 
 def test_turn_protects_inbound_model_never_sees_plaintext(monkeypatch):
-    from amlguard.reidentify import INVESTIGATOR
-    from amlguard.serving import ConversationSession
+    from protometer.reidentify import INVESTIGATOR
+    from protometer.serving import ConversationSession
 
     text = "Look into John Smith please."
     start = text.index("John Smith")
@@ -135,8 +135,8 @@ def test_turn_protects_inbound_model_never_sees_plaintext(monkeypatch):
 
 
 def test_turn_fails_closed_on_egress_block(monkeypatch):
-    from amlguard.reidentify import INVESTIGATOR
-    from amlguard.serving import ConversationSession
+    from protometer.reidentify import INVESTIGATOR
+    from protometer.serving import ConversationSession
 
     _fake_discovery(monkeypatch, [])
 
@@ -163,7 +163,7 @@ def test_turn_fails_closed_on_egress_block(monkeypatch):
 
 
 def test_auditor_role_reveals_nothing(monkeypatch):
-    from amlguard.serving import ConversationSession
+    from protometer.serving import ConversationSession
 
     _fake_discovery(monkeypatch, [])
 
@@ -184,8 +184,8 @@ def test_auditor_role_reveals_nothing(monkeypatch):
 def test_turn_fails_closed_when_egress_scan_raises(monkeypatch):
     """An unreachable guardrail must withhold the reply, not let the exception escape turn()
     onto an unguarded path."""
-    from amlguard.reidentify import INVESTIGATOR
-    from amlguard.serving import ConversationSession
+    from protometer.reidentify import INVESTIGATOR
+    from protometer.serving import ConversationSession
 
     _fake_discovery(monkeypatch, [])
 
@@ -218,8 +218,8 @@ def test_turn_fails_closed_when_guardrail_absent_on_analyst_path(monkeypatch):
     fails and the session gets guardrail=None. On the analyst path that must fail CLOSED — the
     old code returned the reply unscanned (fail open), letting a model-emitted clear identifier
     reach the analyst."""
-    from amlguard.reidentify import INVESTIGATOR
-    from amlguard.serving import ConversationSession
+    from protometer.reidentify import INVESTIGATOR
+    from protometer.serving import ConversationSession
 
     _fake_discovery(monkeypatch, [])
 
@@ -241,7 +241,7 @@ def test_turn_fails_closed_when_guardrail_absent_on_analyst_path(monkeypatch):
 def test_session_disables_response_cache_on_its_client(monkeypatch):
     """A serving session must turn off the batch client's response cache, or one user's reply
     is served to another user asking the same thing."""
-    from amlguard.serving import ConversationSession
+    from protometer.serving import ConversationSession
 
     _fake_discovery(monkeypatch, [])
 
@@ -265,7 +265,7 @@ def test_session_disables_response_cache_on_its_client(monkeypatch):
 def test_audit_sink_receives_every_turn_including_failures(monkeypatch):
     """A live system needs a per-turn audit record for EVERY outcome. The sink must fire on a
     successful turn and on a failed one (here: generation failure), carrying metadata only."""
-    from amlguard.serving import ConversationSession
+    from protometer.serving import ConversationSession
 
     _fake_discovery(monkeypatch, [])
     records = []
@@ -299,7 +299,7 @@ def test_audit_sink_receives_every_turn_including_failures(monkeypatch):
 def test_turn_captures_egress_detail(monkeypatch):
     """The turn must surface the guardrail's per-processor verdict + batch score, not just a
     boolean. Drives a fake guardrail returning a rich verdict."""
-    from amlguard.serving import ConversationSession
+    from protometer.serving import ConversationSession
 
     _fake_discovery(monkeypatch, [])
 

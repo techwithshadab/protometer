@@ -27,7 +27,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 # README step 2 is `cp .env.example .env`; make that instruction true. Nothing read the file,
 # so a judge who followed the instructions was told their credentials were missing, which
 # looks like their mistake and was ours.
-from amlguard.env import load_dotenv  # noqa: E402
+from protometer.env import load_dotenv  # noqa: E402
 
 load_dotenv(Path(__file__).resolve().parents[1])
 

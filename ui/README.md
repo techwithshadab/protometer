@@ -1,6 +1,6 @@
-# Aegis — Protected-Pipeline Intelligence (the AMLGuard UI)
+# Protometer — Protected-Pipeline Intelligence
 
-A judge- and executive-facing console (product name **Aegis**; codebase name AMLGuard) that
+A judge- and executive-facing console (product name **Protometer**) that
 replays the verified batch run and the chatbot over the same protection primitives the pipeline
 uses. Light editorial design, Title-Case headings, per-domain views.
 
@@ -82,19 +82,19 @@ reasoning, at $0 per turn. The UI's Live-mode banner tells you which model is ac
 2. Pull the model, either explicitly or automatically:
    - Explicit: `make setup-local-model` (pulls `llama3.2`, ~2GB; override with
      `make setup-local-model MODEL=qwen2.5:7b`).
-   - Automatic: set `AMLGUARD_AUTO_PULL_MODEL=true` and the app pulls it on the first live turn.
+   - Automatic: set `PROTOMETER_AUTO_PULL_MODEL=true` and the app pulls it on the first live turn.
 
 **How the model is chosen** (all env-driven, so a fork runs as-is):
 
 | Variable | Default | Effect |
 |---|---|---|
-| `AMLGUARD_UI_MODEL` | *(unset)* | Force a specific `config/models.yaml` model for live chat; wins over everything below. |
-| `AMLGUARD_HOSTED_MODEL` | `bedrock-sonnet-5` | The hosted model used **when AWS credentials are present**. |
-| `AMLGUARD_LOCAL_MODEL` | `llama3.2` | The open-source Ollama model used **when there are no cloud credentials**. |
-| `AMLGUARD_AUTO_PULL_MODEL` | `false` | Pull the local model on first use instead of requiring `make setup-local-model`. |
+| `PROTOMETER_UI_MODEL` | *(unset)* | Force a specific `config/models.yaml` model for live chat; wins over everything below. |
+| `PROTOMETER_HOSTED_MODEL` | `bedrock-sonnet-5` | The hosted model used **when AWS credentials are present**. |
+| `PROTOMETER_LOCAL_MODEL` | `llama3.2` | The open-source Ollama model used **when there are no cloud credentials**. |
+| `PROTOMETER_AUTO_PULL_MODEL` | `false` | Pull the local model on first use instead of requiring `make setup-local-model`. |
 | `OLLAMA_URL` | host: `localhost:11434`; container: `host.docker.internal:11434` | Where Ollama listens. An explicit value always wins; unset, it defaults per environment (a container's own `localhost` is not the host). |
 
-Precedence: `AMLGUARD_UI_MODEL` → hosted (if AWS creds) → local. `GET /api/health` reports the
+Precedence: `PROTOMETER_UI_MODEL` → hosted (if AWS creds) → local. `GET /api/health` reports the
 resolved model, its provider, and whether it's ready.
 
 **With Docker**, the app reaches Ollama on your **host** by default (`host.docker.internal:11434`),
@@ -103,7 +103,7 @@ so `ollama serve` on the host just works — set nothing. To run Ollama **inside
 
     echo 'OLLAMA_URL=http://ollama:11434' >> .env
     make docker-full                 # (or: docker compose --env-file .env … --profile local-model up -d)
-    docker exec ollama ollama pull llama3.2      # or set AMLGUARD_AUTO_PULL_MODEL=true in .env
+    docker exec ollama ollama pull llama3.2      # or set PROTOMETER_AUTO_PULL_MODEL=true in .env
 
 That Ollama container is CPU-only here (fine for the demo, slower than a host GPU), reached over the
 network as `ollama:11434` (it publishes no host port, so it never clashes with a host Ollama), and
@@ -146,9 +146,9 @@ to an isolated `_live/<run_id>/` dir, so a demo can never clobber the verified R
 Two rails gate anything that bills or exposes data, both off by default for a loopback demo but
 ready for a real deployment:
 
-- **`AMLGUARD_UI_API_TOKEN`** — when set, the billed endpoints (`/api/chat/turn`,
+- **`PROTOMETER_UI_API_TOKEN`** — when set, the billed endpoints (`/api/chat/turn`,
   `/api/batch/run-stage`) and the parties preview (`/api/corpus/parties`) require an
-  `X-AMLGuard-Token` header. Bind beyond loopback only with this set.
+  `X-Protometer-Token` header. Bind beyond loopback only with this set.
 - **PII never leaves the parties preview in the clear.** `/api/corpus/parties` returns only a safe
   column allow-list (id, name, type, jurisdiction, risk, PEP); clear ssn/credit-card/DOB/account
   fields are dropped at the seam regardless of auth — the tokenized serving path is the only way to

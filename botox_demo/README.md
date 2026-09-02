@@ -5,7 +5,7 @@ that appears bottom-right on the site. It answers general questions about BOTOX�
 **only** content from the official site, protects any personal information a visitor types, and
 never gives medical advice.
 
-This is a real-use-case demo built on the same protected-pipeline principles as the AMLGuard
+This is a real-use-case demo built on the same protected-pipeline principles as the Protometer
 submission: **tokenize sensitive data at ingress, reason over tokens, guard every reply at egress,
 reveal by role**, applied here to the *user's* PII on a public pharma site, with a **GraphRAG**
 retrieval core over a Neo4j knowledge graph.
@@ -17,7 +17,7 @@ retrieval core over a Neo4j knowledge graph.
 
 ## Setup
 
-This demo shares one Protegrity tier and one observability stack with the AMLGuard submission on the
+This demo shares one Protegrity tier and one observability stack with the Protometer submission on the
 same host — bring those **shared tiers** up first (from the repo root), then the botox stack itself.
 
 **PII protection requires Protegrity** — there is no mock fallback — so before the bot can answer,
@@ -55,7 +55,7 @@ fails closed.
 
 **Observability:** agent tracing goes to the **shared Langfuse v4** (UI at `http://127.0.0.1:5006`),
 into botox's **own** project (org *Protegrity* → project *Botox*), so its traces stay isolated from
-AMLGuard's. Add the Botox project's keys as `BOTOX_LANGFUSE_PUBLIC_KEY` / `BOTOX_LANGFUSE_SECRET_KEY`
+Protometer's. Add the Botox project's keys as `BOTOX_LANGFUSE_PUBLIC_KEY` / `BOTOX_LANGFUSE_SECRET_KEY`
 in `.env`; until then tracing is a no-op and the bot runs unchanged. See
 [docs/observability.md](docs/observability.md) for the one-time project + key setup.
 

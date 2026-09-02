@@ -1,6 +1,6 @@
-// Aegis console — light executive report over the Protected-Pipeline API.
+// Protometer console — light executive report over the Protected-Pipeline API.
 // The frontend is served by the same FastAPI server, so the API base is the page origin.
-const API = (window.AMLGUARD_API_BASE || window.location.origin) + "/api";
+const API = (window.PROTOMETER_API_BASE || window.location.origin) + "/api";
 const $ = s => document.querySelector(s);
 // Escape ALL HTML-significant characters before any string reaches innerHTML. User input and
 // server text (guardrail explanations, entity types, model replies) are untrusted.
@@ -249,7 +249,7 @@ async function renderLiveNote() {
       n.innerHTML = `Live turns need a model. No cloud credentials were found, and <b>Ollama</b> is not running. Install it from <code>ollama.com</code> and run <code>make setup-local-model</code>, then reload. (Replay mode works without any of this.)`;
     } else {
       n.className = "livenote warn";
-      n.innerHTML = `The local model <b>${model}</b> is not downloaded yet. Run <code>make setup-local-model</code> once (or set <code>AMLGUARD_AUTO_PULL_MODEL=true</code>), then reload. (Replay mode works without it.)`;
+      n.innerHTML = `The local model <b>${model}</b> is not downloaded yet. Run <code>make setup-local-model</code> once (or set <code>PROTOMETER_AUTO_PULL_MODEL=true</code>), then reload. (Replay mode works without it.)`;
     }
   } else if (h.model) {
     n.className = "livenote ok";
@@ -810,7 +810,7 @@ function gotoTurn(i) {
     const bodyHtml = held
       ? `<em>${esc("Reply held at the egress boundary. See the Protection Boundary panel.")}</em>`
       : mdLite(markTokens(deEmDash(esc(t.reply_over_tokens || "(no reply)"))));
-    m.appendChild(el("div", "msg bot" + (cur ? " cur" : ""), `<div class="who">Aegis · over tokens ${egressPill(t.internals)}</div><div class="b">${bodyHtml}</div>`));
+    m.appendChild(el("div", "msg bot" + (cur ? " cur" : ""), `<div class="who">Protometer · over tokens ${egressPill(t.internals)}</div><div class="b">${bodyHtml}</div>`));
     k++;
   }
   // scroll the current turn into view (not the very bottom), so the user reads from its start
@@ -844,11 +844,11 @@ async function sendTurn() {
   inp.value = "";
   const m = $("#msgs");
   m.appendChild(el("div", "msg user", `<div class="who">You</div><div class="b">${esc(msg)}</div>`));
-  const wait = el("div", "msg bot", `<div class="who">Aegis</div><div class="b"><span class="running">Protecting → Reasoning → Scanning → Re-Identifying</span></div>`);
+  const wait = el("div", "msg bot", `<div class="who">Protometer</div><div class="b"><span class="running">Protecting → Reasoning → Scanning → Re-Identifying</span></div>`);
   m.appendChild(wait); m.scrollTop = m.scrollHeight;
   try {
     const headers = { "content-type": "application/json" };
-    if (window.AMLGUARD_UI_TOKEN) headers["X-AMLGuard-Token"] = window.AMLGUARD_UI_TOKEN;
+    if (window.PROTOMETER_UI_TOKEN) headers["X-Protometer-Token"] = window.PROTOMETER_UI_TOKEN;
     const resp = await fetch(API + "/chat/turn", {
       method: "POST", headers,
       body: JSON.stringify({ message: msg, domain: currentDomain, role: CHAT_ROLE, conversation_id: "ui-demo" })

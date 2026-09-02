@@ -1,11 +1,11 @@
 # Model configuration, every LLM the pipeline can use, and how it is priced.
 #
-# Providers are selected by name at runtime (`AMLGUARD_MODEL`, `--model`, or the evaluation
+# Providers are selected by name at runtime (`PROTOMETER_MODEL`, `--model`, or the evaluation
 # config). Nothing about the pipeline depends on which entry is chosen, so an open-source
 # model on a workstation and a frontier hosted model are interchangeable.
 #
 # `cost_per_1m_input` / `cost_per_1m_output` are USD per million tokens and drive the cost
-# accounting in `amlguard.llm`. Local models are zero-cost by definition; their real cost is
+# accounting in `protometer.llm`. Local models are zero-cost by definition; their real cost is
 # wall-clock, which is measured separately. Hosted prices are list prices at time of writing
 # and are declared here rather than hardcoded, so they can be corrected without touching code.
 

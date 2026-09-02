@@ -1,6 +1,6 @@
 # Architecture diagrams
 
-Designed figures for the BOTOX® Assistant, in the same system as the AMLGuard diagrams: each is an
+Designed figures for the BOTOX® Assistant, in the same system as the Protometer diagrams: each is an
 HTML source under `src/` styled by the shared `src/_design.css` (navy botox.com palette, Geist font,
 a reusable component set), rendered to a 2× PNG with headless Chrome.
 

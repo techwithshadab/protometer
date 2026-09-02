@@ -1,6 +1,6 @@
 # Scripts — the command palette
 
-Each script is a thin CLI entry point over the `amlguard` library in [`src/`](../src/amlguard/) — it
+Each script is a thin CLI entry point over the `protometer` library in [`src/`](../src/protometer/) — it
 parses args, loads `.env`, and calls the library. **No pipeline logic lives here** (see the library),
 and there is no duplication between the two. Grouped by what you'd run them for:
 

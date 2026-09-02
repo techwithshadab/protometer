@@ -24,9 +24,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from amlguard.persist import atomic_write_json  # noqa: E402
-from amlguard.protect import Protector  # noqa: E402
-from amlguard.reidentify import (  # noqa: E402
+from protometer.persist import atomic_write_json  # noqa: E402
+from protometer.protect import Protector  # noqa: E402
+from protometer.reidentify import (  # noqa: E402
     ANALYST,
     AUDITOR,
     BILLING,

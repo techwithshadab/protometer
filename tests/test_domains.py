@@ -15,7 +15,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from amlguard.domains import DEFAULT_DOMAIN, domain_names, get_domain
+from protometer.domains import DEFAULT_DOMAIN, domain_names, get_domain
 
 
 def test_default_domain_is_aml():
@@ -27,7 +27,7 @@ def test_default_domain_is_aml():
 def test_aml_domain_matches_ingest_field_maps_exactly():
     """The AML domain's record_fields must equal PARTY_FIELDS + TRANSACTION_FIELDS, or the
     default path would tokenize a different field set than ingest does."""
-    from amlguard.ingest import PARTY_FIELDS, TRANSACTION_FIELDS
+    from protometer.ingest import PARTY_FIELDS, TRANSACTION_FIELDS
 
     expected = {**PARTY_FIELDS, **TRANSACTION_FIELDS}
     assert get_domain("aml").record_fields == expected
@@ -39,7 +39,7 @@ def test_unknown_domain_is_a_loud_error():
 
 
 def test_every_domain_resolves_to_real_prompt_files():
-    from amlguard.prompts import load_prompt
+    from protometer.prompts import load_prompt
 
     for name in domain_names():
         d = get_domain(name)
@@ -68,7 +68,7 @@ def test_every_domain_entity_type_is_tokenizable():
     """Every entity type a domain declares MUST be in ingest.ENTITY_TO_ELEMENT, or that field
     is discovered but silently NOT tokenized, a plaintext leak. This caught the healthcare
     domain mapping `mrn` to a non-existent MEDICAL_RECORD_NUMBER type."""
-    from amlguard.ingest import ENTITY_TO_ELEMENT
+    from protometer.ingest import ENTITY_TO_ELEMENT
 
     for name in domain_names():
         d = get_domain(name)
@@ -85,8 +85,8 @@ def test_billing_can_reveal_the_mrn_entity_type_it_bills_against():
     that exact entity type — otherwise it sees the name but never the MRN (fails closed, breaks the
     demo beat). SSN / insurance_id stay masked (distinct entity types), so this is minimum-necessary,
     not over-reveal."""
-    from amlguard.domains import get_domain
-    from amlguard.reidentify import ROLES
+    from protometer.domains import get_domain
+    from protometer.reidentify import ROLES
 
     billing = ROLES["billing"]
     hc = get_domain("healthcare")
@@ -101,7 +101,7 @@ def test_billing_can_reveal_the_mrn_entity_type_it_bills_against():
 def test_forbidden_values_use_domain_fields():
     """The egress backstop must forbid a NON-AML domain's identifiers, not only AML party
     fields, or a healthcare/support corpus's names/MRNs pass the check (cross-domain leak)."""
-    from amlguard.guardrail import forbidden_values_from_parties
+    from protometer.guardrail import forbidden_values_from_parties
 
     hc = get_domain("healthcare")
     # Real corpus rows store the name under `full_name` (NOT patient_name); the domain's
@@ -119,8 +119,8 @@ def test_forbidden_values_use_domain_fields():
 def test_scope_element_override_for_datetime_yearclear():
     """The quasi-yearclear scope must protect dates with datetime_yc (year in clear), while
     every other entity keeps the default element and the default curve is unchanged."""
-    from amlguard.ingest import ENTITY_TO_ELEMENT
-    from amlguard.scopes import CURVE_ORDER, get_scope
+    from protometer.ingest import ENTITY_TO_ELEMENT
+    from protometer.scopes import CURVE_ORDER, get_scope
 
     yc = get_scope("quasi-yearclear")
     assert yc.element_for("DATETIME", ENTITY_TO_ELEMENT.get("DATETIME")) == "datetime_yc"

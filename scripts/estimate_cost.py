@@ -23,11 +23,11 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 # README step 2 is `cp .env.example .env`; make that instruction true.
-from amlguard.env import load_dotenv  # noqa: E402
+from protometer.env import load_dotenv  # noqa: E402
 
 load_dotenv(ROOT)
 
-from amlguard.llm import ModelRegistry  # noqa: E402
+from protometer.llm import ModelRegistry  # noqa: E402
 
 # Measured averages. See module docstring.
 AVG_INPUT_TOKENS = 4_029

@@ -187,7 +187,7 @@ services:
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-mysecret}
       LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: ${LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT:-http://langfuse-minio:9000}
       # Auto-seed the org + the FIRST project + admin user on a FRESH database. The shared instance
-      # hosts ONE org ("Protegrity") with a project per demo: AMLGuard (seeded here, keys from .env)
+      # hosts ONE org ("Protegrity") with a project per demo: Protometer (seeded here, keys from .env)
       # and Botox. Langfuse's headless init only provisions ONE project, and its Organizations
       # Management API (create-project) is Enterprise-only — so the SECOND project (Botox) is created
       # ONCE in the UI (Settings -> New Project), its keys put in .env as BOTOX_LANGFUSE_*. See
@@ -195,8 +195,8 @@ services:
       # safe on every boot; it does NOT retro-rename an existing org/project (change those in the UI).
       LANGFUSE_INIT_ORG_ID: ${LANGFUSE_INIT_ORG_ID:-protegrity}
       LANGFUSE_INIT_ORG_NAME: ${LANGFUSE_INIT_ORG_NAME:-Protegrity}
-      LANGFUSE_INIT_PROJECT_ID: ${LANGFUSE_INIT_PROJECT_ID:-amlguard}
-      LANGFUSE_INIT_PROJECT_NAME: ${LANGFUSE_INIT_PROJECT_NAME:-AMLGuard}
+      LANGFUSE_INIT_PROJECT_ID: ${LANGFUSE_INIT_PROJECT_ID:-protometer}
+      LANGFUSE_INIT_PROJECT_NAME: ${LANGFUSE_INIT_PROJECT_NAME:-Protometer}
       LANGFUSE_INIT_PROJECT_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}
       LANGFUSE_INIT_PROJECT_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}
       LANGFUSE_INIT_USER_EMAIL: ${LANGFUSE_INIT_USER_EMAIL:-admin@protegrity.local}

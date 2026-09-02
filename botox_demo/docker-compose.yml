@@ -102,11 +102,11 @@ services:
       # (9001 in the shared port map; :5173 is the Vite dev server). Override for a real deployment.
       BOTOX_ALLOWED_ORIGINS: ${BOTOX_ALLOWED_ORIGINS:-http://localhost:9001,http://127.0.0.1:9001,http://localhost:5173}
       # Observability: agent tracing to the SHARED Langfuse (obs-langfuse on observability-shared),
-      # using BOTOX's OWN project keys — SEPARATE from AMLGuard's project on the same instance. Set
+      # using BOTOX's OWN project keys — SEPARATE from Protometer's project on the same instance. Set
       # BOTOX_LANGFUSE_PUBLIC_KEY / BOTOX_LANGFUSE_SECRET_KEY in .env to the 'botox' project's keys
       # (create that project once in the Langfuse UI — the admin/provisioning API is Enterprise-only;
       # see docs/adr/shared-infra-decoupling.md). These are read FIRST so the shared LANGFUSE_*_KEY
-      # (AMLGuard's project, set in the repo .env) does NOT leak botox traces into AMLGuard's project.
+      # (Protometer's project, set in the repo .env) does NOT leak botox traces into Protometer's project.
       # Set BOTOX_TRACING=off to disable.
       LANGFUSE_HOST: ${LANGFUSE_HOST:-http://obs-langfuse:3000}
       LANGFUSE_PUBLIC_KEY: ${BOTOX_LANGFUSE_PUBLIC_KEY:-${LANGFUSE_PUBLIC_KEY:-pk-lf-botox-demo}}

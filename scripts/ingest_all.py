@@ -19,16 +19,16 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 # README step 2 is `cp .env.example .env`; make that instruction true.
-from amlguard.env import load_dotenv  # noqa: E402
+from protometer.env import load_dotenv  # noqa: E402
 
 load_dotenv(ROOT)
 
 import requests  # noqa: E402
 
-from amlguard.ingest import DISCOVERY_URL, ingest  # noqa: E402
-from amlguard.protect import Protector  # noqa: E402
-from amlguard.retrieval import build_index  # noqa: E402
-from amlguard.scopes import CURVE_ORDER, get_scope  # noqa: E402
+from protometer.ingest import DISCOVERY_URL, ingest  # noqa: E402
+from protometer.protect import Protector  # noqa: E402
+from protometer.retrieval import build_index  # noqa: E402
+from protometer.scopes import CURVE_ORDER, get_scope  # noqa: E402
 
 CORPUS_DIR = ROOT / "data" / "corpus"
 PROTECTED_DIR = ROOT / "data" / "protected"
@@ -59,7 +59,7 @@ def _write_manifest(reports: list[dict], status: str, error: str = "") -> None:
     for report in reports:
         merged[report.get("scope") or report.get("scope_name", "?")] = report
     reports = list(merged.values())
-    from amlguard.persist import atomic_write_json
+    from protometer.persist import atomic_write_json
 
     atomic_write_json(MANIFEST, {
         "status": status,
@@ -92,7 +92,7 @@ def _write_manifest(reports: list[dict], status: str, error: str = "") -> None:
             _spec.loader.exec_module(_mod)
             _mod.main()
         except Exception as exc:  # noqa: BLE001
-            from amlguard.log import get_logger
+            from protometer.log import get_logger
             get_logger("ingest").warning(
                 "token-manifest rebuild skipped: %s: %s", type(exc).__name__, exc)
 
@@ -110,7 +110,7 @@ def _index(scope_slug: str, protected_dir: Path) -> None:
     a mismatched index would answer the new corpus's evaluation using the previous corpus's
     chunks.
     """
-    from amlguard.retrieval import StaleIndexError
+    from protometer.retrieval import StaleIndexError
 
     try:
         index = build_index(protected_dir, INDEX_DIR, scope_slug)
@@ -161,7 +161,7 @@ def _preflight(scope_names: list[str]) -> None:
             f"Start it with:\n"
             f"  cd vendor-de/data-discovery && docker compose \\\n"
             f"    -f docker-compose.yml -f ../../docker/vendor/discovery.override.yml up -d\n\n"
-            f"Override the endpoint with AMLGUARD_DISCOVERY_URL if it runs elsewhere."
+            f"Override the endpoint with PROTOMETER_DISCOVERY_URL if it runs elsewhere."
         )
 
     # A provider can fail while the request returns 200, and a dead Context provider means
@@ -191,7 +191,7 @@ def main(argv: list[str]) -> int:
         print(__doc__)
         return 0
 
-    from amlguard.persist import acquire_run_lock
+    from protometer.persist import acquire_run_lock
 
     try:
         _lock = acquire_run_lock(ROOT / "data")  # held for process lifetime  # noqa: F841
@@ -219,7 +219,7 @@ def main(argv: list[str]) -> int:
             # Prometheus/Grafana plane is rebuildable from artifacts at $0 (the protect calls
             # are what cost money, not the metric push). Without this, the operational plane
             # could only ever be refreshed by re-paying for a full protect run.
-            from amlguard.metrics_export import push_from_report
+            from protometer.metrics_export import push_from_report
 
             push_from_report(scope.slug, persisted, domain="aml")
             # Still index: protection and indexing are separate steps, and an interrupted
@@ -254,7 +254,7 @@ def main(argv: list[str]) -> int:
         # Operational metrics go to Prometheus (time-series, Grafana-dashboarded): rate,
         # latency, per-scope duration, no-op/failure counts. This is what an operator watches,
         # and it is the wrong shape for MLflow's experiment-comparison model.
-        from amlguard.metrics_export import push_from_report
+        from protometer.metrics_export import push_from_report
 
         push_from_report(scope.slug, report.to_dict(), domain="aml")
         print(

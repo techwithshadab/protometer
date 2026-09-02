@@ -1,5 +1,5 @@
 [project]
-name = "amlguard"
+name = "protometer"
 version = "1.0.0"
 description = "AML investigation copilot measuring what Protegrity tokenization costs an AI pipeline"
 readme = "README.md"
@@ -65,6 +65,7 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
 
 [tool.ruff]
 line-length = 100

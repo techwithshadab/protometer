@@ -19,15 +19,15 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 # README step 2 is `cp .env.example .env`; make that instruction true.
-from amlguard.env import load_dotenv  # noqa: E402
+from protometer.env import load_dotenv  # noqa: E402
 
 load_dotenv(ROOT)
 
-from amlguard.alert_queue import AlertQueueResult, rank_alerts
-from amlguard.hybrid import HybridResult, rank_queue
-from amlguard.llm import get_llm
-from amlguard.tracking import Tracker
-from amlguard.training import build_classifier
+from protometer.alert_queue import AlertQueueResult, rank_alerts
+from protometer.hybrid import HybridResult, rank_queue
+from protometer.llm import get_llm
+from protometer.tracking import Tracker
+from protometer.training import build_classifier
 
 
 def main() -> int:
@@ -47,7 +47,7 @@ def main() -> int:
                         help="skip the Semantic Guardrail egress check on rationales")
     args = parser.parse_args()
 
-    from amlguard.persist import acquire_run_lock
+    from protometer.persist import acquire_run_lock
 
     try:
         _lock = acquire_run_lock(ROOT / "data")  # held for process lifetime  # noqa: F841
@@ -115,7 +115,7 @@ def main() -> int:
         print(f"precision@capacity: {result.precision_at_capacity(truth):.3f}")
 
     blocked = discounted = ungrounded_count = 0
-    from amlguard.review import ReviewOutcome
+    from protometer.review import ReviewOutcome
 
     outcome = ReviewOutcome()  # default so --no-llm runs don't NameError in the tracker block
 
@@ -123,7 +123,7 @@ def main() -> int:
         # Explicit model, never the auto-resolved default: a run launched with
         # --model bedrock-sonnet-5 that silently fell back to the local model produced
         # rationales at $0.00 and attributed them to the wrong system.
-        from amlguard.llm import preflight
+        from protometer.llm import preflight
 
         # Preflight is the real guard against silent model substitution: it makes
         # one live call with fallback disabled and compares the resolved spec to the request.
@@ -167,7 +167,7 @@ def main() -> int:
         # plaintext identifier is caught even when the vendor's classifier scores it 0.0 -
         # which it does for names outside its training distribution. Fails closed here:
         # this is the analyst path, and a rationale that cannot be scanned must not ship.
-        from amlguard.guardrail import Guardrail, GuardrailUnavailable
+        from protometer.guardrail import Guardrail, GuardrailUnavailable
 
         guardrail = None
         if not args.no_guardrail:
@@ -182,7 +182,7 @@ def main() -> int:
         # decisions are annotated in place, the outcome carries the accounting, and the
         # invariants (basis equals what the model was shown, egress verdicts counted) are
         # pinned by tests behind that seam.
-        from amlguard.review import review_head
+        from protometer.review import review_head
 
         try:
             outcome = review_head(
@@ -237,7 +237,7 @@ def main() -> int:
             print(f"\nexample (rank {example.rank}, score {example.score:.2f}):")
             print(f"  {example.rationale[:320]}")
 
-    tracker = Tracker("amlguard-hybrid")
+    tracker = Tracker("protometer-hybrid")
     with tracker.run(
         f"hybrid:{args.scope}:{args.grain}:cap{args.capacity}",
         {
@@ -276,7 +276,7 @@ def main() -> int:
         # Global SHAP importances for the classifier this queue was scored by, so the run in
         # the UI shows *why* the model ranks as it does, not only how well.
         try:
-            from amlguard.explain import global_importance
+            from protometer.explain import global_importance
 
             shap_importance = global_importance(
                 model, features[test_idx], names
@@ -291,7 +291,7 @@ def main() -> int:
         # Run-level quality verdicts to Langfuse, beside the generations they judge. The
         # division of labour: MLflow keeps the experiment metrics above; Langfuse keeps the
         # prompt-level record, and these scores make its view queryable by outcome.
-        from amlguard.observability import record_score
+        from protometer.observability import record_score
 
         if result.llm_calls:
             record_score(
@@ -322,7 +322,7 @@ def main() -> int:
     if args.no_llm:
         out = out.with_name(out.stem + "-ranking" + out.suffix)
     out.parent.mkdir(parents=True, exist_ok=True)
-    from amlguard.persist import RUN_ID, atomic_write_json
+    from protometer.persist import RUN_ID, atomic_write_json
 
     payload = result.to_dict()
     payload["run_id"] = RUN_ID

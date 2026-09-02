@@ -15,7 +15,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from amlguard.reidentify import INVESTIGATOR, find_tokens, reidentify  # noqa: E402
+from protometer.reidentify import INVESTIGATOR, find_tokens, reidentify  # noqa: E402
 
 # Opaque tokens that do NOT embed their plaintext (a real token doesn't), with a reverse map
 # keyed by (element, token): a token reverses only under the element it was protected with.

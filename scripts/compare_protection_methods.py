@@ -26,12 +26,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from amlguard.env import load_dotenv  # noqa: E402
+from protometer.env import load_dotenv  # noqa: E402
 
 load_dotenv(ROOT)
 
-from amlguard import settings as _settings  # noqa: E402
-from amlguard.persist import atomic_write_json  # noqa: E402
+from protometer import settings as _settings  # noqa: E402
+from protometer.persist import atomic_write_json  # noqa: E402
 
 ANON_EP = _settings.anonymization_url()
 CORPUS = ROOT / "data" / "corpus"
@@ -156,7 +156,7 @@ def part2_generalized_amounts(client) -> dict:
     for name in ("narratives.json", "parties.json"):
         (variant_dir / name).write_text((ROOT / "data" / "protected" / "none" / name).read_text())
 
-    from amlguard.training import train_scope
+    from protometer.training import train_scope
 
     result = train_scope(variant_dir, CORPUS, "anon-monetary")
     baseline = json.loads((ROOT / "data" / "eval" / "training.json").read_text())

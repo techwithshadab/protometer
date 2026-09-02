@@ -9,7 +9,7 @@ timing race during registration never leaves a model un-governed.
     python scripts/govern_models.py
 
 MLflow 3 pattern: aliases + tags, not the deprecated None->Staging->Production stages.
-`models:/amlguard-<scope>@champion` then resolves to the current best build.
+`models:/protometer-<scope>@champion` then resolves to the current best build.
 """
 
 from __future__ import annotations
@@ -21,7 +21,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from amlguard.env import load_dotenv  # noqa: E402
+from protometer.env import load_dotenv  # noqa: E402
 
 load_dotenv(ROOT)
 
@@ -30,15 +30,15 @@ def main() -> int:
     import mlflow
     from mlflow import MlflowClient
 
-    from amlguard.scopes import CURVE_ORDER, get_scope
-    from amlguard.tracking import DEFAULT_SERVER_URI, _server_reachable
+    from protometer.scopes import CURVE_ORDER, get_scope
+    from protometer.tracking import DEFAULT_SERVER_URI, _server_reachable
 
     if not _server_reachable(DEFAULT_SERVER_URI):
         sys.exit(f"MLflow server not reachable at {DEFAULT_SERVER_URI}; start it first.")
     mlflow.set_tracking_uri(DEFAULT_SERVER_URI)
     client = MlflowClient()
 
-    from amlguard.tracking import corpus_source_fingerprint
+    from protometer.tracking import corpus_source_fingerprint
 
     training = {r["scope"]: r for r in json.loads((ROOT / "data" / "eval" / "training.json").read_text())}
     # Compute the corpus fingerprint live rather than hardcoding it: a hardcoded hash silently
@@ -49,7 +49,7 @@ def main() -> int:
 
     for name in CURVE_ORDER:
         slug = get_scope(name).slug
-        model_name = f"amlguard-{slug}"
+        model_name = f"protometer-{slug}"
         row = training.get(name)
         try:
             versions = client.search_model_versions(f"name='{model_name}'")
@@ -100,7 +100,7 @@ def main() -> int:
         print(f"  {model_name}: champion=v{best.version} (AP {_ap(best)}), archived={archived}")
 
     print("\nGovernance reconciled. Resolve the best build with "
-          "`models:/amlguard-<scope>@champion`.")
+          "`models:/protometer-<scope>@champion`.")
     return 0
 
 

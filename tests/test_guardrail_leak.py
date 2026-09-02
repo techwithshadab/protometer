@@ -14,7 +14,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from amlguard.guardrail import (
+from protometer.guardrail import (
     Guardrail,
     high_sensitivity_values_from_parties,
 )
@@ -57,7 +57,7 @@ def test_high_sensitivity_set_covers_only_id_fields():
 def test_scan_result_captures_conversation_batch_verdict(monkeypatch):
     """The scan must capture the conversation-level batch score/outcome, not only per-message
     (we discarded this signal once before). Drives _scan with a fake service response."""
-    import amlguard.guardrail as gm
+    import protometer.guardrail as gm
 
     fake_body = {
         "messages": [{"outcome": "approved", "score": 0.12,
@@ -83,13 +83,13 @@ def test_protection_token_flagged_as_pii_is_discounted_not_blocked():
     a live serving-path false-positive: tokens like '4oB93 T7MdI3' scored 0.95 and
     blocked otherwise-safe replies. Safety invariant: leaked_values (real values) still blocks.
     """
-    from amlguard.guardrail import Guardrail
+    from protometer.guardrail import Guardrail
 
     g = Guardrail(enabled=False, forbidden_values=frozenset({"Leila Rahman"}))
     # a reply mentioning a protection-token-shaped value the service typed as PASSWORD
     content = "Reviewing token TOKENABC123 for the case."
     # inject the token into the protection-token set so the discount recognises it
-    from amlguard.guardrail import _normalize_for_match
+    from protometer.guardrail import _normalize_for_match
     object.__setattr__(g, "_token_cache", frozenset({_normalize_for_match("TOKENABC123")}))
     idx = content.index("TOKENABC123")
     expl = f"['PASSWORD : [{idx}, {idx+11}]']"
@@ -107,7 +107,7 @@ def test_live_turn_tokens_discount_when_on_disk_set_is_empty():
     safe reply (a `[PERSON]` surrogate mislabelled PASSWORD → ~half of live turns withheld). The
     caller now hands the scan THIS turn's own tokens via `extra_tokens`; the discount must then fire
     — while a real forbidden value handed in as an 'extra token' must NOT be discounted (rail 2)."""
-    from amlguard.guardrail import Guardrail, _normalize_for_match
+    from protometer.guardrail import Guardrail, _normalize_for_match
 
     # Empty on-disk token set (the container's reality), and a real forbidden name.
     g = Guardrail(enabled=False, forbidden_values=frozenset({"Kwame Adeyemi"}))
@@ -147,7 +147,7 @@ def test_leakable_typed_tokens_discount_and_per_word_real_names_do_not():
     Pins the fix for the serving-path false-positive where a chat reply written entirely over
     tokens was blocked because SOCIAL_SECURITY_ID/PERSON are in LEAKABLE_ENTITIES — even though
     every flagged span was a protection token."""
-    from amlguard.guardrail import Guardrail, _normalize_for_match
+    from protometer.guardrail import Guardrail, _normalize_for_match
 
     g = Guardrail(enabled=False, forbidden_values=frozenset({"Hassan Delacroix"}))
     # Token set holds a multi-word PERSON token, its words, and a tokenized SSN. The forbidden real
@@ -179,7 +179,7 @@ def test_protection_tokens_never_contain_a_real_clear_value():
     import json
     from pathlib import Path
 
-    from amlguard.guardrail import (
+    from protometer.guardrail import (
         Guardrail,
         _normalize_for_match,
         forbidden_values_from_parties,
@@ -212,7 +212,7 @@ def test_free_text_field_words_do_not_enter_the_token_set():
     import json
     from pathlib import Path
 
-    from amlguard.guardrail import Guardrail, _normalize_for_match
+    from protometer.guardrail import Guardrail, _normalize_for_match
 
     # A protected artifact whose memo carries generic business words that must NOT become tokens.
     all_txns = Path("data/protected/all/transactions.json")
@@ -234,8 +234,8 @@ def test_aml_high_sensitivity_fields_single_source_of_truth():
     """The domain=None path (eval/hybrid guard) and the AML domain path (live UI guard) must
     seed the SAME high-sensitivity field set, or measurement and deployment disagree on what a
     hard leak is. They now both derive from the AML domain; this pins that they never drift."""
-    from amlguard.domains import get_domain
-    from amlguard.guardrail import _high_sensitivity_fields
+    from protometer.domains import get_domain
+    from protometer.guardrail import _high_sensitivity_fields
 
     assert _high_sensitivity_fields() == get_domain("aml").high_sensitivity_fields
 

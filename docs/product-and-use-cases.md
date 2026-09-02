@@ -1,4 +1,4 @@
-# AMLGuard / Aegis — Product & Use Cases
+# Protometer — Product & Use Cases
 
 *A non-technical overview: what this is, who it's for, and what it does in each domain. For how it's
 built, see [architecture.md](architecture.md). To run it, see [SETUP.md](SETUP.md).*
@@ -13,13 +13,13 @@ the AI away from it, which blocks the project, or to expose it and accept the ri
 real answer, and nobody quantifies the middle ground: *if we protect the data, does the AI still
 work, and what can still leak?*
 
-**AMLGuard answers both — with a working product and measurements, not assertions.** It runs a real
+**Protometer answers both — with a working product and measurements, not assertions.** It runs a real
 investigation copilot entirely over **protected (tokenized) data**, and it ships an *instrument* that
 measures what the protection costs the AI at every stage, including the residual re-identification
 risk that honest vendors leave out.
 
-The product is presented in the UI as **Aegis** ("Protected-Pipeline Intelligence"); the codebase and
-engineering log use the name **AMLGuard**. Same system, two names.
+The product is presented as **Protometer** ("Protected-Pipeline Intelligence"); the codebase and
+engineering log use the name **Protometer**. Same system, two names.
 
 ## Who it's for
 

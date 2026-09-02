@@ -23,7 +23,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from amlguard.scopes import CURVE_ORDER, get_scope  # noqa: E402
+from protometer.scopes import CURVE_ORDER, get_scope  # noqa: E402
 
 # AML is the canonical domain and keeps writing to the top-level data/eval/ (backward compatible
 # with every existing artifact path); any other domain lives under data/eval/<domain>/ so its
@@ -69,7 +69,7 @@ def _provenance_header(domain: str) -> None:
     from datetime import datetime, timezone
 
     try:
-        from amlguard.tracking import corpus_source_fingerprint
+        from protometer.tracking import corpus_source_fingerprint
         fp = corpus_source_fingerprint(ROOT / "data" / "corpus")
     except Exception:  # noqa: BLE001
         fp = "unknown"

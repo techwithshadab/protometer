@@ -1,4 +1,4 @@
-# AMLGuard application Postgres: a queryable data layer for the corpus (per-domain schemas) and
+# Protometer application Postgres: a queryable data layer for the corpus (per-domain schemas) and
 # the MLflow backend store. Separate from the two Postgres instances the stack already runs
 # (pty-anon-postgres, langfuse-postgres) so nothing collides. Host port 5433 to avoid a clash with
 # a local 5432. Loopback-bound like every other sidecar.
@@ -10,23 +10,23 @@
 services:
   postgres:
     image: postgres:17
-    container_name: amlguard_postgres
+    container_name: protometer_postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: amlguard
-      POSTGRES_PASSWORD: amlguard
-      POSTGRES_DB: amlguard
+      POSTGRES_USER: protometer
+      POSTGRES_PASSWORD: protometer
+      POSTGRES_DB: protometer
     ports:
       - "127.0.0.1:8001:5432"
     volumes:
-      - amlguard_pg_data:/var/lib/postgresql/data
+      - protometer_pg_data:/var/lib/postgresql/data
       # Schema bootstrap runs once, on an empty data dir.
       - ./init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U amlguard -d amlguard"]
+      test: ["CMD-SHELL", "pg_isready -U protometer -d protometer"]
       interval: 5s
       timeout: 3s
       retries: 10
 
 volumes:
-  amlguard_pg_data:
+  protometer_pg_data:

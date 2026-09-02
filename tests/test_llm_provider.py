@@ -15,13 +15,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from amlguard.llm import ModelSpec
+from protometer.llm import ModelSpec
 
 THINKING = {"thinking": {"type": "disabled"}}
 
 
 def test_anthropic_forwards_additional_request_fields(monkeypatch):
-    from amlguard import llm
+    from protometer import llm
 
     captured = {}
 
@@ -49,7 +49,7 @@ def test_anthropic_forwards_additional_request_fields(monkeypatch):
 
 
 def test_anthropic_omits_extra_body_when_no_fields(monkeypatch):
-    from amlguard import llm
+    from protometer import llm
 
     captured = {}
 

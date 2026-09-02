@@ -15,19 +15,19 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from amlguard import prompts
+from protometer import prompts
 
 
 def test_all_three_pipeline_prompts_ship_on_disk():
-    for name in ("amlguard-investigation-system", "amlguard-rationale-system",
-                 "amlguard-judge-system"):
+    for name in ("protometer-investigation-system", "protometer-rationale-system",
+                 "protometer-judge-system"):
         text = prompts.load_prompt(name)
         assert text and "money-laundering" in text.lower()
 
 
 def test_missing_prompt_is_a_loud_error():
     with pytest.raises(FileNotFoundError):
-        prompts.load_prompt("amlguard-does-not-exist")
+        prompts.load_prompt("protometer-does-not-exist")
 
 
 def test_path_traversal_is_rejected():
@@ -46,9 +46,9 @@ def test_save_prompt_writes_and_is_idempotent(tmp_path, monkeypatch):
 
 
 def test_managed_prompt_falls_back_to_file_when_tracing_off(monkeypatch):
-    monkeypatch.setenv("AMLGUARD_NO_TRACING", "1")
+    monkeypatch.setenv("PROTOMETER_NO_TRACING", "1")
     # force a fresh client decision (per-project client cache; clear it)
-    from amlguard import observability
+    from protometer import observability
     monkeypatch.setattr(observability, "_clients", {})
-    text = observability.managed_prompt("amlguard-judge-system")
-    assert text == prompts.load_prompt("amlguard-judge-system")
+    text = observability.managed_prompt("protometer-judge-system")
+    assert text == prompts.load_prompt("protometer-judge-system")

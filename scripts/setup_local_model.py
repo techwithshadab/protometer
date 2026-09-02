@@ -3,14 +3,14 @@
 The app's live chat prefers a hosted model (Bedrock) when AWS credentials are present, and otherwise
 falls back to a local open-source model served by Ollama (default `llama3.2`, ~2GB). This script
 performs the one-time download of that model. It is the explicit alternative to the
-`AMLGUARD_AUTO_PULL_MODEL=true` flag, which pulls on first use instead.
+`PROTOMETER_AUTO_PULL_MODEL=true` flag, which pulls on first use instead.
 
 Prerequisite: Ollama installed and running (https://ollama.com/download). This script does NOT
 install Ollama; it only pulls a model into an already-running server.
 
     python scripts/setup_local_model.py                 # pull the configured local model
     python scripts/setup_local_model.py --model qwen2.5:7b
-    AMLGUARD_LOCAL_MODEL=qwen2.5:7b python scripts/setup_local_model.py
+    PROTOMETER_LOCAL_MODEL=qwen2.5:7b python scripts/setup_local_model.py
 """
 from __future__ import annotations
 
@@ -21,17 +21,17 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from amlguard.env import load_dotenv  # noqa: E402
+from protometer.env import load_dotenv  # noqa: E402
 
 load_dotenv(ROOT)
 
-from amlguard import llm, settings  # noqa: E402
+from protometer import llm, settings  # noqa: E402
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--model", default=None,
-                    help="Ollama model id to pull (default: the configured AMLGUARD_LOCAL_MODEL "
+                    help="Ollama model id to pull (default: the configured PROTOMETER_LOCAL_MODEL "
                          "resolved through config/models.yaml).")
     args = ap.parse_args()
 

@@ -1,4 +1,4 @@
-# AMLGuard override: every port loopback-bound, same posture as the project's other
+# Protometer override: every port loopback-bound, same posture as the project's other
 # sidecars (MLflow, Discovery, Semantic Guardrail), and memory-bounded so the stack cannot
 # OOM the shared Docker VM, an unbounded ClickHouse took postgres down with it once.
 services:

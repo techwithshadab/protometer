@@ -1,6 +1,6 @@
 # Architecture: where data protection operates, and what it costs
 
-This document answers the hackathon's core question for AMLGuard, an anti-money-laundering
+This document answers the hackathon's core question for Protometer, an anti-money-laundering
 investigation copilot built on Protegrity Developer Edition: *where in the AI pipeline does
 data protection operate, and what does it cost?* It covers the end-to-end
 design, the decisions behind it (system design, algorithms, API usage, tooling), the
@@ -34,7 +34,7 @@ Data → the dashed **Protected Pipeline (tokens only)** → Governance → Stat
 same seven stages above, regrouped so the *protected zone* (the dashed container) is visually one
 thing, with governance and durable state as its neighbours rather than an afterthought:
 
-![AMLGuard grouped by concern: enterprise data, the protected pipeline (tokens only), governance, and state and observability](diagrams/architecture-concerns.png)
+![Protometer grouped by concern: enterprise data, the protected pipeline (tokens only), governance, and state and observability](diagrams/architecture-concerns.png)
 
 Two things this grouping makes explicit that the linear diagram does not: **durable state is now
 Postgres** (the app's queryable source of truth; see below), and the **observability plane carries
@@ -47,7 +47,7 @@ The offline pipeline and the online app make deliberately opposite choices about
 lives:
 
 - **Offline (pipeline / reproducibility):** the file corpus `data/corpus/*.json` is the source of
-  truth. It is what the pipeline fingerprints and reproduces from; `src/amlguard/db.py`'s read
+  truth. It is what the pipeline fingerprints and reproduces from; `src/protometer/db.py`'s read
   helpers are fail-soft (return `None`) so a batch script can fall back to the files.
 - **Online (the demo/serving app):** Postgres is the source of truth, with **no JSON fallback**. A
   parties or live-chat request returns **503** when the mirror is down or unloaded, rather than
@@ -91,15 +91,15 @@ rather than mis-seeding protection from another domain's entities.
 
 The live chat picks its model at request time (`resolve_ui_model()` in `ui/api/app.py`), so a fork
 runs whether or not the operator has cloud credentials, without changing the `allow_fallback=False`
-invariant that keeps serving-model attribution honest. Precedence: `AMLGUARD_UI_MODEL` (explicit
-override) → the hosted model (`AMLGUARD_HOSTED_MODEL`, default `bedrock-sonnet-5`) when AWS
-credentials are detected → an **open-source model served locally by Ollama** (`AMLGUARD_LOCAL_MODEL`,
+invariant that keeps serving-model attribution honest. Precedence: `PROTOMETER_UI_MODEL` (explicit
+override) → the hosted model (`PROTOMETER_HOSTED_MODEL`, default `bedrock-sonnet-5`) when AWS
+credentials are detected → an **open-source model served locally by Ollama** (`PROTOMETER_LOCAL_MODEL`,
 default `llama3.2`, ~2GB) otherwise. Tokenization always stays on Protegrity Developer Edition; only
 the reasoning model changes, so the protected pipeline is identical either way. The model is chosen,
 not fallback-chained: `resolve_ui_model` selects a *reachable* model and the client is still built
 with `allow_fallback=False`. `GET /api/health` reports the resolved model, its provider, and
 readiness; the UI's Live-mode banner surfaces the same, and the one-time model pull is either
-`make setup-local-model` or `AMLGUARD_AUTO_PULL_MODEL=true`. In Docker the app reaches Ollama on the
+`make setup-local-model` or `PROTOMETER_AUTO_PULL_MODEL=true`. In Docker the app reaches Ollama on the
 host by default (`host.docker.internal:11434`); an in-stack `ollama` service is available behind the
 opt-in `local-model` Compose profile.
 
@@ -145,7 +145,7 @@ The choices that define the system, the alternatives we weighed, and why we chos
 
 | Decision | Alternatives | Why |
 |---|---|---|
-| MLflow (self-hosted Docker, SQLite-backed) for experiments + model registry | W&B; flat files | Every run stamped with the parameters that determine comparability (scope, model, corpus fingerprint, detection ledger, cache state); classifiers logged with signatures as `amlguard-<scope>`; server-first with same-store SQLite fallback so a down server never loses a run |
+| MLflow (self-hosted Docker, SQLite-backed) for experiments + model registry | W&B; flat files | Every run stamped with the parameters that determine comparability (scope, model, corpus fingerprint, detection ledger, cache state); classifiers logged with signatures as `protometer-<scope>`; server-first with same-store SQLite fallback so a down server never loses a run |
 | Langfuse (self-hosted v4, one shared instance) for prompt-level traces | MLflow GenAI tracing; log files | The reviewable unit of an LLM pipeline is the generation: prompt, completion, model, tokens, cost, cache state, latency. Captured at the one seam every call crosses (`LLMClient`), with run verdicts as scores. One tool per job, and one instance shared by both demos with a project per domain so traces + versioned prompts stay isolated. Loopback-bound and memory-capped because traces store prompts at rest |
 | SHAP TreeExplainer, interventional mode, real background, probability units | Default path-dependent mode | Our features are heavily correlated (origin/beneficiary mirrors, degree family), exactly where path-dependent attribution spreads credit along correlations. With a training-fold background and probability output, "raises the score by 0.034" is literally in score units (additivity verified to 1e-6), and cross-scope reliance shift is what turns "AP dropped 10%" into "the model stopped using amounts" |
 | ChromaDB + local MiniLM embeddings | Hosted embedding APIs | Nothing leaves the machine during indexing; that is the point |
@@ -338,7 +338,7 @@ Two self-hosted planes with a deliberate division of labour, both optional by co
 
 * **MLflow** (`http://localhost:5001`) is the experiment ledger: every run with the
   parameters that determine comparability, metrics, artifacts, and the fitted classifiers
-  logged with signatures into the registry as `amlguard-<scope>`.
+  logged with signatures into the registry as `protometer-<scope>`.
 * **Langfuse v4** (`http://127.0.0.1:5006`) is the prompt-level record: every LLM call (eval
   task, judge grade, rationale, preflight) captured as a generation with prompt,
   completion, model, tokens, cost, cache state, latency; run-level verdicts (grounded rate,
@@ -348,7 +348,7 @@ Two self-hosted planes with a deliberate division of labour, both optional by co
   pairs). Because traces store prompts at rest, every port in the stack is loopback-bound,
   services are memory-capped, and volumes stay out of git.
 * **Prometheus + Grafana** (Prometheus `http://localhost:5003`, Grafana `http://localhost:5002`,
-  admin/amlguard) is the operational plane. Grafana has **one dashboard per domain** — *AML*,
+  admin/protometer) is the operational plane. Grafana has **one dashboard per domain** — *AML*,
   *Healthcare*, *Customer Support*, *Botox* — and each domain's metrics land on its own dashboard
   regardless of whether they came from a batch run or a live turn. A domain's dashboard has a **Live
   serving** section always, and a **Batch ingest** section where that mode applies (only AML runs the
@@ -357,10 +357,10 @@ Two self-hosted planes with a deliberate division of labour, both optional by co
   * **Batch ingest — PUSHED.** Ingest is a batch job (a scraped endpoint would be empty between
     runs), so it pushes per-scope rate, duration, discovery share of wall-clock, no-op and failure
     counts to a **Pushgateway** (persistent, so a restart never blanks the dashboard); Prometheus
-    scrapes the gateway. `amlguard_ingest_*`, each series carrying a bounded `domain` label. Feeds
+    scrapes the gateway. `protometer_ingest_*`, each series carrying a bounded `domain` label. Feeds
     the AML dashboard's *Batch ingest* section.
   * **Live serving — SCRAPED.** Each app exposes a `/metrics` endpoint (`serving_metrics.py` for
-    AMLGuard, `app/obs/metrics.py` for botox) that Prometheus scrapes every 15s — the idiomatic
+    Protometer, `app/obs/metrics.py` for botox) that Prometheus scrapes every 15s — the idiomatic
     pattern for a long-running server, where counters/histograms accumulate. Per turn: turn count by
     `(domain, role, outcome)`, end-to-end latency histogram, entities protected, reveals, egress
     blocks, canary hits, out-of-scope, errors by kind, and LLM tokens by direction; botox adds
@@ -369,7 +369,7 @@ Two self-hosted planes with a deliberate division of labour, both optional by co
     each domain dashboard's *Live serving* section. This is deliberately NOT in MLflow, which is for
     experiment comparison, not operational time-series.
 
-All three are optional (kill switches `AMLGUARD_NO_TRACKING` / `_NO_TRACING` / `_NO_METRICS`,
+All three are optional (kill switches `PROTOMETER_NO_TRACKING` / `_NO_TRACING` / `_NO_METRICS`,
 each with a no-op degrade path); the pipeline never depends on any of them.
 
 **How the three planes join.** Every fact carries at least one shared key, so a run can be
@@ -383,15 +383,15 @@ reassembled into one view (`scripts/observability_report.py` performs the join):
 | `scope` | the protection scope | slices any metric by protection level |
 
 *Worked example — "everything about one training + hybrid run":* take the `run_id` from
-`hybrid_none.json` → MLflow's run tagged `amlguard.run_id` carries the scores + registered model →
+`hybrid_none.json` → MLflow's run tagged `protometer.run_id` carries the scores + registered model →
 Langfuse session `<run_id>` holds the rationale generations and run-level scores → Prometheus's
 ingest series (joined via `corpus_fingerprint`) gives the protect-call latency behind that corpus →
-the champion model `models:/amlguard-none@champion` closes the loop back to the artifact.
+the champion model `models:/protometer-none@champion` closes the loop back to the artifact.
 
 **Model & prompt governance.** MLflow 3 uses **aliases + tags**, not the deprecated stage names:
 each scope's newest model is aliased `@champion` (tagged `classifier_hash` / `corpus_fingerprint` /
 `average_precision` / `run_id`), superseded ones `@archived-vN`, and consumers resolve
-`models:/amlguard-<scope>@champion` rather than a hardcoded version (`scripts/govern_models.py`
+`models:/protometer-<scope>@champion` rather than a hardcoded version (`scripts/govern_models.py`
 reconciles this idempotently from `training.json`). The three system prompts live in the Langfuse
 prompt registry — versioned in the UI, seeded from code constants, resolved via
 `observability.managed_prompt` with a constant fallback — so a prompt change needs no code deploy and
@@ -499,10 +499,10 @@ network-level analytics detect what account-level monitoring misses.
 - **Observability**: MLflow, Langfuse, Prometheus + Grafana (see above).
 - **Packaging**: fully dockerised. The Protegrity DE services and the observability planes are
   **decoupled shared tiers** (`protegrity-shared` + `observability-shared`, each on its own network),
-  brought up first (`make shared-up`) so AMLGuard and the BOTOX chatbot share one tokenizer and one
+  brought up first (`make shared-up`) so Protometer and the BOTOX chatbot share one tokenizer and one
   observability platform; the app + Postgres attach with `make docker-up`. A legacy `make docker-full`
   bundles everything into one project for a single-demo machine. Ports follow a banded map (first digit
-  = tier: 5xxx observability, 6xxx Protegrity DE, 8xxx AMLGuard, 9xxx BOTOX). See
+  = tier: 5xxx observability, 6xxx Protegrity DE, 8xxx Protometer, 9xxx BOTOX). See
   [SETUP.md](SETUP.md), [docker/README.md](../docker/README.md), and
   [adr/shared-infra-decoupling.md](adr/shared-infra-decoupling.md).
 

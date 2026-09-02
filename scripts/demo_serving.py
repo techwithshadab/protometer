@@ -21,13 +21,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from amlguard.env import load_dotenv  # noqa: E402
+from protometer.env import load_dotenv  # noqa: E402
 
 load_dotenv(ROOT)
 
-from amlguard.domains import domain_names, get_domain  # noqa: E402
-from amlguard.reidentify import ANALYST, INVESTIGATOR  # noqa: E402
-from amlguard.serving import ConversationSession, protect_text  # noqa: E402
+from protometer.domains import domain_names, get_domain  # noqa: E402
+from protometer.reidentify import ANALYST, INVESTIGATOR  # noqa: E402
+from protometer.serving import ConversationSession, protect_text  # noqa: E402
 
 
 class _FakeProtector:
@@ -91,8 +91,8 @@ def main() -> int:
     live_guardrail = None
     live_roster = None
     if args.live:
-        from amlguard.llm import get_llm
-        from amlguard.protect import Protector
+        from protometer.llm import get_llm
+        from protometer.protect import Protector
         protector = Protector()
         # allow_fallback=False, matching ui/api/app.py and run_hybrid: a throttle must fail
         # VISIBLY, not silently answer as a different (possibly PAID) fallback model while the
@@ -107,9 +107,9 @@ def main() -> int:
         # labelled as unscanned.
         import json as _json
 
-        import amlguard.ingest  # noqa: F401  (real discovery is used)
-        from amlguard.guardrail import Guardrail
-        from amlguard.roster import roster_from_parties
+        import protometer.ingest  # noqa: F401  (real discovery is used)
+        from protometer.guardrail import Guardrail
+        from protometer.roster import roster_from_parties
         parties_path = ROOT / "data" / "corpus" / "parties.json"
         try:
             live_guardrail = Guardrail.for_corpus(parties_path, probe=False, domain=domain)
@@ -120,7 +120,7 @@ def main() -> int:
         except Exception:  # noqa: BLE001
             live_roster = None
     else:
-        import amlguard.ingest as ingest
+        import protometer.ingest as ingest
         names = ["Leila Rahman", "Marcus Chen"]
         # Patch discovery to our fake for the demo text.
         _orig = ingest.discover_entities
@@ -152,7 +152,7 @@ def main() -> int:
     print(f"  agent A tokenizes: {protected}")
     print("  agent A -> agent B passes the TOKEN, never the name")
     # Agent B (analyst role: individuals stay tokenized) presents its result.
-    from amlguard.reidentify import reidentify
+    from protometer.reidentify import reidentify
     b_analyst = reidentify(protected, protector, ANALYST)
     b_investigator = reidentify(protected, protector, INVESTIGATOR)
     print(f"  agent B as Analyst      : {b_analyst.text}   (revealed={b_analyst.revealed})")

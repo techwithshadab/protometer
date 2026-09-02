@@ -9,8 +9,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from amlguard import reidentify as R  # noqa: E402
-from amlguard.reveal_ledger import CanaryTripwire, RevealLedger  # noqa: E402
+from protometer import reidentify as R  # noqa: E402
+from protometer.reveal_ledger import CanaryTripwire, RevealLedger  # noqa: E402
 
 
 def test_ledger_chains_and_verifies(tmp_path):

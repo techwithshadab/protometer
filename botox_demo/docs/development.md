@@ -3,7 +3,7 @@
 ## Run the whole stack
 
 The demo shares one Protegrity DE tier and one observability stack (Langfuse v4, MLflow, Prometheus,
-Grafana) with the AMLGuard submission on the same host. Bring those **shared tiers** up first (from
+Grafana) with the Protometer submission on the same host. Bring those **shared tiers** up first (from
 the repo root), then the botox stack:
 
 ```bash
@@ -57,7 +57,7 @@ open http://127.0.0.1:5006           # sign in with the shared operator login:
 ```
 
 Botox's keys are read **first** in the compose (falling back to the shared default), so its traces
-never leak into AMLGuard's project. Set `BOTOX_TRACING=off` to force-disable tracing even when keys
+never leak into Protometer's project. Set `BOTOX_TRACING=off` to force-disable tracing even when keys
 are present; if the keys are cleared the tracing layer becomes a no-op and the bot runs unchanged.
 The SDK is Langfuse **v4** (`langfuse==4.14.4`); the shared instance runs Langfuse v4 in events-only
 mode, so traces land in the unified event store.

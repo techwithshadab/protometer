@@ -29,7 +29,7 @@ def _fig_bytes(fig) -> int:
 
 
 def test_evaluation_figures_are_three_distinct_plots():
-    from amlguard.plotting import evaluation_figures
+    from protometer.plotting import evaluation_figures
     rng = np.random.default_rng(0)
     labels = np.array([0] * 80 + [1] * 20)
     scores = np.clip(labels * 0.4 + rng.normal(0.3, 0.2, 100), 0, 1)
@@ -41,7 +41,7 @@ def test_evaluation_figures_are_three_distinct_plots():
 
 
 def test_single_class_fold_is_skipped_not_crashed():
-    from amlguard.plotting import evaluation_figures
+    from protometer.plotting import evaluation_figures
     labels = np.zeros(50, dtype=int)  # degenerate: one class only
     scores = np.random.default_rng(1).random(50)
     assert evaluation_figures(labels, scores, "degenerate") == {}
@@ -52,8 +52,8 @@ def test_shap_figures_do_not_overlay():
     import shap
     from sklearn.ensemble import RandomForestClassifier
 
-    from amlguard.explain import explanation_for
-    from amlguard.plotting import shap_figures
+    from protometer.explain import explanation_for
+    from protometer.plotting import shap_figures
 
     rng = np.random.default_rng(2)
     X = rng.random((120, 6))

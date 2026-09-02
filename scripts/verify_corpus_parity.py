@@ -22,8 +22,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from amlguard.ingest import TRANSACTION_FIELDS  # noqa: E402
-from amlguard.scopes import CURVE_ORDER, get_scope  # noqa: E402
+from protometer.ingest import TRANSACTION_FIELDS  # noqa: E402
+from protometer.scopes import CURVE_ORDER, get_scope  # noqa: E402
 
 PROTECTED = ROOT / "data" / "protected"
 

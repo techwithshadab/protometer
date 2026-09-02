@@ -11,7 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from amlguard.reidentify import ROLES, SUPERVISOR, SUPPORT_AGENT, reidentify
+from protometer.reidentify import ROLES, SUPERVISOR, SUPPORT_AGENT, reidentify
 
 
 class _FakeProtector:

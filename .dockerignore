@@ -34,7 +34,7 @@ node_modules/
 data/protected/
 !data/protected/ingestion_summary.json
 !data/protected/token-manifest.json
-data/.amlguard.lock
+data/.protometer.lock
 data/eval/_live/
 
 # Local env + secrets never bake into the image (passed at runtime as env)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Seed every AMLGuard domain prompt into ITS OWN Langfuse project, versioned.
+"""Seed every Protometer domain prompt into ITS OWN Langfuse project, versioned.
 
-AMLGuard has three domains (aml / healthcare / customer-support), each with its own
+Protometer has three domains (aml / healthcare / customer-support), each with its own
 investigation / rationale / judge prompt (config/prompts/<name>.txt) and its own Langfuse project.
 `managed_prompt` seeds a prompt lazily on first use, but that only registers the ones a run happens
 to exercise (e.g. only the investigation prompt of a domain you chat with). This script registers
@@ -27,14 +27,14 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from amlguard.domains import domain_names, get_domain  # noqa: E402
-from amlguard.observability import _get_client, domain_project, managed_prompt  # noqa: E402
+from protometer.domains import domain_names, get_domain  # noqa: E402
+from protometer.observability import _get_client, domain_project, managed_prompt  # noqa: E402
 
 
 def main() -> int:
     if _get_client() is None:
         print("Langfuse is not configured (LANGFUSE_PUBLIC_KEY / SECRET_KEY unset), or tracing is "
-              "off (AMLGUARD_NO_TRACING=1). Nothing to seed.", file=sys.stderr)
+              "off (PROTOMETER_NO_TRACING=1). Nothing to seed.", file=sys.stderr)
         return 1
 
     total = 0
@@ -49,7 +49,7 @@ def main() -> int:
             print(f"  [{proj_label:16}] {prompt_name:35} -> {'seeded/present' if ok else 'FAILED'}")
             total += 1
 
-    from amlguard.observability import flush
+    from protometer.observability import flush
     flush()
     print(f"\nDone. {total} prompt(s) ensured across the domain projects. "
           f"Edit any of them in the Langfuse UI; the app picks up new versions within the TTL.")

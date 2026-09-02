@@ -30,7 +30,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from amlguard.guardrail import _normalize_for_match  # noqa: E402
+from protometer.guardrail import _normalize_for_match  # noqa: E402
 
 # Scopes whose structured artifacts hold CLEAR or partially-clear values, never a token source.
 # NOTE the disk scope is `quasi` (keeps some quasi-identifiers clear); include it here so its clear

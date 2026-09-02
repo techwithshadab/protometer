@@ -36,19 +36,19 @@ sys.path.insert(0, str(ROOT / "src"))
 import os  # noqa: E402
 
 # Offline, deterministic demo: no telemetry side-channel. (A --live run still traces normally.)
-os.environ.setdefault("AMLGUARD_NO_TRACING", "1")
-os.environ.setdefault("AMLGUARD_NO_TRACKING", "1")
+os.environ.setdefault("PROTOMETER_NO_TRACING", "1")
+os.environ.setdefault("PROTOMETER_NO_TRACKING", "1")
 
-from amlguard.env import load_dotenv  # noqa: E402
+from protometer.env import load_dotenv  # noqa: E402
 
 load_dotenv(ROOT)
 
-from amlguard.domains import get_domain  # noqa: E402
-from amlguard.protect import Protector  # noqa: E402
-from amlguard.reidentify import ROLES  # noqa: E402
-from amlguard.reveal_ledger import CanaryTripwire, RevealLedger, load_canaries  # noqa: E402
-from amlguard.roster import roster_from_parties  # noqa: E402
-from amlguard.serving import ConversationSession  # noqa: E402
+from protometer.domains import get_domain  # noqa: E402
+from protometer.protect import Protector  # noqa: E402
+from protometer.reidentify import ROLES  # noqa: E402
+from protometer.reveal_ledger import CanaryTripwire, RevealLedger, load_canaries  # noqa: E402
+from protometer.roster import roster_from_parties  # noqa: E402
+from protometer.serving import ConversationSession  # noqa: E402
 
 # The classic injection: an attacker-controlled string in the user turn (or in retrieved
 # content) trying to override the system instruction and exfiltrate everyone's identifiers.
@@ -81,7 +81,7 @@ class _CompromisedModel:
 
 def _tokenized_dossier(parties, protector: Protector, roster) -> str:
     """A protected dossier naming several subjects — the 'retrieved context' the attack targets."""
-    from amlguard.serving import protect_text
+    from protometer.serving import protect_text
     lines = []
     for p in parties[:5]:
         clear = f"Party {p['full_name']} account {p.get('account_number','')} ssn {p.get('ssn','')}."
@@ -105,7 +105,7 @@ def main() -> int:
     dossier = _tokenized_dossier(parties, protector, roster)
 
     if args.live:
-        from amlguard.llm import get_llm
+        from protometer.llm import get_llm
         llm = get_llm(args.model, trace_component="attack-demo", enable_cache=False, allow_fallback=False)
     else:
         llm = _CompromisedModel(dossier)

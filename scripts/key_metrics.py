@@ -21,7 +21,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from amlguard.env import load_dotenv  # noqa: E402
+from protometer.env import load_dotenv  # noqa: E402
 
 load_dotenv(ROOT)
 
@@ -39,7 +39,7 @@ def key_metrics() -> dict:
 
     # corpus fingerprint (ties the whole set to one run)
     try:
-        from amlguard.tracking import corpus_source_fingerprint
+        from protometer.tracking import corpus_source_fingerprint
         m["corpus_fingerprint"] = corpus_source_fingerprint(ROOT / "data" / "corpus")
     except Exception:  # noqa: BLE001
         pass
@@ -126,7 +126,7 @@ def key_metrics() -> dict:
 def main() -> int:
     m = key_metrics()
     if "--write" in sys.argv:
-        from amlguard.persist import atomic_write_json
+        from protometer.persist import atomic_write_json
 
         dest = EVAL / "key_metrics.json"
         atomic_write_json(dest, m)

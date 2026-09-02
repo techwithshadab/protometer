@@ -1,4 +1,4 @@
-"""AMLGuard demo API — the FastAPI seam the UI (and the Streamlit escape hatch) call.
+"""Protometer demo API — the FastAPI seam the UI (and the Streamlit escape hatch) call.
 
 Wraps existing library functions and the committed run artifacts; it does not re-implement any
 pipeline logic. Three tiers of endpoint, by cost and effect:
@@ -35,12 +35,12 @@ import sys  # noqa: E402
 
 sys.path.insert(0, str(ROOT / "src"))
 
-from amlguard.env import load_dotenv  # noqa: E402
+from protometer.env import load_dotenv  # noqa: E402
 
 load_dotenv(ROOT)
 
-from amlguard.domains import domain_names, get_domain  # noqa: E402
-from amlguard.llm import ModelRegistry  # noqa: E402
+from protometer.domains import domain_names, get_domain  # noqa: E402
+from protometer.llm import ModelRegistry  # noqa: E402
 
 EVAL = ROOT / "data" / "eval"
 
@@ -48,18 +48,18 @@ EVAL = ROOT / "data" / "eval"
 def _mlflow_store() -> Path:
     """The local MLflow store dir (backend db + artifacts), from the one source of truth in
     tracking.py so the UI never re-hardcodes the path. Lives under docker/observability/mlflow/store."""
-    from amlguard.tracking import DEFAULT_TRACKING_DIR
+    from protometer.tracking import DEFAULT_TRACKING_DIR
     return DEFAULT_TRACKING_DIR
 
 
-app = FastAPI(title="Aegis: Protected-Pipeline Intelligence (AMLGuard)", version="0.1")
+app = FastAPI(title="Protometer: Protected-Pipeline Intelligence", version="0.1")
 # CORS is restricted to loopback, not `*`: this API makes paid LLM calls and re-identifies PII,
 # so it must not be callable from an arbitrary origin. The frontend is served from the same
 # origin (no cross-origin call needed); localhost variants are allowed for a separate dev server.
-# Override with AMLGUARD_UI_ALLOWED_ORIGINS (comma-separated) for a real deployment behind auth.
+# Override with PROTOMETER_UI_ALLOWED_ORIGINS (comma-separated) for a real deployment behind auth.
 import os as _os  # noqa: E402
 
-_allowed = _os.getenv("AMLGUARD_UI_ALLOWED_ORIGINS")
+_allowed = _os.getenv("PROTOMETER_UI_ALLOWED_ORIGINS")
 _origins = ([o.strip() for o in _allowed.split(",")] if _allowed else
             ["http://localhost:8600", "http://127.0.0.1:8600",
              "http://localhost:5173", "http://127.0.0.1:5173"])
@@ -73,13 +73,13 @@ app.add_middleware(
 # scraped, not push-based like batch ingest. Served as an explicit GET route (NOT app.mount): the
 # SPA is mounted at "/" via StaticFiles, which greedily matches bare "/metrics" and 404s it before a
 # sub-mount's trailing-slash redirect can fire — an explicit route for the exact path wins. No-op /
-# empty body if prometheus_client is absent or AMLGUARD_NO_METRICS=1, so serving never depends on it.
+# empty body if prometheus_client is absent or PROTOMETER_NO_METRICS=1, so serving never depends on it.
 @app.get("/metrics")
 def _prometheus_metrics():
     from starlette.responses import Response
     try:
         from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
-        from amlguard.serving_metrics import _disabled
+        from protometer.serving_metrics import _disabled
         if _disabled():
             return Response(status_code=404)
         return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
@@ -161,7 +161,7 @@ def _load_parties(domain: str = "aml") -> list:
     corpus mirror is not yet loaded, raise 503 rather than silently reading files - a fallback
     would mask a misconfigured deployment and serve data the operator did not load. Run the loader
     (`scripts/load_corpus_db.py`) as a deploy/ingest step to populate the mirror before serving."""
-    from amlguard import db
+    from protometer import db
     if not db.available():
         raise DataUnavailable(
             f"Postgres is not reachable at the configured URL; the app requires it. "
@@ -184,7 +184,7 @@ def health() -> dict:
     """Liveness plus which model live chat will use and whether it is ready, so the UI can tell a
     user without cloud credentials that live turns will run on the local open-source model (or what
     to do if it is not set up yet). No LLM call is made; the model check is a cheap Ollama probe."""
-    from amlguard import llm, settings
+    from protometer import llm, settings
     live = {"ready": True}
     try:
         model_key, reason = resolve_ui_model()
@@ -203,7 +203,7 @@ def health() -> dict:
     except Exception as exc:  # noqa: BLE001, health must never 500
         # Log the detail server-side; the endpoint is unauthenticated, so no exception text
         # (which can carry paths and stack context) leaves the process.
-        logging.getLogger("amlguard.ui").warning("live-chat health probe failed: %s", exc)
+        logging.getLogger("protometer.ui").warning("live-chat health probe failed: %s", exc)
         live = {"ready": False, "error": "live-chat status unavailable"}
     # Which domains support a live chatbot turn (all three, each backed by its own party corpus).
     # The UI reads this to offer Live only where it works. Single source of truth:
@@ -243,7 +243,7 @@ def _safe_party(row: dict) -> dict:
 
 @app.get("/api/corpus/parties")
 def corpus_parties(domain: str = "aml", limit: int = 50,
-                   x_amlguard_token: str | None = Header(default=None)) -> dict:
+                   x_protometer_token: str | None = Header(default=None)) -> dict:
     """A page of parties for the web app, from Postgres (the app's source of truth).
 
     Postgres-only: 503 if the DB is down or the corpus is not loaded (no JSON fallback - this is a
@@ -254,7 +254,7 @@ def corpus_parties(domain: str = "aml", limit: int = 50,
     endpoints (`_check_auth`), and (2) a hard column allow-list (`_PARTY_SAFE_COLUMNS`) so clear
     identity fields (ssn, credit_card, dob, accounts, tax_id, email, phone, address) NEVER leave
     this endpoint even to an authenticated caller - the pipeline exists to protect exactly those."""
-    _check_auth(x_amlguard_token)
+    _check_auth(x_protometer_token)
     limit = max(1, min(limit, 500))
     rows = _load_parties(domain)  # raises DataUnavailable(503) if Postgres down / corpus unloaded
     return {"domain": domain, "source": "postgres", "count": len(rows),
@@ -268,7 +268,7 @@ def pipeline(domain: str = "aml") -> dict:
     Each domain has its own stage list (AML's 7-stage curve, healthcare's HIPAA de-id, support's
     dual-gate). Unknown domains fall back to AML."""
     try:
-        from amlguard.tracking import corpus_source_fingerprint
+        from protometer.tracking import corpus_source_fingerprint
         fp = corpus_source_fingerprint(ROOT / "data" / "corpus")
     except Exception:  # noqa: BLE001
         fp = "unknown"
@@ -426,7 +426,7 @@ def _get_reveal_ledger():
     """The process-wide hash-chained reveal ledger (one file, all domains)."""
     global _REVEAL_LEDGER
     if _REVEAL_LEDGER is None:
-        from amlguard.reveal_ledger import RevealLedger
+        from protometer.reveal_ledger import RevealLedger
         _REVEAL_LEDGER = RevealLedger()
     return _REVEAL_LEDGER
 
@@ -434,14 +434,14 @@ def _get_reveal_ledger():
 def _get_tripwire(domain_name: str = "aml"):
     """The canary tripwire for a domain, built once from its designated canary parties."""
     if domain_name not in _TRIPWIRES:
-        from amlguard.reveal_ledger import CanaryTripwire, load_canaries
+        from protometer.reveal_ledger import CanaryTripwire, load_canaries
         _TRIPWIRES[domain_name] = CanaryTripwire(values=load_canaries(domain_name))
     return _TRIPWIRES[domain_name]
 
 # Two abuse rails on the PAID chat endpoint (a turn is a real billed LLM call):
-#  - an optional shared secret (AMLGUARD_UI_API_TOKEN): unset for the loopback demo, required
+#  - an optional shared secret (PROTOMETER_UI_API_TOKEN): unset for the loopback demo, required
 #    for any exposure beyond localhost, so an open port can't bill the account.
-#  - a per-process turn ceiling (AMLGUARD_UI_MAX_TURNS): a hard backstop beside the SDK spend cap
+#  - a per-process turn ceiling (PROTOMETER_UI_MAX_TURNS): a hard backstop beside the SDK spend cap
 #    so a stuck client can't loop the endpoint unbounded. Resets on restart; 0 disables.
 _TURN_COUNT = 0
 
@@ -449,26 +449,26 @@ _TURN_COUNT = 0
 def _check_auth(token: str | None) -> None:
     import secrets as _secrets
 
-    from amlguard import settings
+    from protometer import settings
     expected = settings.ui_api_token()
     if expected and not (token and _secrets.compare_digest(token, expected)):
-        raise HTTPException(401, "missing or invalid X-AMLGuard-Token")
+        raise HTTPException(401, "missing or invalid X-Protometer-Token")
 
 
 def _charge_turn() -> None:
     global _TURN_COUNT
-    from amlguard import settings
+    from protometer import settings
     cap = settings.ui_max_turns()
     if cap and _TURN_COUNT >= cap:
         raise HTTPException(
-            429, f"live-turn ceiling reached ({cap}); restart the API or raise AMLGUARD_UI_MAX_TURNS")
+            429, f"live-turn ceiling reached ({cap}); restart the API or raise PROTOMETER_UI_MAX_TURNS")
     _TURN_COUNT += 1
 
 
 def _get_protector():
     global _PROTECTOR
     if _PROTECTOR is None:
-        from amlguard.protect import Protector
+        from protometer.protect import Protector
         _PROTECTOR = Protector()
     return _PROTECTOR
 
@@ -477,15 +477,15 @@ def resolve_ui_model() -> tuple[str, str]:
     """Pick the model the UI's live chat should use, so a forked repo runs with or without cloud
     credentials. Precedence:
 
-      1. AMLGUARD_UI_MODEL, if set  (explicit operator override; wins unconditionally)
-      2. the hosted model (AMLGUARD_HOSTED_MODEL, default bedrock-sonnet-5), when AWS credentials
+      1. PROTOMETER_UI_MODEL, if set  (explicit operator override; wins unconditionally)
+      2. the hosted model (PROTOMETER_HOSTED_MODEL, default bedrock-sonnet-5), when AWS credentials
          are present  (matches the committed evaluation artifacts)
-      3. the open-source local model (AMLGUARD_LOCAL_MODEL, default llama3.2) via Ollama
+      3. the open-source local model (PROTOMETER_LOCAL_MODEL, default llama3.2) via Ollama
 
     Returns (model_key, reason) where reason is a short human-readable why, surfaced in logs and the
-    /api/health payload. When the local model is chosen and AMLGUARD_AUTO_PULL_MODEL is on, the model
+    /api/health payload. When the local model is chosen and PROTOMETER_AUTO_PULL_MODEL is on, the model
     is pulled on first use (the one-time setup); otherwise a missing model is reported, not fetched."""
-    from amlguard import llm, settings
+    from protometer import llm, settings
 
     override = settings.ui_model()
     if override:
@@ -493,11 +493,11 @@ def resolve_ui_model() -> tuple[str, str]:
         # a clear "unknown model, declared: …" up front rather than only when the client is built.
         try:
             ModelRegistry.load().get(override)
-            return override, f"AMLGUARD_UI_MODEL={override}"
+            return override, f"PROTOMETER_UI_MODEL={override}"
         except llm.LLMConfigError as exc:
             # Health is unauthenticated: log the detail, keep exception text out of the response.
-            logging.getLogger("amlguard.ui").warning("AMLGUARD_UI_MODEL invalid: %s", exc)
-            return override, f"AMLGUARD_UI_MODEL={override} (invalid; see server log)"
+            logging.getLogger("protometer.ui").warning("PROTOMETER_UI_MODEL invalid: %s", exc)
+            return override, f"PROTOMETER_UI_MODEL={override} (invalid; see server log)"
 
     if settings.bedrock_available():
         return settings.hosted_ui_model(), "AWS credentials present"
@@ -511,7 +511,7 @@ def resolve_ui_model() -> tuple[str, str]:
                   f"{settings.ollama_url()} (install from https://ollama.com and start it)")
     elif not ensure_ok:
         reason = (f"no AWS credentials; local model '{spec.model_id}' is not pulled "
-                  f"(run `make setup-local-model` or set AMLGUARD_AUTO_PULL_MODEL=true)")
+                  f"(run `make setup-local-model` or set PROTOMETER_AUTO_PULL_MODEL=true)")
     else:
         reason = f"no AWS credentials; using local model '{local}'"
     return local, reason
@@ -520,9 +520,9 @@ def resolve_ui_model() -> tuple[str, str]:
 def _get_llm():
     global _LLM
     if _LLM is None:
-        from amlguard.llm import get_llm
+        from protometer.llm import get_llm
         model_key, reason = resolve_ui_model()
-        logging.getLogger("amlguard.ui").info("Live chat model: %s (%s)", model_key, reason)
+        logging.getLogger("protometer.ui").info("Live chat model: %s (%s)", model_key, reason)
         # allow_fallback stays False so a live turn is never silently re-attributed to a different
         # model than the one the UI reports; the selection above already chose a reachable model.
         _LLM = get_llm(model_key, trace_component="serving-ui",
@@ -539,7 +539,7 @@ def _get_roster(domain_name: str = "aml"):
     AML party names. Postgres-only: _load_parties raises 503 if that domain's corpus is
     down / unloaded, so the turn fails cleanly rather than protecting against the wrong entity set."""
     if domain_name not in _ROSTERS:
-        from amlguard.roster import roster_from_parties
+        from protometer.roster import roster_from_parties
 
         parties = _load_parties(domain_name)
         # Fold in the domain's OWN high-sensitivity identifiers that the standard roster fields
@@ -574,7 +574,7 @@ def _get_guardrail(domain):
     if domain.name not in _GUARDRAILS:
         parties_path = _domain_corpus_path(domain.name)
         try:
-            from amlguard.guardrail import Guardrail
+            from protometer.guardrail import Guardrail
             # for_corpus also installs trace-redaction from the domain's forbidden set.
             _GUARDRAILS[domain.name] = Guardrail.for_corpus(
                 parties_path, probe=False, domain=domain,
@@ -594,8 +594,8 @@ def _get_guardrail(domain):
 def _install_fallback_redaction(domain, parties_path) -> None:
     """Seed Langfuse trace-redaction from the corpus even when the egress guard won't build."""
     try:
-        from amlguard.guardrail import forbidden_values_from_parties
-        from amlguard.observability import set_trace_redaction
+        from protometer.guardrail import forbidden_values_from_parties
+        from protometer.observability import set_trace_redaction
         parties = json.loads(parties_path.read_text())
         forbidden = forbidden_values_from_parties(parties, tuple(domain.record_fields))
         set_trace_redaction(forbidden)
@@ -606,7 +606,7 @@ def _install_fallback_redaction(domain, parties_path) -> None:
 @app.post("/api/chat/turn")
 def chat_turn(
     req: TurnRequest,
-    x_amlguard_token: str | None = Header(default=None),
+    x_protometer_token: str | None = Header(default=None),
 ) -> dict:
     """One live protected chatbot turn, returning the reply AND the pipeline internals.
 
@@ -617,10 +617,10 @@ def chat_turn(
     and a per-process turn ceiling (see _check_auth / _charge_turn) so an exposed port can't bill
     the account unbounded.
     """
-    from amlguard.reidentify import ROLES
-    from amlguard.serving import ConversationSession
+    from protometer.reidentify import ROLES
+    from protometer.serving import ConversationSession
 
-    _check_auth(x_amlguard_token)
+    _check_auth(x_protometer_token)
     domain = get_domain(req.domain)
     # Fail fast, and BEFORE charging a turn, if a domain has live chat switched off
     # (Domain.supports_live_chat; all shipped domains support it, but a fork adding a domain
@@ -636,8 +636,8 @@ def chat_turn(
     # role and overrides the request body (an injected client can't self-elevate). Otherwise the
     # request's role is used, which is the frictionless local-demo default that lets a judge switch
     # roles to see the contrast.
-    from amlguard import settings
-    requested_role = settings.ui_role_tokens().get(x_amlguard_token or "", req.role)
+    from protometer import settings
+    requested_role = settings.ui_role_tokens().get(x_protometer_token or "", req.role)
     # Constrain the role to ones VALID FOR THIS DOMAIN, defaulting to the domain's low-privilege
     # role. Without this an AML `investigator` role on a customer-support turn would re-identify the
     # customer in full — the inversion of the "agent masked, supervisor full" story. role_for()
@@ -647,7 +647,7 @@ def chat_turn(
     if role is None:
         raise HTTPException(400, f"unknown role {role_name!r}; known: {sorted(ROLES)}")
 
-    from amlguard import serving_metrics
+    from protometer import serving_metrics
     _llm = _get_llm()
     try:
         session = ConversationSession(
@@ -720,7 +720,7 @@ def chat_turn(
 #     UI run can never corrupt shared state under a concurrent CLI/UI run.
 #   * _live isolation: every stage writes to data/eval/_live/<run_id>/, NEVER the committed
 #     artifacts, so a live demo can never clobber the verified results the Replay mode shows.
-#   * spend cap: paid stages route through the same AMLGUARD_MAX_SPEND_USD reservation the CLI uses.
+#   * spend cap: paid stages route through the same PROTOMETER_MAX_SPEND_USD reservation the CLI uses.
 class BatchRunRequest(BaseModel):
     domain: str = "aml"
     stage: str                    # the stage id from /api/pipeline
@@ -743,7 +743,7 @@ def _stage_estimate(domain: str, stage: dict, scope: str) -> dict:
         import importlib.util
         spec = importlib.util.spec_from_file_location("estc", str(ROOT / "scripts" / "estimate_cost.py"))
         estc = importlib.util.module_from_spec(spec); spec.loader.exec_module(estc)
-        from amlguard.llm import ModelRegistry
+        from protometer.llm import ModelRegistry
         model_spec = ModelRegistry.load().get("bedrock-sonnet-5")
         est = estc.estimate(model_spec, scopes=1, tasks=12, judge=True)
         return {"cost_usd": round(est.get("cost_usd", 0.0), 2), "paid": True,
@@ -792,9 +792,9 @@ def _consume_confirm_token(token: str | None, domain: str, stage_id: str,
 
 @app.post("/api/batch/run-stage")
 def batch_run_stage(req: BatchRunRequest,
-                    x_amlguard_token: str | None = Header(default=None)) -> dict:
+                    x_protometer_token: str | None = Header(default=None)) -> dict:
     """Run one batch stage live, behind the cost/lock/isolation rails documented above."""
-    _check_auth(x_amlguard_token)
+    _check_auth(x_protometer_token)
     stages = DOMAIN_STAGES.get(req.domain, _AML_STAGES)
     stage = next((s for s in stages if s["id"] == req.stage), None)
     if stage is None:
@@ -821,7 +821,7 @@ def batch_run_stage(req: BatchRunRequest,
     run_id = uuid.uuid4().hex[:12]
 
     # Acquire the run lock so a UI run never collides with a CLI run (or another UI run).
-    from amlguard.persist import acquire_run_lock
+    from protometer.persist import acquire_run_lock
     try:
         lock = acquire_run_lock(ROOT / "data")
     except RuntimeError:
@@ -857,7 +857,7 @@ def _execute_stage(domain: str, stage: dict, scope: str, run_id: str) -> dict:
         src = ROOT / "data" / "eval" / "healthcare" / "deidentify.json"
         backup = src.read_text() if src.exists() else None
         subprocess.run([sys.executable, str(ROOT / "scripts" / "healthcare_deidentify.py")],
-                       check=True, capture_output=True, env={**_os.environ, "AMLGUARD_NO_TRACKING": "1"})
+                       check=True, capture_output=True, env={**_os.environ, "PROTOMETER_NO_TRACKING": "1"})
         produced = src.read_text()
         (live / "healthcare_deidentify.json").write_text(produced)
         if backup is not None:
@@ -873,8 +873,8 @@ def _execute_stage(domain: str, stage: dict, scope: str, run_id: str) -> dict:
     if run in ("embed", "present"):
         return {"artifact": None, "note": f"{stage['title']} is a local step; no artifact to write."}
     if run == "train":
-        from amlguard.scopes import get_scope
-        from amlguard.training import train_scope
+        from protometer.scopes import get_scope
+        from protometer.training import train_scope
         protected = ROOT / "data" / "protected" / get_scope(scope).slug
         if not (protected / "transactions.json").exists():
             raise HTTPException(400, f"scope {scope!r} not ingested; run Ingest first")

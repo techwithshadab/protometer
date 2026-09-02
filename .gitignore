@@ -56,7 +56,7 @@ CLAUDE.md
 docs/CONTEXT.md
 # OS and runtime junk.
 .DS_Store
-data/.amlguard.lock
+data/.protometer.lock
 
 # Runtime reveal-audit ledgers (hash-chained detokenization records; regenerated at runtime).
 data/audit/

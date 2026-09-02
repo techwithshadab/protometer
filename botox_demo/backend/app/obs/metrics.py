@@ -2,7 +2,7 @@
 
 A long-running server is scraped (not pushed like a batch job), so this module owns COUNTERS +
 HISTOGRAMS on the default registry and the API mounts `/metrics`. Every metric carries a fixed
-`demo="botox"` label so it sits beside the AMLGuard serving metrics in one Prometheus without
+`demo="botox"` label so it sits beside the Protometer serving metrics in one Prometheus without
 colliding, and outcomes/labels are BOUNDED (fixed sets), never a per-turn id, so cardinality is flat.
 
 Entirely optional, same as tracing: `BOTOX_NO_METRICS=1` (or missing prometheus_client) makes every

@@ -13,7 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from amlguard import settings
+from protometer import settings
 
 
 def test_env_example_documents_every_known_setting():
@@ -29,7 +29,7 @@ def test_defaults_resolve_without_env(monkeypatch):
     assert settings.discovery_threshold() == 0.6
     assert settings.max_spend_usd() == 5.0
     # Host-side DE defaults point at the shared protegrity-shared tier's 6xxx host ports (containers
-    # get pty-* names from compose). Synthetic is remapped OFF :8000 (the AMLGuard UI port) to :6005.
+    # get pty-* names from compose). Synthetic is remapped OFF :8000 (the Protometer UI port) to :6005.
     assert ":6000" in settings.discovery_url()
     assert ":6001" in settings.guardrail_url()
     assert ":6004" in settings.anonymization_url()
@@ -39,40 +39,40 @@ def test_defaults_resolve_without_env(monkeypatch):
 
 
 def test_env_overrides_default(monkeypatch):
-    monkeypatch.setenv("AMLGUARD_DISCOVERY_THRESHOLD", "0.8")
+    monkeypatch.setenv("PROTOMETER_DISCOVERY_THRESHOLD", "0.8")
     assert settings.discovery_threshold() == 0.8
-    monkeypatch.setenv("AMLGUARD_NO_TRACING", "1")
+    monkeypatch.setenv("PROTOMETER_NO_TRACING", "1")
     assert settings.no_tracing()
 
 
 def test_malformed_numeric_falls_back_to_default(monkeypatch):
-    monkeypatch.setenv("AMLGUARD_DISCOVERY_THRESHOLD", "not-a-number")
+    monkeypatch.setenv("PROTOMETER_DISCOVERY_THRESHOLD", "not-a-number")
     assert settings.discovery_threshold() == 0.6  # not a crash
 
 
 def test_ui_max_turns_malformed_falls_back(monkeypatch):
     # Read on the hot /api/chat/turn path: a malformed value must degrade to the default, not
     # raise (a raw int() would 500 the endpoint on the first turn).
-    monkeypatch.setenv("AMLGUARD_UI_MAX_TURNS", "unlimited")
+    monkeypatch.setenv("PROTOMETER_UI_MAX_TURNS", "unlimited")
     assert settings.ui_max_turns() == 200
 
 
 # ── Live-chat model selection settings ────────────────────────────────────────────────
 def test_get_bool_accepts_common_truthy_and_falsy(monkeypatch):
     for v in ("1", "true", "TRUE", "Yes", "on"):
-        monkeypatch.setenv("AMLGUARD_AUTO_PULL_MODEL", v)
+        monkeypatch.setenv("PROTOMETER_AUTO_PULL_MODEL", v)
         assert settings.auto_pull_model() is True, v
     for v in ("0", "false", "No", "off"):
-        monkeypatch.setenv("AMLGUARD_AUTO_PULL_MODEL", v)
+        monkeypatch.setenv("PROTOMETER_AUTO_PULL_MODEL", v)
         assert settings.auto_pull_model() is False, v
-    monkeypatch.setenv("AMLGUARD_AUTO_PULL_MODEL", "garbage")
+    monkeypatch.setenv("PROTOMETER_AUTO_PULL_MODEL", "garbage")
     assert settings.auto_pull_model() is False  # unrecognised -> the default (False)
-    monkeypatch.delenv("AMLGUARD_AUTO_PULL_MODEL", raising=False)
+    monkeypatch.delenv("PROTOMETER_AUTO_PULL_MODEL", raising=False)
     assert settings.auto_pull_model() is False
 
 
 def test_model_selection_defaults(monkeypatch):
-    for v in ("AMLGUARD_LOCAL_MODEL", "AMLGUARD_HOSTED_MODEL", "AMLGUARD_UI_MODEL"):
+    for v in ("PROTOMETER_LOCAL_MODEL", "PROTOMETER_HOSTED_MODEL", "PROTOMETER_UI_MODEL"):
         monkeypatch.delenv(v, raising=False)
     assert settings.local_model() == "llama3.2"
     assert settings.hosted_ui_model() == "bedrock-sonnet-5"
@@ -95,34 +95,34 @@ def test_bedrock_available_false_without_creds(monkeypatch):
 
 def test_ollama_url_explicit_wins(monkeypatch):
     monkeypatch.setenv("OLLAMA_URL", "http://ollama:11434")
-    monkeypatch.setenv("AMLGUARD_IN_CONTAINER", "1")  # would otherwise force host.docker.internal
+    monkeypatch.setenv("PROTOMETER_IN_CONTAINER", "1")  # would otherwise force host.docker.internal
     assert settings.ollama_url() == "http://ollama:11434"
 
 
 def test_ollama_url_container_default(monkeypatch):
     monkeypatch.delenv("OLLAMA_URL", raising=False)
-    monkeypatch.setenv("AMLGUARD_IN_CONTAINER", "1")
+    monkeypatch.setenv("PROTOMETER_IN_CONTAINER", "1")
     assert settings.ollama_url() == "http://host.docker.internal:11434"
 
 
 def test_ollama_url_host_default(monkeypatch):
     monkeypatch.delenv("OLLAMA_URL", raising=False)
-    monkeypatch.delenv("AMLGUARD_IN_CONTAINER", raising=False)
+    monkeypatch.delenv("PROTOMETER_IN_CONTAINER", raising=False)
     monkeypatch.setattr(settings, "_in_container", lambda: False)
     assert settings.ollama_url() == "http://localhost:11434"
 
 
 def test_ui_role_tokens_parses_and_binds(monkeypatch):
-    monkeypatch.setenv("AMLGUARD_UI_ROLE_TOKENS", "auditor:tok-a, investigator:tok-i")
+    monkeypatch.setenv("PROTOMETER_UI_ROLE_TOKENS", "auditor:tok-a, investigator:tok-i")
     m = settings.ui_role_tokens()
     assert m == {"tok-a": "auditor", "tok-i": "investigator"}
 
 
 def test_ui_role_tokens_empty_by_default(monkeypatch):
-    monkeypatch.delenv("AMLGUARD_UI_ROLE_TOKENS", raising=False)
+    monkeypatch.delenv("PROTOMETER_UI_ROLE_TOKENS", raising=False)
     assert settings.ui_role_tokens() == {}
 
 
 def test_ui_role_tokens_ignores_malformed(monkeypatch):
-    monkeypatch.setenv("AMLGUARD_UI_ROLE_TOKENS", "garbage,:notoken,role:,ok:tok")
+    monkeypatch.setenv("PROTOMETER_UI_ROLE_TOKENS", "garbage,:notoken,role:,ok:tok")
     assert settings.ui_role_tokens() == {"tok": "ok"}

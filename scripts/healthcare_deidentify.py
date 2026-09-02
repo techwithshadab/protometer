@@ -28,12 +28,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from amlguard.env import load_dotenv  # noqa: E402
+from protometer.env import load_dotenv  # noqa: E402
 
 load_dotenv(ROOT)
 
-from amlguard import settings as _settings  # noqa: E402
-from amlguard.persist import atomic_write_json  # noqa: E402
+from protometer import settings as _settings  # noqa: E402
+from protometer.persist import atomic_write_json  # noqa: E402
 
 ANON_EP = _settings.anonymization_url()
 PATIENT_CSV = (
@@ -89,7 +89,7 @@ def _safe_harbor(patients: list[dict]) -> dict:
     protector = None
     if os.getenv("DEV_EDITION_API_KEY"):
         try:
-            from amlguard.protect import Protector
+            from protometer.protect import Protector
 
             protector = Protector()
             name_handling = "Patient names tokenized"
@@ -109,7 +109,7 @@ def _safe_harbor(patients: list[dict]) -> dict:
     # that verbatim as `name_token` would leave a real patient name in the clear inside a file
     # whose entire claim is Safe Harbor de-identification. Check every returned token against its
     # input and substitute [REDACTED] on a no-op, counting how many so the artifact reports it.
-    from amlguard.protect import Protector
+    from protometer.protect import Protector
     noop_count = 0
     deidentified = []
     for i, row in enumerate(patients):
@@ -311,8 +311,8 @@ def main() -> int:
         "expert_determination": expert,
     }
     # Optional provenance timestamp from the environment; never fabricated.
-    if os.getenv("AMLGUARD_RUN_DATE"):
-        out["generated"] = os.getenv("AMLGUARD_RUN_DATE")
+    if os.getenv("PROTOMETER_RUN_DATE"):
+        out["generated"] = os.getenv("PROTOMETER_RUN_DATE")
 
     dest = ROOT / "data" / "eval" / "healthcare" / "deidentify.json"
     dest.parent.mkdir(parents=True, exist_ok=True)

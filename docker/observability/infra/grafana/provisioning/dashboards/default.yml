@@ -1,6 +1,6 @@
 apiVersion: 1
 providers:
-  - name: amlguard
+  - name: protometer
     type: file
     options:
       path: /var/lib/grafana/dashboards

@@ -20,7 +20,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from amlguard.env import load_dotenv  # noqa: E402
+from protometer.env import load_dotenv  # noqa: E402
 
 load_dotenv(ROOT)
 
@@ -30,7 +30,7 @@ def _mlflow_runs(run_id: str) -> list[dict]:
         import mlflow
         from mlflow import MlflowClient
 
-        from amlguard.tracking import DEFAULT_SERVER_URI, _server_reachable
+        from protometer.tracking import DEFAULT_SERVER_URI, _server_reachable
         if not _server_reachable(DEFAULT_SERVER_URI):
             return []
         mlflow.set_tracking_uri(DEFAULT_SERVER_URI)
@@ -38,7 +38,7 @@ def _mlflow_runs(run_id: str) -> list[dict]:
         out = []
         for exp in client.search_experiments():
             for r in client.search_runs(
-                [exp.experiment_id], filter_string=f"tags.`amlguard.run_id` = '{run_id}'"
+                [exp.experiment_id], filter_string=f"tags.`protometer.run_id` = '{run_id}'"
             ):
                 out.append({
                     "experiment": exp.name,
@@ -55,7 +55,7 @@ def _langfuse(run_id: str) -> dict:
 
     import requests
 
-    from amlguard import settings
+    from protometer import settings
     pk, sk = os.getenv("LANGFUSE_PUBLIC_KEY"), os.getenv("LANGFUSE_SECRET_KEY")
     # Single source of truth for the host default (shared tier host :5006, not the old :3000).
     host = settings.langfuse_host()
@@ -96,11 +96,11 @@ def _prometheus(run_id: str) -> dict:
     """
     import requests
 
-    from amlguard import settings
+    from protometer import settings
     base = settings.prometheus_query_url()
     try:
         r = requests.get(f"{base}/api/v1/query",
-                        params={"query": "amlguard_ingest_seconds"}, timeout=10)
+                        params={"query": "protometer_ingest_seconds"}, timeout=10)
         results = r.json().get("data", {}).get("result", []) if r.ok else []
         return {"available": True,
                 "join": "corpus_fingerprint + scope (ingest is a separate process)",

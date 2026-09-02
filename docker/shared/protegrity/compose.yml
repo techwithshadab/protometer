@@ -3,7 +3,7 @@
 # The Protegrity DE services (classification/pattern/context discovery, semantic-guardrail,
 # anonymization, synthetic-data) are heavy amd64 images, identical across every demo, and hold no
 # per-demo state (tokenization is deterministic and keyed server-side). So we run ONE shared instance
-# here and let each demo (AMLGuard, BOTOX) reach it over a shared external network, instead of every
+# here and let each demo (Protometer, BOTOX) reach it over a shared external network, instead of every
 # demo bundling its own copy (which forced sequential-only runs and duplicate warm-ups).
 #
 #   docker compose -f docker/shared/protegrity/compose.yml up -d       # (or: make shared-protegrity-up)
@@ -11,11 +11,11 @@
 #   docker compose -f docker/shared/protegrity/compose.yml down        # stops the shared DE tier
 #
 # NETWORK: this file creates `protegrity-shared` (via DOCKER_NETWORK_NAME below). Each demo compose
-# joins it as an EXTERNAL network and points its PROTEGRITY_*_URL / AMLGUARD_*_URL env at the service
+# joins it as an EXTERNAL network and points its PROTEGRITY_*_URL / PROTOMETER_*_URL env at the service
 # names here (pty-classification, pty-guardrail, ...). Bring THIS up first, then the demos.
 #
 # SOURCE OF TRUTH: it reuses the vendored DE composes under vendor-de/* (parameterized images/tags)
-# plus this repo's platform/loopback overrides — the same ones AMLGuard's compose.full.yml applies —
+# plus this repo's platform/loopback overrides — the same ones Protometer's compose.full.yml applies —
 # so the shared tier is byte-for-byte the DE tier the demos already trust. Nothing is duplicated.
 #
 # PREREQS: `docker login ghcr.io` once with a Developer-Edition token; images are amd64 (emulated on
@@ -35,7 +35,7 @@ include:
 
 # Path-style container + DNS names, stable and shared-scoped (pty-*), so demos reach the tier by a
 # clean name regardless of which demo is up. The service KEYS come from the vendored composes and are
-# overridden here (container_name + network alias), exactly as AMLGuard's compose.full.yml does.
+# overridden here (container_name + network alias), exactly as Protometer's compose.full.yml does.
 services:
   # Every DE service published on the 6xxx band (loopback-only), sequentially:
   #   6000 classification · 6001 guardrail · 6002 pattern · 6003 context · 6004 anon · 6005 synthetic

@@ -1,8 +1,8 @@
-# AMLGuard app: the FastAPI backend + the single-page UI, one image.
+# Protometer app: the FastAPI backend + the single-page UI, one image.
 #
 # This image is the APPLICATION only. Its runtime dependencies are NOT bundled here (they cannot
 # be): Protegrity Discovery/Guardrail are vendor Developer-Edition images, and Bedrock is external
-# AWS. The app reaches them over the network via the AMLGUARD_*_URL env vars (see docker-compose).
+# AWS. The app reaches them over the network via the PROTOMETER_*_URL env vars (see docker-compose).
 # Replay mode and the healthcare/support batch demos need none of them; live chat and paid batch
 # stages do.
 FROM python:3.12-slim
@@ -11,7 +11,7 @@ FROM python:3.12-slim
 COPY --from=ghcr.io/astral-sh/uv:0.6.9 /uv /uvx /usr/local/bin/
 
 # Non-root user: the app never needs root, and an exposed service should not run as it.
-RUN groupadd -r amlguard && useradd -r -g amlguard -m -d /home/amlguard amlguard
+RUN groupadd -r protometer && useradd -r -g protometer -m -d /home/protometer protometer
 
 WORKDIR /app
 
@@ -31,7 +31,7 @@ RUN uv sync --frozen --no-install-project --no-dev
 # Put the venv on PATH so `python` / `uvicorn` in the entrypoint + healthcheck resolve to it.
 ENV PATH="/app/.venv/bin:$PATH"
 
-# Source. The app imports `amlguard` from src/ (PYTHONPATH) and reads the corpus + committed
+# Source. The app imports `protometer` from src/ (PYTHONPATH) and reads the corpus + committed
 # artifacts from data/. config/ carries the model registry. ui/ is the served frontend + API.
 COPY src/ src/
 COPY scripts/ scripts/
@@ -39,14 +39,14 @@ COPY config/ config/
 COPY ui/ ui/
 COPY data/ data/
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh && chown -R amlguard:amlguard /app
+RUN chmod +x /usr/local/bin/entrypoint.sh && chown -R protometer:protometer /app
 
 ENV PYTHONPATH=/app/src \
     PYTHONUNBUFFERED=1 \
-    AMLGUARD_UI_PORT=8600
+    PROTOMETER_UI_PORT=8600
 
 EXPOSE 8600
-USER amlguard
+USER protometer
 
 # python:slim has no curl; probe with urllib against the app's own health endpoint.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \

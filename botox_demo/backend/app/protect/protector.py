@@ -399,7 +399,7 @@ class Protector:
 
 
 # Our PII wrapper TYPE -> Protegrity Data Protection element. Mirrors the SDK's DATA_ELEMENT_MAPPING
-# and the AMLGuard integration, with the ONE deliberate divergence measured against the live API:
+# and the Protometer integration, with the ONE deliberate divergence measured against the live API:
 # EMAIL maps to `string`, NOT `email`. The `email` element tokenizes only the local part and returns
 # the domain VERBATIM ("jane@clinic.com" -> "VUOQhl23@clinic.com"), leaking the domain (and, under
 # determinism, a shared local part); `string` tokenizes the whole value and still returns an
@@ -437,7 +437,7 @@ class _ProtegrityClient:
 
     def __init__(self) -> None:
         # Keep the SDK's own retry layer explicit and modest; a second retry layer stacking on the
-        # default 3x30s produced 210s calls in the AMLGuard measurements.
+        # default 3x30s produced 210s calls in the Protometer measurements.
         os.environ.setdefault("PTY_MAX_RETRIES", "2")
         os.environ.setdefault("PTY_REQUEST_TIMEOUT", "30")
         from appython import Protector as _PtyProtector  # raises if the SDK is absent

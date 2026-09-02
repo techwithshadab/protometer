@@ -1,6 +1,6 @@
 {
   "title": "AML",
-  "uid": "amlguard-domain-aml",
+  "uid": "protometer-domain-aml",
   "tags": [
     "domain",
     "aml"
@@ -65,7 +65,7 @@
       },
       "targets": [
         {
-          "expr": "sum by (outcome) (rate(amlguard_serving_turns_total{domain=\"aml\"}[5m])) * 60",
+          "expr": "sum by (outcome) (rate(protometer_serving_turns_total{domain=\"aml\"}[5m])) * 60",
           "legendFormat": "{{outcome}}"
         }
       ]
@@ -98,7 +98,7 @@
       },
       "targets": [
         {
-          "expr": "sum by (outcome) (amlguard_serving_turns_total{domain=\"aml\"})",
+          "expr": "sum by (outcome) (protometer_serving_turns_total{domain=\"aml\"})",
           "legendFormat": "{{outcome}}",
           "instant": true
         }
@@ -140,15 +140,15 @@
       },
       "targets": [
         {
-          "expr": "histogram_quantile(0.50, sum by (le) (rate(amlguard_serving_turn_latency_seconds_bucket{domain=\"aml\"}[5m])))",
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(protometer_serving_turn_latency_seconds_bucket{domain=\"aml\"}[5m])))",
           "legendFormat": "p50"
         },
         {
-          "expr": "histogram_quantile(0.90, sum by (le) (rate(amlguard_serving_turn_latency_seconds_bucket{domain=\"aml\"}[5m])))",
+          "expr": "histogram_quantile(0.90, sum by (le) (rate(protometer_serving_turn_latency_seconds_bucket{domain=\"aml\"}[5m])))",
           "legendFormat": "p90"
         },
         {
-          "expr": "histogram_quantile(0.99, sum by (le) (rate(amlguard_serving_turn_latency_seconds_bucket{domain=\"aml\"}[5m])))",
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(protometer_serving_turn_latency_seconds_bucket{domain=\"aml\"}[5m])))",
           "legendFormat": "p99"
         }
       ]
@@ -194,7 +194,7 @@
       },
       "targets": [
         {
-          "expr": "sum(amlguard_serving_egress_blocks_total{domain=\"aml\"}) or vector(0)",
+          "expr": "sum(protometer_serving_egress_blocks_total{domain=\"aml\"}) or vector(0)",
           "instant": true
         }
       ]
@@ -240,7 +240,7 @@
       },
       "targets": [
         {
-          "expr": "sum(amlguard_serving_canary_hits_total{domain=\"aml\"}) or vector(0)",
+          "expr": "sum(protometer_serving_canary_hits_total{domain=\"aml\"}) or vector(0)",
           "instant": true
         }
       ]
@@ -277,7 +277,7 @@
       },
       "targets": [
         {
-          "expr": "sum(amlguard_serving_entities_protected_total{domain=\"aml\"}) or vector(0)",
+          "expr": "sum(protometer_serving_entities_protected_total{domain=\"aml\"}) or vector(0)",
           "instant": true
         }
       ]
@@ -314,7 +314,7 @@
       },
       "targets": [
         {
-          "expr": "sum(amlguard_serving_revealed_total{domain=\"aml\"}) or vector(0)",
+          "expr": "sum(protometer_serving_revealed_total{domain=\"aml\"}) or vector(0)",
           "instant": true
         }
       ]
@@ -347,7 +347,7 @@
       },
       "targets": [
         {
-          "expr": "sum by (role) (amlguard_serving_turns_total{domain=\"aml\"})",
+          "expr": "sum by (role) (protometer_serving_turns_total{domain=\"aml\"})",
           "legendFormat": "{{role}}",
           "instant": true,
           "format": "table"
@@ -377,7 +377,7 @@
       },
       "targets": [
         {
-          "expr": "sum by (kind) (amlguard_serving_errors_total{domain=\"aml\"})",
+          "expr": "sum by (kind) (protometer_serving_errors_total{domain=\"aml\"})",
           "instant": true,
           "format": "table"
         }
@@ -429,7 +429,7 @@
       },
       "targets": [
         {
-          "expr": "sum by (direction) (rate(amlguard_serving_llm_tokens_total{domain=\"aml\"}[5m])) * 60",
+          "expr": "sum by (direction) (rate(protometer_serving_llm_tokens_total{domain=\"aml\"}[5m])) * 60",
           "legendFormat": "{{direction}}"
         }
       ]
@@ -479,7 +479,7 @@
       },
       "targets": [
         {
-          "expr": "amlguard_ingest_seconds{domain=\"aml\"}",
+          "expr": "protometer_ingest_seconds{domain=\"aml\"}",
           "instant": true,
           "format": "table",
           "legendFormat": "{{scope}}"
@@ -536,7 +536,7 @@
       },
       "targets": [
         {
-          "expr": "amlguard_ingest_seconds_in_discovery{domain=\"aml\"}",
+          "expr": "protometer_ingest_seconds_in_discovery{domain=\"aml\"}",
           "instant": true,
           "format": "table",
           "legendFormat": "{{scope}}"
@@ -593,13 +593,13 @@
       },
       "targets": [
         {
-          "expr": "amlguard_ingest_entities_found{domain=\"aml\"}",
+          "expr": "protometer_ingest_entities_found{domain=\"aml\"}",
           "instant": true,
           "format": "table",
           "refId": "found"
         },
         {
-          "expr": "amlguard_ingest_entities_protected{domain=\"aml\"}",
+          "expr": "protometer_ingest_entities_protected{domain=\"aml\"}",
           "instant": true,
           "format": "table",
           "refId": "protected"
@@ -675,7 +675,7 @@
       },
       "targets": [
         {
-          "expr": "amlguard_ingest_api_rate{domain=\"aml\"}",
+          "expr": "protometer_ingest_api_rate{domain=\"aml\"}",
           "instant": true,
           "format": "table",
           "legendFormat": "{{scope}}"
@@ -745,7 +745,7 @@
       },
       "targets": [
         {
-          "expr": "sum(amlguard_ingest_failures{domain=\"aml\"}) or vector(0)",
+          "expr": "sum(protometer_ingest_failures{domain=\"aml\"}) or vector(0)",
           "instant": true,
           "legendFormat": "failures"
         }
@@ -793,7 +793,7 @@
       },
       "targets": [
         {
-          "expr": "sum(amlguard_ingest_noops{domain=\"aml\"}) or vector(0)",
+          "expr": "sum(protometer_ingest_noops{domain=\"aml\"}) or vector(0)",
           "instant": true,
           "legendFormat": "no-ops"
         }
@@ -841,7 +841,7 @@
       },
       "targets": [
         {
-          "expr": "sum(amlguard_ingest_retries{domain=\"aml\"}) or vector(0)",
+          "expr": "sum(protometer_ingest_retries{domain=\"aml\"}) or vector(0)",
           "instant": true,
           "legendFormat": "retries"
         }
@@ -880,7 +880,7 @@
       },
       "targets": [
         {
-          "expr": "sum(amlguard_ingest_entities_protected{domain=\"aml\"}) or vector(0)",
+          "expr": "sum(protometer_ingest_entities_protected{domain=\"aml\"}) or vector(0)",
           "instant": true,
           "legendFormat": "protected"
         }
@@ -935,7 +935,7 @@
       },
       "targets": [
         {
-          "expr": "amlguard_ingest_cache_hit_rate{domain=\"aml\"}",
+          "expr": "protometer_ingest_cache_hit_rate{domain=\"aml\"}",
           "instant": true,
           "legendFormat": "{{scope}}"
         }

@@ -21,13 +21,13 @@
 services:
   mlflow:
     image: ghcr.io/mlflow/mlflow:latest
-    container_name: amlguard_mlflow
+    container_name: protometer_mlflow
     restart: unless-stopped
     ports:
       - "127.0.0.1:5001:5000"
     volumes:
-      # The store dir the code reads/writes (amlguard.tracking.DEFAULT_TRACKING_DIR). Keep this
-      # mount path in sync with that default (or AMLGUARD_MLFLOW_STORE_DIR).
+      # The store dir the code reads/writes (protometer.tracking.DEFAULT_TRACKING_DIR). Keep this
+      # mount path in sync with that default (or PROTOMETER_MLFLOW_STORE_DIR).
       - ./store:/mlruns
     command: >
       mlflow server

@@ -14,7 +14,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from amlguard import metrics_export
+from protometer import metrics_export
 
 
 def _capture(monkeypatch):
@@ -93,7 +93,7 @@ def test_compute_uses_supplied_threshold_not_test_fold_selection():
     """
     import numpy as np
 
-    from amlguard import metrics as m
+    from protometer import metrics as m
 
     labels = np.array([0] * 90 + [1] * 10)
     scores = np.clip(labels * 0.5 + np.linspace(0, 0.4, 100), 0, 1)
@@ -105,7 +105,7 @@ def test_compute_uses_supplied_threshold_not_test_fold_selection():
 def test_select_f1_threshold_is_degenerate_safe():
     import numpy as np
 
-    from amlguard import metrics as m
+    from protometer import metrics as m
     # single-class input -> 0.5 fallback, never a crash
     assert m.select_f1_threshold(np.zeros(20, dtype=int), np.random.default_rng(0).random(20)) == 0.5
 
@@ -135,7 +135,7 @@ def test_prometheus_gauges_are_labelled_by_bounded_keys_never_run_id(monkeypatch
     fake_pc.Gauge = _FakeGauge
     fake_pc.push_to_gateway = lambda *a, **k: None
     monkeypatch.setitem(sys.modules, "prometheus_client", fake_pc)
-    monkeypatch.delenv("AMLGUARD_NO_METRICS", raising=False)
+    monkeypatch.delenv("PROTOMETER_NO_METRICS", raising=False)
 
     metrics_export.push_ingest_metrics("all", {"seconds": 100.0, "api_calls": 5},
                                        corpus_fingerprint="fp0011223344", domain="healthcare")
@@ -173,7 +173,7 @@ def test_missing_fingerprint_falls_back_to_unknown_bounded_label(monkeypatch):
     fake_pc.Gauge = _FakeGauge
     fake_pc.push_to_gateway = lambda *a, **k: None
     monkeypatch.setitem(sys.modules, "prometheus_client", fake_pc)
-    monkeypatch.delenv("AMLGUARD_NO_METRICS", raising=False)
+    monkeypatch.delenv("PROTOMETER_NO_METRICS", raising=False)
 
     metrics_export.push_ingest_metrics("none", {"seconds": 0.0}, corpus_fingerprint=None)
     for call in captured["label_calls"]:

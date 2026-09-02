@@ -20,13 +20,13 @@ def _fresh_module(monkeypatch):
     """Import serving_metrics with its own private prometheus registry so counts are isolated per
     test (the module builds metrics on the default registry once; we reset its cache and swap the
     registry so each test sees clean series)."""
-    monkeypatch.delenv("AMLGUARD_NO_METRICS", raising=False)
+    monkeypatch.delenv("PROTOMETER_NO_METRICS", raising=False)
     from prometheus_client import CollectorRegistry
     import prometheus_client
     reg = CollectorRegistry()
     # Point the default registry at a fresh one for the duration of the test.
     monkeypatch.setattr(prometheus_client, "REGISTRY", reg, raising=False)
-    import amlguard.serving_metrics as sm
+    import protometer.serving_metrics as sm
     monkeypatch.setattr(sm, "_METRICS", None, raising=False)
     # Rebuild the metric objects against the fresh registry by monkeypatching Counter/Histogram to
     # register there. Simplest: rebuild via the real API but into `reg`.
@@ -55,14 +55,14 @@ def test_egress_block_is_a_guard_action_not_an_error(monkeypatch):
     sm.record_turn("customer-support", "support_agent", Blocked())
 
     # Classified as egress_blocked, NOT error.
-    assert _val(reg, "amlguard_serving_turns_total",
+    assert _val(reg, "protometer_serving_turns_total",
                 {"domain": "customer-support", "role": "support_agent", "outcome": "egress_blocked"}) == 1.0
-    assert _val(reg, "amlguard_serving_turns_total",
+    assert _val(reg, "protometer_serving_turns_total",
                 {"domain": "customer-support", "role": "support_agent", "outcome": "error"}) == 0.0
     # Counted in the egress-block counter.
-    assert _val(reg, "amlguard_serving_egress_blocks_total", {"domain": "customer-support"}) == 1.0
+    assert _val(reg, "protometer_serving_egress_blocks_total", {"domain": "customer-support"}) == 1.0
     # NOT counted as an error kind (that would double-signal a normal guard action as a failure).
-    assert _val(reg, "amlguard_serving_errors_total",
+    assert _val(reg, "protometer_serving_errors_total",
                 {"domain": "customer-support", "kind": "egress-blocked"}) == 0.0
 
 
@@ -78,9 +78,9 @@ def test_genuine_error_is_outcome_error_and_counted_by_kind(monkeypatch):
         out_of_scope = 0
 
     sm.record_turn("aml", "investigator", Errored())
-    assert _val(reg, "amlguard_serving_turns_total",
+    assert _val(reg, "protometer_serving_turns_total",
                 {"domain": "aml", "role": "investigator", "outcome": "error"}) == 1.0
-    assert _val(reg, "amlguard_serving_errors_total",
+    assert _val(reg, "protometer_serving_errors_total",
                 {"domain": "aml", "kind": "generation-failed"}) == 1.0
 
 
@@ -96,17 +96,17 @@ def test_clean_turn_records_ok_and_protection_counters(monkeypatch):
         out_of_scope = 0
 
     sm.record_turn("aml", "investigator", Ok(), model="llama3.2", input_tokens=100, output_tokens=40)
-    assert _val(reg, "amlguard_serving_turns_total",
+    assert _val(reg, "protometer_serving_turns_total",
                 {"domain": "aml", "role": "investigator", "outcome": "ok"}) == 1.0
-    assert _val(reg, "amlguard_serving_entities_protected_total", {"domain": "aml"}) == 3.0
-    assert _val(reg, "amlguard_serving_revealed_total", {"domain": "aml", "role": "investigator"}) == 2.0
-    assert _val(reg, "amlguard_serving_llm_tokens_total",
+    assert _val(reg, "protometer_serving_entities_protected_total", {"domain": "aml"}) == 3.0
+    assert _val(reg, "protometer_serving_revealed_total", {"domain": "aml", "role": "investigator"}) == 2.0
+    assert _val(reg, "protometer_serving_llm_tokens_total",
                 {"domain": "aml", "model": "llama3.2", "direction": "input"}) == 100.0
 
 
 def test_metrics_off_is_a_noop(monkeypatch):
-    monkeypatch.setenv("AMLGUARD_NO_METRICS", "1")
-    import amlguard.serving_metrics as sm
+    monkeypatch.setenv("PROTOMETER_NO_METRICS", "1")
+    import protometer.serving_metrics as sm
     monkeypatch.setattr(sm, "_METRICS", None, raising=False)
     # record_turn must not raise and must produce no metrics object.
     class Ok:

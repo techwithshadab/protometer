@@ -1,9 +1,9 @@
-# AMLGuard application: the FastAPI+UI app, plus the app Postgres it depends on.
+# Protometer application: the FastAPI+UI app, plus the app Postgres it depends on.
 #
 # Postgres is NOT redefined here: this file INCLUDES the single canonical definition in
-# docker/app/postgres/compose.yml (container `amlguard_postgres`, host port 5433) and only ADDS the app
+# docker/app/postgres/compose.yml (container `protometer_postgres`, host port 5433) and only ADDS the app
 # service + the shared network. That way there is exactly one Postgres definition in the repo,
-# whether you start it from docker/app/postgres or from here — no duplicate `amlguard_postgres`
+# whether you start it from docker/app/postgres or from here — no duplicate `protometer_postgres`
 # container-name clash.
 #
 # Standalone-usable (Replay + healthcare/support demos work with just the app + Postgres), and also
@@ -17,40 +17,40 @@
 #   docker compose -f docker/app/ui/compose.yml up -d --build      (or: make docker-up)
 #   open http://localhost:8000
 
-# Project name: `amlguard` (the AMLGuard demo). Distinct from `protegrity-shared` (the shared DE
+# Project name: `protometer` (the Protometer demo). Distinct from `protegrity-shared` (the shared DE
 # tier) and `observability-shared` — so `docker compose ls` reads clearly.
-name: amlguard
+name: protometer
 include:
-  # The one canonical app-Postgres definition (container amlguard-postgres, port 5433, schemas
+  # The one canonical app-Postgres definition (container protometer-postgres, port 5433, schemas
   # aml/healthcare/support). Reused verbatim so there is never a second, conflicting definition.
   - ../postgres/compose.yml            # docker/app/postgres/
 
 # SHARED-BY-DEFAULT: the app attaches to the two shared external networks (bring the shared tiers up
 # first: `make shared-up`). The DE / Langfuse / MLflow URLs default to the shared service names (see
 # the app service env below), so no overlay is needed — one `docker compose up` reaches the shared
-# tier. `amlguard-net` is the app's own bridge (app↔postgres).
+# tier. `protometer-net` is the app's own bridge (app↔postgres).
 networks:
-  amlguard-net:
-    name: amlguard-net
+  protometer-net:
+    name: protometer-net
   protegrity-shared:
     external: true
   observability-shared:
     external: true
 
 services:
-  # The included Postgres, renamed (amlguard-postgres) on the app's own network.
+  # The included Postgres, renamed (protometer-postgres) on the app's own network.
   postgres:
-    container_name: amlguard-postgres
+    container_name: protometer-postgres
     networks:
-      amlguard-net:
-        aliases: [amlguard-postgres]
+      protometer-net:
+        aliases: [protometer-postgres]
 
-  amlguard_app:
+  protometer_app:
     build:
       context: ../../..              # repo root: the Dockerfile copies src/, scripts/, ui/, data/
       dockerfile: docker/app/ui/Dockerfile
-    image: amlguard-app:latest
-    container_name: amlguard-ui
+    image: protometer-app:latest
+    container_name: protometer-ui
     depends_on:
       postgres:
         condition: service_healthy
@@ -64,20 +64,20 @@ services:
         required: false
     environment:
       # Reach in-network services by name (not localhost — that is the app container itself). The app
-      # DB is on amlguard-net; the DE + observability names resolve over the shared external networks.
-      AMLGUARD_POSTGRES_URL: postgresql://amlguard:amlguard@amlguard-postgres:5432/amlguard
+      # DB is on protometer-net; the DE + observability names resolve over the shared external networks.
+      PROTOMETER_POSTGRES_URL: postgresql://protometer:protometer@protometer-postgres:5432/protometer
       # Protegrity DE endpoints. Default to the SHARED tier names (pty-*, on the protegrity-shared
       # external network — bring up docker/shared/protegrity/compose.yml first). Each is overridable
       # from .env, so the `bundled` fallback (or any external DE) can repoint them without editing
       # this file. See docs/adr/shared-infra-decoupling.md.
-      AMLGUARD_DISCOVERY_URL: ${AMLGUARD_DISCOVERY_URL:-http://pty-classification:8050/pty/data-discovery/v2/classify/text}
-      AMLGUARD_GUARDRAIL_URL: ${AMLGUARD_GUARDRAIL_URL:-http://pty-guardrail:8001/pty/semantic-guardrail/v1.1/conversations/messages/scan}
-      AMLGUARD_ANONYMIZATION_URL: ${AMLGUARD_ANONYMIZATION_URL:-http://pty-anon:8085/pty/anonymization/v3}
-      AMLGUARD_SYNTHETIC_URL: ${AMLGUARD_SYNTHETIC_URL:-http://pty-synthetic:8000/pty/syntheticdata/v2}
+      PROTOMETER_DISCOVERY_URL: ${PROTOMETER_DISCOVERY_URL:-http://pty-classification:8050/pty/data-discovery/v2/classify/text}
+      PROTOMETER_GUARDRAIL_URL: ${PROTOMETER_GUARDRAIL_URL:-http://pty-guardrail:8001/pty/semantic-guardrail/v1.1/conversations/messages/scan}
+      PROTOMETER_ANONYMIZATION_URL: ${PROTOMETER_ANONYMIZATION_URL:-http://pty-anon:8085/pty/anonymization/v3}
+      PROTOMETER_SYNTHETIC_URL: ${PROTOMETER_SYNTHETIC_URL:-http://pty-synthetic:8000/pty/syntheticdata/v2}
       # Observability (optional; the app degrades gracefully if absent). Defaults to the SHARED
       # platform (obs-mlflow on the observability-shared external network); overridable from .env.
-      AMLGUARD_MLFLOW_URI: ${AMLGUARD_MLFLOW_URI:-http://obs-mlflow:5000}
-      # Langfuse: the shared platform, AMLGuard's own project keys. Overridable from .env.
+      PROTOMETER_MLFLOW_URI: ${PROTOMETER_MLFLOW_URI:-http://obs-mlflow:5000}
+      # Langfuse: the shared platform, Protometer's own project keys. Overridable from .env.
       LANGFUSE_HOST: ${LANGFUSE_HOST:-http://obs-langfuse:3000}
       # AWS region needs an in-container default (there is no ~/.aws in the image). The AWS
       # CREDENTIALS themselves (AWS_ACCESS_KEY_ID / _SECRET_ACCESS_KEY / _SESSION_TOKEN) and the
@@ -91,15 +91,15 @@ services:
       # (host.docker.internal) rather than the container's own localhost. NOT a URL, so it cannot
       # clobber a user's OLLAMA_URL: an explicit OLLAMA_URL (from .env via the env_file above) always
       # wins in code. Point it at the in-stack `ollama` service with OLLAMA_URL=http://ollama:11434.
-      # The model-choice vars (OLLAMA_URL, AMLGUARD_LOCAL_MODEL default llama3.2, AMLGUARD_HOSTED_MODEL,
-      # AMLGUARD_UI_MODEL, AMLGUARD_AUTO_PULL_MODEL) are deliberately NOT hardcoded here: their defaults
+      # The model-choice vars (OLLAMA_URL, PROTOMETER_LOCAL_MODEL default llama3.2, PROTOMETER_HOSTED_MODEL,
+      # PROTOMETER_UI_MODEL, PROTOMETER_AUTO_PULL_MODEL) are deliberately NOT hardcoded here: their defaults
       # live in the app (settings.py) and any override comes from the env_file, which an `environment:`
       # entry would otherwise override.
-      AMLGUARD_IN_CONTAINER: "1"
+      PROTOMETER_IN_CONTAINER: "1"
       # A live chat turn can be a real billed call; cap turns per process so an exposed port can't run
-      # up cost. 50 is only the fallback default: the interpolation reads AMLGUARD_UI_MAX_TURNS from the
+      # up cost. 50 is only the fallback default: the interpolation reads PROTOMETER_UI_MAX_TURNS from the
       # `--env-file .env` (make targets pass it), so setting it in .env raises/lowers the cap.
-      AMLGUARD_UI_MAX_TURNS: ${AMLGUARD_UI_MAX_TURNS:-50}
+      PROTOMETER_UI_MAX_TURNS: ${PROTOMETER_UI_MAX_TURNS:-50}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
@@ -118,7 +118,7 @@ services:
     ports:
       - "127.0.0.1:8000:8600"
     networks:
-      - amlguard-net           # app ↔ postgres
+      - protometer-net           # app ↔ postgres
       - protegrity-shared      # shared DE tokenizer tier (pty-*)
       - observability-shared   # shared Langfuse/MLflow/Prometheus/Grafana (obs-*)
     restart: unless-stopped

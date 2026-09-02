@@ -150,7 +150,7 @@ model, logs, or the trace.
 - **Protegrity, no fallback.** **Detection** via Protegrity **Discovery** (a local ML/NER service,
   `protect/discovery.py`) and **tokenization** via the **appython SDK** against hosted Data
   Protection (`protect/protector._ProtegrityClient`). There is **no mock and no regex path**. The
-  element map follows the SDK's, with the one measured divergence AMLGuard found: EMAIL uses the
+  element map follows the SDK's, with the one measured divergence Protometer found: EMAIL uses the
   `string` element, not `email` (the `email` element returns the domain verbatim, leaking it).
 - **Fails closed, checked at startup.** If Discovery or the tokenizer is unreachable, `Protector()`
   raises and the pipeline **refuses the turn** (a safe "try again", nothing reaches retrieval, the
@@ -249,7 +249,7 @@ mid-call, a lesson from mixing models into one curve):
 
 Every turn is traced to the **shared Langfuse v4** (events-only mode, UI at `http://127.0.0.1:5006`),
 into botox's own project (org *Protegrity* → project *Botox*) via its own key pair
-(`BOTOX_LANGFUSE_*`, read first so its traces never land in AMLGuard's project). The SDK is Langfuse
+(`BOTOX_LANGFUSE_*`, read first so its traces never land in Protometer's project). The SDK is Langfuse
 `4.14.4` (`obs/tracing.py`), and the model call is emitted as a first-class **generation** carrying
 model, token usage, and a link to the managed prompt version. Tracing is a **safe no-op** when
 unconfigured, it never changes an answer and never raises into the request path.

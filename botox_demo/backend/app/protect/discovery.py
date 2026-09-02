@@ -13,7 +13,7 @@ is the sole PII detector for this bot, there is no regex fallback.
 This runs LOCALLY in Docker with no API key (unlike hosted tokenization). Discovery failures are
 FATAL, not silently downgraded: a failed provider means a whole class of PII goes undetected, and
 undetected means unprotected, so the caller fails closed rather than serve an unprotected turn.
-(Lesson carried from the AMLGuard ingest pipeline.)
+(Lesson carried from the Protometer ingest pipeline.)
 """
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ DISCOVERY_URL = os.getenv(
     "PROTEGRITY_DISCOVERY_URL",
     "http://vendor-de-discovery:8580/pty/data-discovery/v2/classify/text",
 )
-# Minimum confidence to treat a discovered span as real PII. 0.6 matches the AMLGuard default;
+# Minimum confidence to treat a discovered span as real PII. 0.6 matches the Protometer default;
 # tune via env in one place.
 DISCOVERY_THRESHOLD = float(os.getenv("PROTEGRITY_DISCOVERY_THRESHOLD", "0.6"))
 

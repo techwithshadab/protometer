@@ -22,7 +22,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from amlguard.env import load_dotenv  # noqa: E402
+from protometer.env import load_dotenv  # noqa: E402
 
 load_dotenv(ROOT)
 
@@ -132,7 +132,7 @@ def main() -> int:
         ))
 
     rule("STAGE 3/4 - RETRIEVAL over the protected index")
-    from amlguard.retrieval import EmptyIndexError, NarrativeIndex
+    from protometer.retrieval import EmptyIndexError, NarrativeIndex
 
     behavioural = "cash deposits just below the reporting threshold"
     identity = f"investigation concerning {subject_name}"
@@ -191,7 +191,7 @@ def main() -> int:
             "generate them; ranking-only artifacts carry none)"
         ))
 
-    from amlguard.guardrail import Guardrail, GuardrailUnavailable
+    from protometer.guardrail import Guardrail, GuardrailUnavailable
 
     guard = Guardrail(forbidden_values=frozenset({subject_name}))
     try:
@@ -208,8 +208,8 @@ def main() -> int:
         print(wrap("egress guard: service not running (cd vendor-de/semantic-guardrail && docker compose up -d)"))
 
     rule("STAGE 7 - PRESENTATION: one document, three roles (live unprotect)")
-    from amlguard.protect import ProtectionError, Protector
-    from amlguard.reidentify import ROLES, reidentify
+    from protometer.protect import ProtectionError, Protector
+    from protometer.reidentify import ROLES, reidentify
 
     try:
         protector = Protector()
@@ -242,7 +242,7 @@ def main() -> int:
     ))
 
     rule("STAGE 8 - KEY ROTATION: reprotect migrates tokens, plaintext never transits")
-    from amlguard.reidentify import find_tokens
+    from protometer.reidentify import find_tokens
 
     person_tokens = [tok for etype, tok in find_tokens(sample) if etype == "PERSON"][:1]
     if not person_tokens:

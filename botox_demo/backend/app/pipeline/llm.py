@@ -1,6 +1,6 @@
 """The reasoning model, chosen at request time so the demo runs with or without a cloud account.
 
-Precedence (mirrors the AMLGuard pattern):
+Precedence (mirrors the Protometer pattern):
   1. BOTOX_MODEL           explicit override (wins unconditionally)
   2. hosted (Anthropic / Bedrock) when credentials are present  -> better quality, real cost
   3. local Ollama (default llama3.2)                            -> $0/turn, no cloud account

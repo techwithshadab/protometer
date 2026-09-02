@@ -1,9 +1,9 @@
 # SHARED observability platform — one Langfuse/MLflow/Prometheus/Grafana, many demos as projects.
 #
-# Instead of every demo bundling its own observability stack (AMLGuard ran Langfuse v4, BOTOX ran a
+# Instead of every demo bundling its own observability stack (Protometer ran Langfuse v4, BOTOX ran a
 # separate v2 — no shared dashboards, port clashes), we run ONE platform here and give each demo its
-# own Langfuse PROJECT (own keys) on it: `amlguard`, `botox`. MLflow gets per-demo EXPERIMENTS
-# (already namespaced amlguard-*); Grafana per-demo folders. One heavy stack, cleanly partitioned.
+# own Langfuse PROJECT (own keys) on it: `protometer`, `botox`. MLflow gets per-demo EXPERIMENTS
+# (already namespaced protometer-*); Grafana per-demo folders. One heavy stack, cleanly partitioned.
 #
 #   docker compose -f docker/shared/observability/compose.yml up -d    # (or: make shared-observability-up)
 #   open http://localhost:5006   # Langfuse      open http://localhost:5001  # MLflow
@@ -11,11 +11,11 @@
 #   docker compose -f docker/shared/observability/compose.yml down
 #
 # NETWORK: creates `observability-shared`. Each demo joins it as EXTERNAL and points LANGFUSE_HOST /
-# AMLGUARD_MLFLOW_URI at the service names here (obs-langfuse, obs-mlflow, ...). Independent of the
+# PROTOMETER_MLFLOW_URI at the service names here (obs-langfuse, obs-mlflow, ...). Independent of the
 # protegrity-shared tier — bring either up without the other.
 #
 # SOURCE OF TRUTH: reuses the vendored observability composes under docker/observability/* (the same
-# MLflow, Prometheus/Grafana/Pushgateway, and Langfuse-v4 stacks AMLGuard's compose.full.yml uses),
+# MLflow, Prometheus/Grafana/Pushgateway, and Langfuse-v4 stacks Protometer's compose.full.yml uses),
 # renamed to shared-scoped obs-* names. See docs/adr/shared-infra-decoupling.md.
 #
 # LANGFUSE IS v4 (events_only): traces land in the `events_full` ClickHouse table, NOT the legacy
@@ -30,7 +30,7 @@ include:
   - ../../observability/langfuse/compose.nested.yml  # Langfuse v4 (+ pg/clickhouse/redis/minio)
 
 # Shared-scoped names (obs-*) as container_name + DNS alias, so demos reach the platform by a stable
-# name regardless of which demo is up. Same override technique as AMLGuard's compose.full.yml.
+# name regardless of which demo is up. Same override technique as Protometer's compose.full.yml.
 services:
   mlflow:
     container_name: obs-mlflow

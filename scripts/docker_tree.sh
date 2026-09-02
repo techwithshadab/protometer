@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-# Print the running AMLGuard stack as the tree the project is organized into. Docker Compose has a
+# Print the running Protometer stack as the tree the project is organized into. Docker Compose has a
 # flat service model (no true nested services), so the hierarchy is carried on labels:
 #   com.docker.compose.project=protegrity   → the root
 #   com.docker.compose.group=app|vendor-de|observability   → the branches
@@ -42,5 +42,5 @@ done
 if ! printf '%s\n' "$rows" | awk -F'|' '$1=="ollama"{found=1} END{exit !found}'; then
     echo "└─ (opt-in) app/ollama  — in-stack open-source model server, off by default."
     echo "     start it: docker compose --env-file .env -f docker/app/ui/compose.full.yml \\"
-    echo "                 --profile local-model up -d ollama amlguard_app   (OLLAMA_URL=http://ollama:11434)"
+    echo "                 --profile local-model up -d ollama protometer_app   (OLLAMA_URL=http://ollama:11434)"
 fi

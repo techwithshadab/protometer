@@ -25,17 +25,17 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from amlguard.env import load_dotenv  # noqa: E402
+from protometer.env import load_dotenv  # noqa: E402
 
 load_dotenv(ROOT)
 
-from amlguard.domains import domain_names, get_domain  # noqa: E402
-from amlguard.guardrail import Guardrail  # noqa: E402
-from amlguard.llm import get_llm  # noqa: E402
-from amlguard.protect import Protector  # noqa: E402
-from amlguard.reidentify import INVESTIGATOR  # noqa: E402
-from amlguard.roster import roster_from_parties  # noqa: E402
-from amlguard.serving import ConversationSession  # noqa: E402
+from protometer.domains import domain_names, get_domain  # noqa: E402
+from protometer.guardrail import Guardrail  # noqa: E402
+from protometer.llm import get_llm  # noqa: E402
+from protometer.protect import Protector  # noqa: E402
+from protometer.reidentify import INVESTIGATOR  # noqa: E402
+from protometer.roster import roster_from_parties  # noqa: E402
+from protometer.serving import ConversationSession  # noqa: E402
 
 # PII-SHAPED patterns to redact from a stored reply. The reply is written over TOKENS (no real
 # corpus value survives — the egress leak check guarantees that), but a MODEL can still emit a
@@ -153,7 +153,7 @@ def _domain_context(domain: str, subject_ids, id_to_name: dict, protector=None) 
     if domain == "aml":
         return _aml_context(subject_ids, id_to_name)
     templates = _HC_NOTES if domain == "healthcare" else _CS_NOTES
-    from amlguard.protect import Protector
+    from protometer.protect import Protector
     p = protector or Protector()
     blocks = []
     for i, sid in enumerate(subject_ids):
@@ -292,7 +292,7 @@ def main() -> int:
     print(f"  history: {len(session.history)} turns retained (tokenized)\n")
 
     if args.json:
-        from amlguard.persist import atomic_write_json
+        from protometer.persist import atomic_write_json
         record = {
             "domain": domain.name,
             "domain_label": domain.label,

@@ -3,7 +3,7 @@ PYTHON ?= $(shell [ -x .venv/bin/python ] && echo .venv/bin/python || echo pytho
 .PHONY: test lint corpus ingest train eval hybrid attacks erasure results demo
 
 test:
-	AMLGUARD_NO_TRACKING=1 AMLGUARD_NO_TRACING=1 python -m pytest tests/ -q
+	PROTOMETER_NO_TRACKING=1 PROTOMETER_NO_TRACING=1 python -m pytest tests/ -q
 
 lint:
 	ruff check src scripts tests
@@ -42,7 +42,7 @@ demo:
 	python scripts/demo.py
 
 # One-time download of the open-source local model, so live chat runs without cloud credentials.
-# Needs Ollama installed + running (https://ollama.com/download). Pulls AMLGUARD_LOCAL_MODEL
+# Needs Ollama installed + running (https://ollama.com/download). Pulls PROTOMETER_LOCAL_MODEL
 # (default llama3.2, ~2GB). Override the model: `make setup-local-model MODEL=qwen2.5:7b`.
 .PHONY: setup-local-model
 setup-local-model: ## pull the open-source local model for credential-free live chat
@@ -80,7 +80,7 @@ FULL := docker compose $(ENVFILE) -f docker/app/ui/compose.full.yml
 ALL_PROFILES := --profile vendor-de --profile observability
 
 # ── Shared infrastructure: decoupled Protegrity DE + observability (bring up FIRST) ───────────
-# Two independent shared projects, each on its own external network, so AMLGuard and BOTOX run at the
+# Two independent shared projects, each on its own external network, so Protometer and BOTOX run at the
 # SAME time against ONE tokenizer and ONE observability platform. See docs/adr/shared-infra-decoupling.md.
 SHARED_PTY := docker compose $(ENVFILE) -f docker/shared/protegrity/compose.yml
 SHARED_OBS := docker compose $(ENVFILE) -f docker/shared/observability/compose.yml
@@ -98,25 +98,25 @@ shared-observability-up: ## shared observability platform only (project: observa
 	@echo "Shared observability up. Langfuse → :5006 · MLflow → :5001 · Grafana → :5002 · Prometheus → :5003"
 
 shared-up: shared-protegrity-up shared-observability-up ## BOTH shared tiers — run before any demo
-	@echo "Shared tiers up. Now: make docker-up (AMLGuard) and/or (cd botox_demo && docker compose up -d --build)"
+	@echo "Shared tiers up. Now: make docker-up (Protometer) and/or (cd botox_demo && docker compose up -d --build)"
 
 shared-down: ## stop BOTH shared tiers (stop the demos first)
 	-$(SHARED_OBS) down
 	-$(SHARED_PTY) down
 
-# ── AMLGuard demo (shared-by-default: needs `make shared-up` first) ────────────────────────────
-docker-up:     ## AMLGuard on the shared tiers → http://localhost:8000  (run `make shared-up` first)
+# ── Protometer demo (shared-by-default: needs `make shared-up` first) ────────────────────────────
+docker-up:     ## Protometer on the shared tiers → http://localhost:8000  (run `make shared-up` first)
 	$(APP) up -d --build
-	@echo "AMLGuard UI → http://localhost:8000  (DE: protegrity-shared · obs: observability-shared)"
+	@echo "Protometer UI → http://localhost:8000  (DE: protegrity-shared · obs: observability-shared)"
 
-docker-down:   ## stop the AMLGuard demo (leaves the shared tiers up)
+docker-down:   ## stop the Protometer demo (leaves the shared tiers up)
 	$(APP) down
 
 docker-ps:     ## print the running stack as a tree (project → group → subgroup → services)
 	@sh scripts/docker_tree.sh
 
 docker-logs:
-	$(APP) logs -f amlguard_app
+	$(APP) logs -f protometer_app
 
 # Legacy self-contained all-in-one (app + bundled DE + bundled observability in ONE project). Kept as
 # an escape hatch for a machine that can't run the shared tiers; prefer `make shared-up && make docker-up`.

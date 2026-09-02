@@ -1,4 +1,4 @@
-/* AMLGuard diagram design system: one palette + component set for every rendered figure.
+/* Protometer diagram design system: one palette + component set for every rendered figure.
    Render any src/*.html at 2x with scripts in render.sh; the PNGs land in docs/diagrams/. */
 :root{
   --cream:#F5F3EF; --ink:#111C2D; --purple:#5E5AD1; --peri:#A0AFEE; --sky:#8DBFE0;

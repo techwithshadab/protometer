@@ -12,13 +12,13 @@ scrape_configs:
   # Live-serving metrics are SCRAPED from each app's /metrics endpoint (a long-running server is
   # always up, so counters/histograms accumulate). The apps join observability-shared, so Prometheus
   # reaches them by their in-network container names. Container ports (not the host publish ports):
-  # AMLGuard binds :8600 in-container, botox backend :8000.
-  - job_name: amlguard-serving
+  # Protometer binds :8600 in-container, botox backend :8000.
+  - job_name: protometer-serving
     metrics_path: /metrics
     static_configs:
-      - targets: ["amlguard-ui:8600"]
+      - targets: ["protometer-ui:8600"]
         labels:
-          service: amlguard-ui
+          service: protometer-ui
 
   - job_name: botox-serving
     metrics_path: /metrics

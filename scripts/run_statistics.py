@@ -11,13 +11,13 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from amlguard.eval.statistics import (
+from protometer.eval.statistics import (
     adjust_family,
     bootstrap_mean,
     compare_scopes,
     required_sample_size,
 )
-from amlguard.scopes import CURVE_ORDER
+from protometer.scopes import CURVE_ORDER
 
 
 def main(argv: list[str]) -> int:
