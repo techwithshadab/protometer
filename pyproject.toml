@@ -5,8 +5,59 @@ description = "AML investigation copilot measuring what Protegrity tokenization 
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.12"
-# Runtime pins live in requirements.txt (the judged install path); this package
-# declaration exists for editable installs and tooling.
+
+# Dependencies managed with uv (pyproject + hash-pinned uv.lock, the reproducible source of truth;
+# requirements.txt is a generated `uv export` for pip-only installs + Dependabot). The ML-measurement
+# stack is PINNED EXACTLY — numpy/scikit-learn/networkx/shap drive the committed results in
+# docs/results-*.md, so a float-shifting bump would falsify the "every number reproducible" claim; do
+# not float these. Everything else uses >= floors (uv resolves latest). The Protegrity Developer-
+# Edition SDKs (protegrity-ai-developer-python, protegrity-anonymization-sdk) ARE on public PyPI and
+# are listed below, pinned to the tested versions.
+dependencies = [
+  # ── ML MEASUREMENT STACK — pinned exactly (load-bearing for committed results) ──
+  "numpy==2.5.2",
+  "scikit-learn==1.9.0",
+  "networkx==3.6.1",
+  "shap==0.52.0",
+  # shap pulls numba transitively; uv otherwise resolves an ancient numba (0.47) that needs the removed
+  # numpy.distutils and fails to build under numpy 2.5. Pin numba exactly to the numpy-2.5-compatible
+  # release (numba 0.67 declares numpy<2.6,>=1.22 and ships cp312 wheels; the pip install path proves
+  # numpy 2.5.2 + numba 0.67.0 work together).
+  "numba==0.67.0",
+  # ── everything else: >= floors, uv resolves latest ──
+  "mlflow>=3.15.2",
+  "boto3>=1.43.86",
+  "chromadb>=1.5.9",
+  "requests>=2.34.2",
+  "requests-oauthlib>=2.0.0",
+  "pyyaml>=6.0.3",
+  "langfuse>=4.15.1",
+  "prometheus-client>=0.26.0",
+  "psycopg[binary]>=3.3.5",
+  "sqlalchemy>=2.0.52",
+  "fastapi>=0.141.1",
+  "uvicorn>=0.52.4",
+  # Protegrity Developer-Edition SDKs (these ARE on public PyPI, unlike botox's vendored appython).
+  # Pinned to the versions this integration was written against; the tests pin element mappings + auth
+  # behaviour to the SDK, so these are not free-floating.
+  "protegrity-ai-developer-python==1.2.1",
+  "protegrity-anonymization-sdk==2.0.0",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=9.1.1",
+  "ruff>=0.6.9",
+]
+
+[tool.uv]
+# Resolve ONLY for the platforms we run on: linux (the containers/deployment) and Apple-Silicon
+# macOS (dev). This excludes Intel-macOS (x86_64 darwin), for which recent numba/shap dropped wheels
+# — resolving for it forces an ancient, numpy-2-incompatible numba. No Intel Macs are targeted.
+environments = [
+  "sys_platform == 'linux'",
+  "sys_platform == 'darwin' and platform_machine == 'arm64'",
+]
 
 [build-system]
 requires = ["setuptools>=68"]

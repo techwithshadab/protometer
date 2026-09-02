@@ -103,7 +103,12 @@ committed numbers). The AML curve was measured on a hosted model, so this path n
 credentials and will incur cost.
 
 ```bash
-pip install -r requirements.txt
+# Dependencies are managed with uv (pyproject.toml + hash-pinned uv.lock). Install uv once
+# (https://docs.astral.sh/uv/), then:
+uv sync            # creates .venv from the lock (incl. the Protegrity Developer-Edition SDKs, which
+                   # are on public PyPI); run tools with `uv run ...` or `.venv/bin/...`
+# — or, pip-only (requirements.txt is a generated, hash-pinned export of the same lock):
+#   pip install -r requirements.txt
 
 # vendor services (no API key needed): discovery, then the guardrail that depends on it
 cd vendor-de/data-discovery

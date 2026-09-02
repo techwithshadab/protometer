@@ -96,8 +96,9 @@ is deterministic and calls no LLM ($0). The embedding model downloads once and c
 
 ```bash
 cd backend
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
+uv sync                                             # .venv from pyproject.toml + uv.lock
+# (pip-only: python -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt)
+# then install the vendored Protegrity SDK: uv pip install vendor/protegrity_ai_developer_python-*.whl
 export OLLAMA_URL=http://localhost:11434            # host Ollama
 export NEO4J_URL=bolt://localhost:9003              # the compose Neo4j (bolt is published on 9003)
 python -m app.ingest.build_all                      # build the index first

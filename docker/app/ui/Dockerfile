@@ -7,6 +7,9 @@
 # stages do.
 FROM python:3.12-slim
 
+# uv (fast, reproducible, hash-pinned installs from uv.lock). Copied from the official image.
+COPY --from=ghcr.io/astral-sh/uv:0.6.9 /uv /uvx /usr/local/bin/
+
 # Non-root user: the app never needs root, and an exposed service should not run as it.
 RUN groupadd -r amlguard && useradd -r -g amlguard -m -d /home/amlguard amlguard
 
@@ -19,10 +22,14 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends git \
     && rm -rf /var/lib/apt/lists/*
 
-# Dependencies first (cached across source edits). requirements.txt pins the full set, including
-# the fastapi/uvicorn serving layer.
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Dependencies first (cached across source edits) from the locked, hash-pinned set. uv.lock is the
+# source of truth; --frozen fails if it drifts from pyproject, --no-install-project installs only the
+# deps (the app itself is imported via PYTHONPATH=/app/src, not installed), --no-dev drops pytest/ruff.
+ENV UV_LINK_MODE=copy UV_COMPILE_BYTECODE=1
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-install-project --no-dev
+# Put the venv on PATH so `python` / `uvicorn` in the entrypoint + healthcheck resolve to it.
+ENV PATH="/app/.venv/bin:$PATH"
 
 # Source. The app imports `amlguard` from src/ (PYTHONPATH) and reads the corpus + committed
 # artifacts from data/. config/ carries the model registry. ui/ is the served frontend + API.
