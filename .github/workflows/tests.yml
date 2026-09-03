@@ -13,17 +13,20 @@ jobs:
         python-version: ["3.12"]  # numpy 2.5 / shap 0.52 require >=3.12
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      # Resolve through the SAME locked path the shipped images use (`uv sync --frozen`), so a green
+      # CI implies a green image. The dev group carries ruff + pytest. requirements.txt (a generated
+      # `uv export`) is only the pip-fallback path; CI does not exercise it.
+      - uses: astral-sh/setup-uv@v5
         with:
-          python-version: ${{ matrix.python-version }}
-          cache: pip
-      - run: pip install -r requirements.txt ruff==0.16.3
-      - run: ruff check src scripts tests ui
+          version: "0.6.9"
+          enable-cache: true
+      - run: uv sync --frozen --python ${{ matrix.python-version }}
+      - run: uv run ruff check src scripts tests ui
       - name: invariant tests
         env:
           PROTOMETER_NO_TRACKING: "1"
           PROTOMETER_NO_TRACING: "1"
-        run: python -m pytest tests/ -q
+        run: uv run python -m pytest tests/ -q
 
   docs-in-sync:
     # Docs derive from the committed artifacts. This regenerates them and fails if
@@ -32,14 +35,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@v5
         with:
-          python-version: "3.12"
-          cache: pip
-      - run: pip install -r requirements.txt
+          version: "0.6.9"
+          enable-cache: true
+      - run: uv sync --frozen --python 3.12
       - name: regenerate derived docs from artifacts (only if artifacts are committed)
         env:
-          PYTHON: python
+          PYTHON: uv run python
           PROTOMETER_NO_TRACKING: "1"
           PROTOMETER_NO_TRACING: "1"
         run: |

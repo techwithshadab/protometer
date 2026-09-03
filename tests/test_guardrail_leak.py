@@ -209,7 +209,6 @@ def test_free_text_field_words_do_not_enter_the_token_set():
     (from a 'consulting fee' memo) into the token set, which then also carried WORDS shared with real
     org names. The loader (and the manifest builder) must skip `_CLEAR_TEXT_FIELDS`. Pins that a
     memo word never becomes a discountable 'token'."""
-    import json
     from pathlib import Path
 
     from protometer.guardrail import Guardrail, _normalize_for_match

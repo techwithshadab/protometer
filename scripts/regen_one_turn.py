@@ -27,15 +27,6 @@ from protometer.env import load_dotenv  # noqa: E402
 
 load_dotenv(ROOT)
 
-from protometer.domains import get_domain  # noqa: E402
-from protometer.guardrail import Guardrail  # noqa: E402
-from protometer.llm import get_llm  # noqa: E402
-from protometer.persist import atomic_write_json  # noqa: E402
-from protometer.protect import Protector  # noqa: E402
-from protometer.reidentify import INVESTIGATOR  # noqa: E402
-from protometer.roster import roster_from_parties  # noqa: E402
-from protometer.serving import ConversationSession  # noqa: E402
-
 # Reuse the exact turn specs + context builder that produced the committed transcript, so the
 # regenerated turn is generated the same way as its siblings.
 from demo_chat import (  # noqa: E402
@@ -44,6 +35,14 @@ from demo_chat import (  # noqa: E402
     _domain_context,
     _redact_pii_shapes,
 )
+from protometer.domains import get_domain  # noqa: E402
+from protometer.guardrail import Guardrail  # noqa: E402
+from protometer.llm import get_llm  # noqa: E402
+from protometer.persist import atomic_write_json  # noqa: E402
+from protometer.protect import Protector  # noqa: E402
+from protometer.reidentify import INVESTIGATOR  # noqa: E402
+from protometer.roster import roster_from_parties  # noqa: E402
+from protometer.serving import ConversationSession  # noqa: E402
 
 
 def main() -> int:
