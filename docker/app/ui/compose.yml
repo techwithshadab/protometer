@@ -77,6 +77,12 @@ services:
       # Observability (optional; the app degrades gracefully if absent). Defaults to the SHARED
       # platform (obs-mlflow on the observability-shared external network); overridable from .env.
       PROTOMETER_MLFLOW_URI: ${PROTOMETER_MLFLOW_URI:-http://obs-mlflow:5000}
+      # Pushgateway for batch-ingest operational metrics (write side). The host-side default
+      # (localhost:5004, settings.py) is the container ITSELF in here, so an in-container ingest run
+      # (`docker compose exec protometer_app python scripts/ingest_all.py`) would push into the void.
+      # Point it at the in-network gateway by name (service key `pushgateway`, on observability-shared).
+      # Overridable from .env for an external gateway.
+      PROTOMETER_PUSHGATEWAY: ${PROTOMETER_PUSHGATEWAY:-pushgateway:9091}
       # Langfuse: the shared platform, Protometer's own project keys. Overridable from .env.
       LANGFUSE_HOST: ${LANGFUSE_HOST:-http://obs-langfuse:3000}
       # AWS region needs an in-container default (there is no ~/.aws in the image). The AWS

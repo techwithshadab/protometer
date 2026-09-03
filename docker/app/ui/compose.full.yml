@@ -89,6 +89,10 @@ services:
       # export + managed-prompt retries on the live-turn path). The app derives both the SDK host and
       # the OTel traces endpoint from this one var. Overrides the .env host value in-stack only.
       LANGFUSE_HOST: http://observability-langfuse-web:3000
+      # Pushgateway is in-project now under the path-style name; reach it by that in-network alias
+      # (the standalone compose.yml default `pushgateway:9091` still resolves via the service key,
+      # but keep the naming consistent with the other observability URLs above).
+      PROTOMETER_PUSHGATEWAY: observability-pushgateway:9091
   postgres:
     labels: {com.docker.compose.group: app}
 

@@ -405,7 +405,7 @@
       "type": "timeseries",
       "gridPos": {
         "h": 7,
-        "w": 24,
+        "w": 12,
         "x": 0,
         "y": 24
       },
@@ -431,6 +431,79 @@
         {
           "expr": "sum by (direction) (rate(protometer_serving_llm_tokens_total{domain=\"aml\"}[5m])) * 60",
           "legendFormat": "{{direction}}"
+        }
+      ]
+    },
+    {
+      "id": 22,
+      "title": "Out-of-scope tokens withheld",
+      "type": "stat",
+      "description": "Reveal requests for tokens outside the caller's authorized scope \u2014 withheld by scope-bound reveal.",
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 12,
+        "y": 24
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "orange"
+          },
+          "noValue": "0"
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "value",
+        "graphMode": "area"
+      },
+      "targets": [
+        {
+          "expr": "sum(protometer_serving_out_of_scope_total{domain=\"aml\"}) or vector(0)",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "title": "LLM calls (per min, by model)",
+      "type": "timeseries",
+      "description": "Rate of LLM generation calls on the serving path, by model.",
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 18,
+        "y": 24
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10
+          }
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (model) (rate(protometer_serving_llm_calls_total{domain=\"aml\"}[5m])) * 60",
+          "legendFormat": "{{model}}"
         }
       ]
     },
@@ -938,6 +1011,80 @@
           "expr": "protometer_ingest_cache_hit_rate{domain=\"aml\"}",
           "instant": true,
           "legendFormat": "{{scope}}"
+        }
+      ]
+    },
+    {
+      "id": 24,
+      "title": "Protect API latency percentiles by scope (s)",
+      "type": "barchart",
+      "description": "Per-scope protect API latency percentiles (present only for reports produced after latency instrumentation landed; absent series = not measured).",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 67
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "targets": [
+        {
+          "expr": "protometer_ingest_api_latency_p50{domain=\"aml\"}",
+          "legendFormat": "p50 {{scope}}"
+        },
+        {
+          "expr": "protometer_ingest_api_latency_p95{domain=\"aml\"}",
+          "legendFormat": "p95 {{scope}}"
+        },
+        {
+          "expr": "protometer_ingest_api_latency_p99{domain=\"aml\"}",
+          "legendFormat": "p99 {{scope}}"
+        }
+      ]
+    },
+    {
+      "id": 25,
+      "title": "Protect API calls (total)",
+      "type": "stat",
+      "description": "Total protect API calls across scopes for this ingest sweep.",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 67
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "noValue": "0"
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      },
+      "targets": [
+        {
+          "expr": "sum(protometer_ingest_api_calls{domain=\"aml\"}) or vector(0)",
+          "instant": true
         }
       ]
     }
