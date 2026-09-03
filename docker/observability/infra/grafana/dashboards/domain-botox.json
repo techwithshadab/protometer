@@ -422,6 +422,42 @@
           "legendFormat": "{{direction}}"
         }
       ]
+    },
+    {
+      "id": 12,
+      "title": "LLM generation calls (per min, by model)",
+      "description": "Rate of LLM generation calls on the serving path, by model.",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 31
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10
+          }
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (model) (rate(botox_serving_llm_calls_total[5m])) * 60",
+          "legendFormat": "{{model}}"
+        }
+      ]
     }
   ]
 }

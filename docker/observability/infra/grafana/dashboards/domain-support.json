@@ -405,7 +405,7 @@
       "type": "timeseries",
       "gridPos": {
         "h": 7,
-        "w": 24,
+        "w": 12,
         "x": 0,
         "y": 24
       },
@@ -431,6 +431,79 @@
         {
           "expr": "sum by (direction) (rate(protometer_serving_llm_tokens_total{domain=\"customer-support\"}[5m])) * 60",
           "legendFormat": "{{direction}}"
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "title": "Out-of-scope tokens withheld",
+      "type": "stat",
+      "description": "Reveal requests for tokens outside the caller's authorized scope \u2014 withheld by scope-bound reveal.",
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 12,
+        "y": 24
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "orange"
+          },
+          "noValue": "0"
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "value",
+        "graphMode": "area"
+      },
+      "targets": [
+        {
+          "expr": "sum(protometer_serving_out_of_scope_total{domain=\"customer-support\"}) or vector(0)",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "title": "LLM calls (per min, by model)",
+      "type": "timeseries",
+      "description": "Rate of LLM generation calls on the serving path, by model.",
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 18,
+        "y": 24
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10
+          }
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (model) (rate(protometer_serving_llm_calls_total{domain=\"customer-support\"}[5m])) * 60",
+          "legendFormat": "{{model}}"
         }
       ]
     }
