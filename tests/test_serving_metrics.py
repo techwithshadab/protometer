@@ -21,8 +21,8 @@ def _fresh_module(monkeypatch):
     test (the module builds metrics on the default registry once; we reset its cache and swap the
     registry so each test sees clean series)."""
     monkeypatch.delenv("PROTOMETER_NO_METRICS", raising=False)
-    from prometheus_client import CollectorRegistry
     import prometheus_client
+    from prometheus_client import CollectorRegistry
     reg = CollectorRegistry()
     # Point the default registry at a fresh one for the duration of the test.
     monkeypatch.setattr(prometheus_client, "REGISTRY", reg, raising=False)

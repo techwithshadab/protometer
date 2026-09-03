@@ -18,8 +18,8 @@ investigation copilot entirely over **protected (tokenized) data**, and it ships
 measures what the protection costs the AI at every stage, including the residual re-identification
 risk that honest vendors leave out.
 
-The product is presented as **Protometer** ("Protected-Pipeline Intelligence"); the codebase and
-engineering log use the name **Protometer**. Same system, two names.
+The product is presented as **Protometer** ("Protected-Pipeline Intelligence") — the name used
+throughout the codebase, deck, and engineering log.
 
 ## Who it's for
 

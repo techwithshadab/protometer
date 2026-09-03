@@ -242,7 +242,7 @@ A judge-facing web demo replays the verified batch run and runs the chatbot live
 **same** protection primitives the pipeline uses, so a serving surface can never drift from the
 measured guarantees. One command, no `npm` build:
 
-    uvicorn ui.api.app:app --port 8600   # then open http://localhost:8600
+    uvicorn ui.api.app:app --port 8000   # then open http://localhost:8000
 
 - **Global header:** Use case (Batch | Chatbot) · Domain (AML / healthcare / customer-support)
   · Replay/Live toggle.
@@ -323,7 +323,7 @@ artifact: protecting identities does not degrade the triage.
   citation's own precision. Flags are **markers, never blockers**; FFIEC's
   order-never-suppress applies to our guards too. We hardened this gate through four rounds
   of adversarial attack on our own implementation; every exploit and every legitimate
-  rendering it must accept is pinned by regression test (the suite is 163 tests, each pinning a real behavior).
+  rendering it must accept is pinned by regression test (the suite is 170 tests, each pinning a real behavior).
 - **Decision provenance.** Each decision persists the verbatim prompt, raw completion, model
   id, timestamp, classifier hash, and fields for the analyst's own disposition, the
   five-year reconstruction record, per decision.
@@ -567,7 +567,7 @@ The recurring failure mode in measurement systems is that a broken harness produ
 convenient numbers as defects until proven otherwise, and turned each round's findings
 into structural fixes and regression tests:
 
-- **163 tests**, each pinning a failure mode or invariant that actually occurred (auth-once,
+- **170 tests**, each pinning a failure mode or invariant that actually occurred (auth-once,
   spend-cap concurrency, sentinel encodings, groundedness exploits, cache invalidation,
   graph-invariance with an embedded falsifiability control).
 - **Per-task provenance in every artifact** (answering model, latency, corpus fingerprints)

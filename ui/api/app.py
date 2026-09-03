@@ -79,6 +79,7 @@ def _prometheus_metrics():
     from starlette.responses import Response
     try:
         from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+
         from protometer.serving_metrics import _disabled
         if _disabled():
             return Response(status_code=404)
