@@ -190,16 +190,23 @@ services:
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-mysecret}
       LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: ${LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT:-http://langfuse-minio:9000}
       # Auto-seed the org + the FIRST project + admin user on a FRESH database. The shared instance
-      # hosts ONE org ("Protegrity") with a project per demo: Protometer (seeded here, keys from .env)
-      # and Botox. Langfuse's headless init only provisions ONE project, and its Organizations
-      # Management API (create-project) is Enterprise-only — so the SECOND project (Botox) is created
-      # ONCE in the UI (Settings -> New Project), its keys put in .env as BOTOX_LANGFUSE_*. See
-      # docs/adr/shared-infra-decoupling.md. Init only runs when the project doesn't exist, so it's
-      # safe on every boot; it does NOT retro-rename an existing org/project (change those in the UI).
+      # hosts ONE org ("Protegrity") with exactly ONE project PER DEMO (four total): AML (seeded here,
+      # keys from .env's LANGFUSE_PUBLIC_KEY/SECRET_KEY), plus Botox / Healthcare / Customer Support.
+      # Langfuse's headless init only provisions ONE project, and its Organizations Management API
+      # (create-project) is Enterprise-only — so the other three are created ONCE in the UI
+      # (Settings -> New Project), their keys put in .env (BOTOX_LANGFUSE_*, *_HEALTHCARE, *_SUPPORT).
+      # See docs/adr/shared-infra-decoupling.md. Init only runs when the project ID doesn't exist.
+      #
+      # The INIT_PROJECT_ID MUST be the AML project's id (`amlguard`, the id the AML demo's
+      # LANGFUSE_PUBLIC_KEY maps to). It previously defaulted to `protometer`, which — because the AML
+      # traces already flowed to `amlguard` — created a SEPARATE, EMPTY 5th "Protometer" project on
+      # first boot (no keys, no traces). Pointing init at `amlguard` seeds the real AML project and
+      # never spawns the stray. (Init does NOT retro-rename an existing project; the AML display name
+      # is set in the UI — this repo renamed `amlguard`'s display name to "AML".)
       LANGFUSE_INIT_ORG_ID: ${LANGFUSE_INIT_ORG_ID:-protegrity}
       LANGFUSE_INIT_ORG_NAME: ${LANGFUSE_INIT_ORG_NAME:-Protegrity}
-      LANGFUSE_INIT_PROJECT_ID: ${LANGFUSE_INIT_PROJECT_ID:-protometer}
-      LANGFUSE_INIT_PROJECT_NAME: ${LANGFUSE_INIT_PROJECT_NAME:-Protometer}
+      LANGFUSE_INIT_PROJECT_ID: ${LANGFUSE_INIT_PROJECT_ID:-amlguard}
+      LANGFUSE_INIT_PROJECT_NAME: ${LANGFUSE_INIT_PROJECT_NAME:-AML}
       LANGFUSE_INIT_PROJECT_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}
       LANGFUSE_INIT_PROJECT_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}
       LANGFUSE_INIT_USER_EMAIL: ${LANGFUSE_INIT_USER_EMAIL:-admin@protegrity.local}
