@@ -133,11 +133,14 @@ services:
     environment: &lf-env
       LANGFUSE_LOG_LEVEL: ${LANGFUSE_LOG_LEVEL:-info}
       # v4 events-table architecture (ADR / Langfuse v3->v4 migration guide): a v4 SDK (>=4.7.0, we
-      # pin 4.14.4) writes directly to the new events_full/events_core tables. Left UNSET, Langfuse
-      # defaults to a migration mode whose READ path still queries the LEGACY `observations` table —
-      # so traces land in events_core but the API/UI show nothing. `events_only` makes BOTH read and
-      # write use the new tables (correct for a fresh install with no v3 legacy data to migrate).
-      LANGFUSE_MIGRATION_V4_WRITE_MODE: ${LANGFUSE_MIGRATION_V4_WRITE_MODE:-events_only}
+      # pin 4.14.4) writes to the new events_full/events_core tables. MEASURED BEHAVIOUR (docs/…): with
+      # `events_only`, ingestion lands events in events_full but the worker logs "no partitions
+      # available for processing" and NEVER projects them into the legacy `traces`/`observations`
+      # tables that the API/UI read path still queries — so events accumulate (verified 321 rows) while
+      # the UI shows ZERO traces for every project. `dual` writes BOTH the new events tables AND the
+      # legacy traces/observations tables, so the UI populates. Use `dual` until Langfuse's read path
+      # fully moves off the legacy tables. (`legacy` = old-only; `events_only` = new-only-but-UI-blind.)
+      LANGFUSE_MIGRATION_V4_WRITE_MODE: ${LANGFUSE_MIGRATION_V4_WRITE_MODE:-dual}
       LANGFUSE_MIGRATION_V4_NATIVE_OTEL_BEHAVIOUR: ${LANGFUSE_MIGRATION_V4_NATIVE_OTEL_BEHAVIOUR:-direct}
       NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:5006}
       # renamed host: postgres -> langfuse-postgres
