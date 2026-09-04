@@ -47,8 +47,9 @@ data/cache/
 # ── Internal working materials: kept local, never pushed to the public repo ─────
 # Slide decks, presenter script, and the submission email draft.
 deck/
-# The demo recording script stays local with the other presenter materials.
+# The demo recording script (and its generated PDF) stay local with the other presenter materials.
 docs/demo-video-flow.md
+docs/demo-video-flow.pdf
 # The full engineering decision log is internal; public docs describe decisions inline.
 docs/adr/
 # Agent/team working agreements and internal vocabulary.
