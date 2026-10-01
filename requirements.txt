@@ -1125,9 +1125,9 @@ numpy==2.5.2 ; (platform_machine == 'arm64' and sys_platform == 'darwin') or sys
     --hash=sha256:eaca7ff36f0f52e2111ec71f169d8fd3e889e7ddc0d2592e0d703fd8d3ce8fac \
     --hash=sha256:f06571a052127dc1b4e8b83029b4d1b20daa2b64a31cdd181fc6bc774e9000eb \
     --hash=sha256:fd0d703772bba096843785bd38371e31bb4a0c1151497ad5739d182114a73f7f
-oauthlib==3.3.1 ; (platform_machine == 'arm64' and sys_platform == 'darwin') or sys_platform == 'linux' \
-    --hash=sha256:0f0f8aa759826a193cf66c12ea1af1637f87b9b4622d46e866952bb022e538c9 \
-    --hash=sha256:88119c938d2b8fb88561af5f6ee0eec8cc8d552b7bb1f712743136eb7523b7a1
+oauthlib==4.0.0 ; (platform_machine == 'arm64' and sys_platform == 'darwin') or sys_platform == 'linux' \
+    --hash=sha256:624c28c13a0a59cabf9747dfa52af63be3e512a7f2714df16e91b5b3a145e6cd \
+    --hash=sha256:efb274799819440f95b4ab3b818869f1ce9ae26c5beacba0201d1a1b76b54f86
 onnxruntime==1.29.0 ; (platform_machine == 'arm64' and sys_platform == 'darwin') or sys_platform == 'linux' \
     --hash=sha256:11264bb58f7b7cf6af835ab10d36838d73680580820fd6f51d90124a1ca8f449 \
     --hash=sha256:1ea91cef3b971506e51ae9c37c16d027774ec64994a524ec1bdfb027d68a9832 \
